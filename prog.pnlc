@@ -1,0 +1,168 @@
+.\x x \id
+.\x \y x \const
+.\x \f .x f \thrush
+.\f \x \y .x .y f \flip
+.\f \g \x ..x g f \compose
+.\f .\x ..x x f \x ..x x f \fix
+
+.\x x \unit
+
+.\true \false true \true
+.\true \false false \false
+
+.\bool .true .false bool \not
+.\lhs \rhs .lhs .rhs lhs \and
+.\lhs \rhs .rhs .lhs lhs \or
+
+.\succ \zero zero \zero
+.\nat \succ \zero .nat succ \succ
+.\nat .true ..false const nat \iszero
+.\nat .zero .id nat \pred
+..\add \lhs \rhs .lhs ...lhs succ add rhs fix \add
+
+.succ \some
+.zero \none
+.iszero \isnone
+.pred \unwrap
+
+.\fst \snd \pair .snd .fst pair \pair
+.\pair .\fst \snd fst pair \fst
+.\pair .\fst \snd snd pair \snd
+
+.\cons \nil nil \nil
+.\head \tail \cons \nil .tail .head cons \cons
+.\list .true .\head \tail false list \isnil
+.\head .nil .head cons \list1
+.\list .none .\head \tail .head some list \head
+.\list .none .\head \tail .tail some list \tail
+..\foldr \func \zero \list
+  .zero
+  .\head \tail ..tail .zero .func foldr .head func
+list fix \foldr
+..\foldl \func \zero \list
+  .zero
+  .\head \tail .tail ..head .zero func .func foldl
+list fix \foldl
+..zero ..succ const foldr \len
+..nil ..cons flip foldl \rev
+..cons foldr \cat
+
+
+# `zipwith` for lists made of pairs
+  ..\zipwith \op \l1 \l2
+    .\fst1 \snd1
+      .\fst2 \snd2
+        ..snd2 .snd1 .op zipwith ..fst2 .fst1 op pair
+    l2
+  l1
+fix \zipwith
+
+# index into list made of pairs
+..\at \l \n
+  .\fst \snd .fst ..snd at n
+l fix \at
+
+# Peano numbers in Scott encoding to Church numerals
+..\s2c \nat \s \z .z .\pred ..z .s .pred s2c s nat fix \s2c
+
+#   ..\fib \n
+#     .n
+#     .\n-1
+#       .n
+#       .\n-2
+#         ..n-1 fib ..n-2 fib add
+#     n-1
+#   n
+# fix \fib
+
+# fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+  ..\fibs
+      ...fibs ..fibs snd .add zipwith
+    ..zero succ pair
+  .zero pair
+fix \fibs
+# fib n = fibs!!n
+..fibs at \fib
+
+# ......zero succ succ succ succ succ fib
+
+# # stdout = '|' * fib(len(stdin) // 8)
+#   .\stdout .cons \: .true \1 .false \0
+#     ........stdout .0 : .0 : .1 : .1 : .1 : .1 : .1 : .0 :
+# \putc_bar
+#   ..\div8 \nat
+#     .\nat .......nat pred pred pred pred pred pred pred \sub7
+# .zero ..div8 .succ compose .nat sub7 fix \div8
+# \stdin
+#   ....stdin len div8 fib
+# .\rec \result .nil ..rec .putc_bar compose result fix
+
+
+.\0 \1 \2 \3 \4 \5 \6 \7 \u8 .7 .6 .5 .4 .3 .2 .1 .0 u8 \u8
+..false .false .false .false .false .false .false .false u8 \'^@'
+..false .false .true .true .true .true .true .false u8 \'|'
+..false .true .false .true .false .false .false .false u8 \'^J'
+
+# newtype IO t = IO { runIO :: Stdin -> Stdout -> (t, Stdin, Stdout) }
+.\a \stdin \stdout \io:pure .stdout .stdin .a io:pure \io:pure
+.\a->mb \ma \stdin \stdout .a->mb .stdout .stdin ma \io:bind
+.\mb \ma \stdin \stdout ..mb const .stdout .stdin ma \io:seq
+.\mmb \stdin \stdout .id .stdout .stdin mmb \io:join
+.\a->b \ma \stdin \stdout .\a ..a a->b io:pure .stdout .stdin ma \io:fmap
+.\ma \stdin
+  .\mb \stdin \stdout .stdout .unit stdin
+.nil .stdin ma \io:main
+
+# putc :: U8 -> IO ()
+.\chr \stdin \stdout
+  ..\0 \1 \2 \3 \4 \5 \6 \7
+    .cons \: ........nil .7 : .6 : .5 : .4 : .3 : .2 : .1 : .0 :
+chr \chr ..stdout .chr cat .stdin .unit io:pure \putc
+
+# getc :: IO (Maybe U8)
+.\stdin \stdout
+..stdout .stdin .none io:pure \nochr
+  .nochr
+  .\0 \stdin
+    .nochr
+    .\1 \stdin
+      .nochr
+      .\2 \stdin
+        .nochr
+        .\3 \stdin
+          .nochr
+          .\4 \stdin
+            .nochr
+            .\5 \stdin
+              .nochr
+              .\6 \stdin
+                .nochr
+                .\7 \stdin
+                    ..7 .6 .5 .4 .3 .2 .1 .0 u8
+                  \chr .stdout .stdin ..chr some io:pure
+              stdin
+            stdin
+          stdin
+        stdin
+      stdin
+    stdin
+  stdin
+stdin \getc
+
+# ...'|' putc ..'^J' putc io:seq io:main
+
+#   ..getc
+#   .\maybec
+#     ..unit io:pure
+#     .putc
+#   maybec
+# io:bind io:main
+
+  ..\rec
+      .getc
+      .\maybec
+          ..unit io:pure
+          ..putc ..rec io:seq compose
+        maybec
+    io:bind
+fix io:main
