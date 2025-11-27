@@ -1,168 +1,464 @@
 .\x x \id
 .\x \y x \const
 .\x \f .x f \thrush
+.\x \y \f .y .x f \vireo
 .\f \x \y .x .y f \flip
 .\f \g \x ..x g f \compose
+.\f \g \x \y ..y .x g f \blackbird
 .\f .\x ..x x f \x ..x x f \fix
+.\f \x \g \y ..y g .x f \dove
 
 .\x x \unit
+.$err \void
 
+# XXX needed to define typeclasses...
 .\true \false true \true
 .\true \false false \false
+.\cons \nil nil \nil
+.\head \tail \cons \nil .tail .head cons \cons
+
+.\lt \et \gt lt \lt
+.\lt \et \gt et \et
+.\lt \et \gt gt \gt
+.\cmp .false .false .true cmp \islt
+.\cmp .false .true .false cmp \iseq
+.\cmp .true .false .false cmp \isgt
+
+.\equal \eq .equal eq \eq
+.\eq .\equal equal eq \equal
+
+.\eq \compare \ord .compare .eq ord \ord
+.\ord .\eq \compare eq ord \ord:eq
+.\ord .\eq \compare compare ord \compare
+.\ord \lhs \rhs
+  ..false .true .false .rhs .lhs .ord compare
+  eq
+\ord.eq
+.\ord \lhs \rhs .rhs .lhs .lhs .rhs .lhs .ord compare \min
+.\ord \lhs \rhs .lhs .lhs .rhs .rhs .lhs .ord compare \max
+
+.\fmap \ftor .fmap ftor \ftor
+.\ftor .\fmap fmap ftor \fmap
+.\ftor .const ..ftor fmap compose \fmapk
+
+.\ftor \pure \apply \appl .apply .pure .ftor appl \appl
+.\appl .\ftor \pure \apply ftor appl \appl:ftor
+.\appl .\ftor \pure \apply pure appl \pure
+.\appl .\ftor \pure \apply apply appl \apply
+.\appl \func \lhs \rhs
+  .rhs
+  ..lhs .func ..appl appl:ftor fmap
+  .appl apply
+\lifta2
+.\appl .thrush .appl lifta2 \rapply
+# XXX why are these so slow?
+.\appl ..const flip .appl lifta2 \bindr
+.\appl .const .appl lifta2 \bindl
+
+.\appl \bind \monad .bind .appl monad \monad
+.\monad .\appl \bind appl monad \monad:appl
+.\monad .\appl \bind bind monad \bind
+.\monad \x \f ..f const .x .monad bind \bindk
+.\monad \f \g \x .g ..x f .monad bind \kleisli
+
+.\appl \empty \alt \altn .alt .empty .appl altn \altn
+.\altn .\appl \empty \alt appl altn \altn:appl
+.\altn .\appl \empty \alt empty altn \empty
+.\altn .\appl \empty \alt alt altn \alt
+# XXX would need the fixed point in two arguments
+.\altn \val .\manyval
+  ..nil ..altn altn:appl pure
+  ..manyval .val .cons ..altn altn:appl lifta2
+  .altn alt
+fix \many
+.\altn \val
+  ..val .altn many \manyval
+  .manyval .val .cons ..altn altn:appl lifta2
+\some
 
 .\bool .true .false bool \not
 .\lhs \rhs .lhs .rhs lhs \and
 .\lhs \rhs .rhs .lhs lhs \or
+.\lhs \rhs .rhs .id .not lhs \xor
+  ..\lhs \rhs .rhs .not .id lhs
+  eq
+\bool:eq
+  ..\lhs \rhs ..et .lt rhs ..gt .et rhs lhs
+  .bool:eq
+  ord
+\bool:ord
 
-.\succ \zero zero \zero
-.\nat \succ \zero .nat succ \succ
-.\nat .true ..false const nat \iszero
-.\nat .zero .id nat \pred
+# TODO instance ord
+.\some \none none \none
+.\opt \some \none .opt some \some
+.\opt .true ..false const opt \isnone
+.\opt .$err .id opt \unwrap
+  ..\func \optarg
+    .none .\arg ..arg func some optarg
+  ftor
+\opt:ftor
+  ..\optfunc \optarg
+    .none .\func .none .\arg ..arg func some optarg optfunc
+  .some
+  .opt:ftor
+  appl
+\opt:appl
+  ..\optarg \func
+    .none .func optarg
+  .opt:appl
+  monad
+\opt:monad
+  ..\optlhs \optrhs
+    .optrhs .some optlhs
+  .none
+  .opt:appl
+  altn
+\opt:altn
+
+# TODO instance ord
+.some \succ
+.none \zero
+.isnone \iszero
+.unwrap \pred
 ..\add \lhs \rhs .lhs ...lhs succ add rhs fix \add
+..\mul \lhs \rhs .zero ...lhs mul ..lhs add compose rhs fix \mul
+.opt:ftor \nat:ftor
+.opt:appl \nat:appl
+.opt:altn \nat:altn
+.opt:monad \nat:monad
 
-.succ \some
-.zero \none
-.iszero \isnone
-.pred \unwrap
-
+# TODO instance ord
 .\fst \snd \pair .snd .fst pair \pair
 .\pair .\fst \snd fst pair \fst
 .\pair .\fst \snd snd pair \snd
+  ..\func \pairarg
+    .\fstarg \sndarg
+      ..sndarg func ..fstarg func pair
+    pairarg
+  ftor
+\pair:ftor
+  ..\pairfunc \pairarg
+    .\fstfunc \sndfunc .\fstarg \sndarg
+      ..sndarg sndfunc ..fstarg fstfunc pair
+    pairarg pairfunc
+  .\arg
+    .arg .arg pair
+  .pair:ftor
+  appl
+\pair:appl
+  ..\pairarg \func
+    .\fstarg \sndarg
+      ...sndarg func snd ...fstarg func fst pair
+    pairarg
+  .pair:appl
+  monad
+\pair:monad
+.\func \zero \pair
+  .\fst \snd .snd ..fst .zero func func pair
+\arr8.foldl # XXX foldable
+.\func \zero \pair
+  .\fst \snd ..zero .snd func .fst func pair
+\arr8.foldr # XXX foldable
 
-.\cons \nil nil \nil
-.\head \tail \cons \nil .tail .head cons \cons
+# TODO instance ord
 .\list .true .\head \tail false list \isnil
-.\head .nil .head cons \list1
 .\list .none .\head \tail .head some list \head
 .\list .none .\head \tail .tail some list \tail
-..\foldr \func \zero \list
+..\list.foldr \func \zero \list
   .zero
-  .\head \tail ..tail .zero .func foldr .head func
-list fix \foldr
-..\foldl \func \zero \list
+  .\head \tail
+    ..tail .zero .func list.foldr
+    .head
+    func
+  list
+fix \list.foldr # XXX foldable
+..\list.foldl \func \zero \list
   .zero
-  .\head \tail .tail ..head .zero func .func foldl
-list fix \foldl
-..zero ..succ const foldr \len
-..nil ..cons flip foldl \rev
-..cons foldr \cat
+  .\head \tail
+    .tail
+    ..head .zero func
+    .func
+    list.foldl
+  list
+fix \list.foldl # XXX foldable
+..zero ..succ const list.foldr \len
+..nil ..cons flip list.foldl \rev
+.\appl
+  ..nil .appl pure
+  ..cons .appl lifta2
+  list.foldr
+\list.sequence # XXX support anything `traversable`
+  ..\func
+    .nil
+    ..func .cons compose
+    list.foldr
+  ftor
+\list:ftor
+  ..\listfunc \listarg
+    .listfunc
+    .nil
+    .\func \acc
+      .listarg .acc ..func .cons compose list.foldr
+    list.foldr
+  .\arg
+    .nil .arg cons
+  .list:ftor
+  appl
+\list:appl
+  ..\listarg \func
+    .listarg
+    .nil
+    .\arg \acc
+      ..arg func .acc .cons list.foldr
+    list.foldr
+  .list:appl
+  monad
+\list:monad
+  ...cons list.foldr
+  .nil
+  .list:appl
+  altn
+\list:altn
 
+.\7 \6 \5 \4 \3 \2 \1 \0 \arr8 .0 .1 .2 .3 .4 .5 .6 .7 arr8 \arr8
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 7 arr8 \arr8.7
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 6 arr8 \arr8.6
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 5 arr8 \arr8.5
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 4 arr8 \arr8.4
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 3 arr8 \arr8.3
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 2 arr8 \arr8.2
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 1 arr8 \arr8.1
+.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 0 arr8 \arr8.0
+..false .false .false .false .false .false .false .false arr8 \'\0'
+..false .false .true  .true  .true  .true  .true  .false arr8 \'|'
+..false .true  .true  .true  .true  .true  .false .false arr8 \'>'
+..false .true  .false .true  .false .false .false .false arr8 \'\n'
+..false .false .false .false .true  .true  .false .false arr8 \'0'
+..true  .false .false .false .true  .true  .false .false arr8 \'1'
+..true  .true  .true  .true  .true  .true  .false .false arr8 \'?'
+..false .false .false .false .false .true  .false .false arr8 \'\s'
+  ..\func \arg8
+    .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
+      ..a0 func
+      ..a1 func
+      ..a2 func
+      ..a3 func
+      ..a4 func
+      ..a5 func
+      ..a6 func
+      ..a7 func
+      arr8
+    arg8
+  ftor
+\arr8:ftor
+  ..\func8 \arg8
+    .\f7 \f6 \f5 \f4 \f3 \f2 \f1 \f0
+      .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
+        ..a0 f0
+        ..a1 f1
+        ..a2 f2
+        ..a3 f3
+        ..a4 f4
+        ..a5 f5
+        ..a6 f6
+        ..a7 f7
+        arr8
+      arg8
+    func8
+  .\arg
+    .arg .arg .arg .arg .arg .arg .arg .arg arr8
+  .arr8:ftor
+  appl
+\arr8:appl
+  ..\arg8 \func
+    .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
+      ...a0 func arr8.0
+      ...a1 func arr8.1
+      ...a2 func arr8.2
+      ...a3 func arr8.3
+      ...a4 func arr8.4
+      ...a5 func arr8.5
+      ...a6 func arr8.6
+      ...a7 func arr8.7
+      arr8
+    arg8
+  .arr8:appl
+  monad
+\arr8:monad
+.\func \zero \arr8
+  .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
+    ..a0 ..a1 ..a2 ..a3 ..a4 ..a5 ..a6 ..a7 .zero
+    func func func func func func func func id
+  arr8
+\arr8.foldl # XXX foldable
+.\func \zero \arr8
+  .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
+    ........zero
+    .a0 func
+    .a1 func
+    .a2 func
+    .a3 func
+    .a4 func
+    .a5 func
+    .a6 func
+    .a7 func
+  arr8
+\arr8.foldr # XXX foldable
+.\appl
+  ..arr8 .appl pure
+  ..appl apply
+  arr8.foldl
+\arr8.sequence # XXX support anything `traversable`
+.\elem:eq
+  ....elem:eq equal .arr8:appl lifta2
+  ..true .and arr8.foldr
+  blackbird
+  eq
+\arr8:eq # XXX support anything `foldable`
+.\elem:ord
+  ....elem:ord compare .arr8:appl lifta2
+  ..et .\cur \acc .cur .acc .cur cur arr8.foldr
+  blackbird
+  .arr8:eq
+  ord
+\arr8:ord # XXX support anything `foldable`
 
-# `zipwith` for lists made of pairs
-  ..\zipwith \op \l1 \l2
-    .\fst1 \snd1
-      .\fst2 \snd2
-        ..snd2 .snd1 .op zipwith ..fst2 .fst1 op pair
-    l2
-  l1
-fix \zipwith
+# an `IO a` is a function that takes a continuation and returns "$" functions
+# wrapping the application of the continuation to a value of type `a`
+  ..\func \ioarg
+    \cont .\arg ..arg func cont ioarg
+  ftor
+\io:ftor
+  ..\iofunc \ioarg
+    \cont .\func .\arg ..arg func cont ioarg iofunc
+  .\arg
+    \cont .arg cont
+  .io:ftor
+  appl
+\io:appl
+  ..\ioarg \func
+    \cont .\arg .cont .arg func ioarg
+  .io:appl
+  monad
+\io:monad
+# "$" functions like `$put` expect a continuation that takes no arguments, so
+# we make wrappers of type `IO ()` that expect continuations that take a `unit`.
+# similarly, the top-level term gets called with a continuation that expects no
+# arguments, so we define a function `main` that takes an `IO ()` and throws
+# away the `unit` instead of giving it to the continuation.
+.\iounit \cont .\unit cont iounit \main
+.\bit \cont ..unit cont .bit $put \put
+.\term \cont ..unit cont .term $err \err
+.$get \get
+  ...put .arr8:ftor fmap
+  ..io:appl arr8.sequence
+  compose
+\putc
+  ...putc .list:ftor fmap
+  ..io:appl list.sequence
+  compose
+\puts
+    ....get .arr8:appl pure
+    .io:appl arr8.sequence
+  ..opt:appl arr8.sequence
+  .io:ftor fmap
+\getc
+..\getln
+  .\opt
+    ..nil .io:appl pure
+    .\chr
+      ..getln
+      ..nil .io:appl pure
+      .chr .'\n' ..bool:eq arr8:eq equal
+      ..chr cons
+      .io:ftor fmap
+    opt
+  .getc
+  .io:monad bind
+fix \getln
 
-# index into list made of pairs
-..\at \l \n
-  .\fst \snd .fst ..snd at n
-l fix \at
+# ...$err const .get .io:monad bind main
+# ...$err const .getc .io:monad bind main
+# ..$err .get .io:monad bind main
+# ..$err .getc .io:monad bind main
+# ...$err const .put .io:monad bind main
+# ...$err const .putc .io:monad bind main
+# ..$err put main
+# ..$err putc main
+# ..true put main
+# ..'|' putc main
+# .get main
+# .getc main
 
-# Peano numbers in Scott encoding to Church numerals
-..\s2c \nat \s \z .z .\pred ..z .s .pred s2c s nat fix \s2c
+# # bit-level `cat`
+# ..\main
+#   .\opt
+#     ..unit .io:appl pure
+#     .\chr .main ..chr put .io:monad bindk
+#     opt
+#   .get
+#   .io:monad bind
+# fix main
 
-#   ..\fib \n
-#     .n
-#     .\n-1
-#       .n
-#       .\n-2
-#         ..n-1 fib ..n-2 fib add
-#     n-1
-#   n
-# fix \fib
+# # chr-level `cat`
+# ..\main
+#   .\opt
+#     ..unit .io:appl pure
+#     .\chr .main ..chr putc .io:monad bindk
+#     opt
+#   .getc
+#   .io:monad bind
+# fix main
 
-# fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
-  ..\fibs
-      ...fibs ..fibs snd .add zipwith
-    ..zero succ pair
-  .zero pair
-fix \fibs
-# fib n = fibs!!n
-..fibs at \fib
+# # putc(getc())
+# ..\opt
+#   ..unit .io:appl pure
+#   .putc
+#   opt
+# .getc
+# .io:monad bind
+# main
 
-# ......zero succ succ succ succ succ fib
+# # truth machine
+# ..\opt
+#   ..'0' putc
+#   .\chr
+#     ..'0' putc
+#     ....'1' putc .io:monad bindk fix
+#     .chr .'1' ..bool:eq arr8:eq equal
+#   opt
+# .getc
+# .io:monad bind
+# main
 
-# # stdout = '|' * fib(len(stdin) // 8)
-#   .\stdout .cons \: .true \1 .false \0
-#     ........stdout .0 : .0 : .1 : .1 : .1 : .1 : .1 : .0 :
-# \putc_bar
-#   ..\div8 \nat
-#     .\nat .......nat pred pred pred pred pred pred pred \sub7
-# .zero ..div8 .succ compose .nat sub7 fix \div8
-# \stdin
-#   ....stdin len div8 fib
-# .\rec \result .nil ..rec .putc_bar compose result fix
+# # parrot line
+#   ...nil
+#   .'\s' cons
+#   .'?' cons
+# \"?\s"
+#   ...nil
+#   .'\s' cons
+#   .'>' cons
+# \">\s"
+# ..\main
+#   ..\str
+#     ..main
+#     ..str puts
+#     .io:monad bindk
+#     ..">\s" puts
+#     .io:monad bindk
+#   .getln
+#   .io:monad bind
+#   .."?\s" puts
+#   .io:monad bindk
+# fix main
 
-
-.\0 \1 \2 \3 \4 \5 \6 \7 \u8 .7 .6 .5 .4 .3 .2 .1 .0 u8 \u8
-..false .false .false .false .false .false .false .false u8 \'^@'
-..false .false .true .true .true .true .true .false u8 \'|'
-..false .true .false .true .false .false .false .false u8 \'^J'
-
-# newtype IO t = IO { runIO :: Stdin -> Stdout -> (t, Stdin, Stdout) }
-.\a \stdin \stdout \io:pure .stdout .stdin .a io:pure \io:pure
-.\a->mb \ma \stdin \stdout .a->mb .stdout .stdin ma \io:bind
-.\mb \ma \stdin \stdout ..mb const .stdout .stdin ma \io:seq
-.\mmb \stdin \stdout .id .stdout .stdin mmb \io:join
-.\a->b \ma \stdin \stdout .\a ..a a->b io:pure .stdout .stdin ma \io:fmap
-.\ma \stdin
-  .\mb \stdin \stdout .stdout .unit stdin
-.nil .stdin ma \io:main
-
-# putc :: U8 -> IO ()
-.\chr \stdin \stdout
-  ..\0 \1 \2 \3 \4 \5 \6 \7
-    .cons \: ........nil .7 : .6 : .5 : .4 : .3 : .2 : .1 : .0 :
-chr \chr ..stdout .chr cat .stdin .unit io:pure \putc
-
-# getc :: IO (Maybe U8)
-.\stdin \stdout
-..stdout .stdin .none io:pure \nochr
-  .nochr
-  .\0 \stdin
-    .nochr
-    .\1 \stdin
-      .nochr
-      .\2 \stdin
-        .nochr
-        .\3 \stdin
-          .nochr
-          .\4 \stdin
-            .nochr
-            .\5 \stdin
-              .nochr
-              .\6 \stdin
-                .nochr
-                .\7 \stdin
-                    ..7 .6 .5 .4 .3 .2 .1 .0 u8
-                  \chr .stdout .stdin ..chr some io:pure
-              stdin
-            stdin
-          stdin
-        stdin
-      stdin
-    stdin
-  stdin
-stdin \getc
-
-# ...'|' putc ..'^J' putc io:seq io:main
-
-#   ..getc
-#   .\maybec
-#     ..unit io:pure
-#     .putc
-#   maybec
-# io:bind io:main
-
-  ..\rec
-      .getc
-      .\maybec
-          ..unit io:pure
-          ..putc ..rec io:seq compose
-        maybec
-    io:bind
-fix io:main
+# reverse
+..\main
+  .\str
+    .main
+    ......str .'\n' cons rev tail unwrap puts
+    .io:monad bindk
+  .getln
+  .io:monad bind
+fix main

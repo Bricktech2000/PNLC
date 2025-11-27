@@ -5,12 +5,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+char *ios[] = {"", "err", "get", "put", "dbg", NULL};
+enum {
+  IO_END,
+  IO_ERR,
+  IO_GET,
+  IO_PUT,
+  IO_DBG,
+};
+
+#define MK_IO(IO) (&(struct term){.lhs = NULL, {.idx = ~(IO)}})
 #define MK_VAR(IDX) (&(struct term){.lhs = NULL, {.idx = IDX}})
 #define MK_LAM(LHS) (&(struct term){.lhs = LHS, {.rhs = NULL}})
 #define MK_APP(LHS, RHS) (&(struct term){.lhs = LHS, {.rhs = RHS}})
-#define IS_VAR(TERM) !(TERM)->lhs
+#define IS_IO(TERM) (!(TERM)->lhs && (TERM)->u.idx < 0)
+#define IS_VAR(TERM) (!(TERM)->lhs && (TERM)->u.idx >= 0)
 #define IS_LAM(TERM) ((TERM)->lhs && !(TERM)->u.rhs)
 #define IS_APP(TERM) ((TERM)->lhs && (TERM)->u.rhs)
+#define IO_TYP(TERM) ~(TERM)->u.idx
 
 struct term {
   struct term *lhs;
@@ -37,9 +49,11 @@ struct term *term_dump(struct term *term) {
   if (IS_APP(term))
     putchar('.'), term_dump(term->u.rhs), term_dump(term->lhs);
   if (IS_LAM(term))
-    putchar('\\'), term_dump(term->lhs);
+    putchar('\\'), putchar(' '), term_dump(term->lhs);
   if (IS_VAR(term))
-    putchar('0' + term->u.idx);
+    printf("%d ", term->u.idx);
+  if (IS_IO(term))
+    printf("$%s ", ios[IO_TYP(term)]);
   return term;
 }
 
@@ -84,8 +98,8 @@ void whnf(struct term **term) {
   beta(&body, (*term)->u.rhs, 0, &copies);
   if (copies == 0)
     term_free((*term)->u.rhs);
-  free((*term)->lhs), free(*term);
-  whnf(&body), *term = body;
+  free((*term)->lhs), free(*term), *term = body;
+  whnf(term);
 }
 
 void norm(struct term **term) {
@@ -96,46 +110,74 @@ void norm(struct term **term) {
     norm(&(*term)->lhs);
 }
 
-bool run(struct term *term, FILE *stdin_fp, FILE *stdout_fp) {
-  // stdin and stdout are scott-encoded lists of bits, most significant first
+// bit stream
+struct bs {
+  FILE *fp;
+  int n;
+  int c;
+};
 
-  struct term *prog_stdin = NULL, **tail = &prog_stdin;
-  for (char c; (c = fgetc(stdin_fp)) != EOF;) {
-    for (int i = 0; i < CHAR_BIT; i++) {
-      struct term *bit = MK_LAM(MK_LAM(MK_VAR(c >> CHAR_BIT - 1 - i & 1)));
-      *tail = term_clone(*MK_LAM(MK_LAM(MK_APP(MK_APP(MK_VAR(1), bit), NULL))));
-      tail = &(*tail)->lhs->lhs->u.rhs; // pointer to the `NULL` above
+bool bs_eof(struct bs *bs) { return bs->c == EOF; }
+
+bool bs_get(struct bs *bs) {
+  if (bs->n == 0)
+    bs->n = CHAR_BIT, bs->c = fgetc(bs->fp);
+  return bs->c & 1 << --bs->n;
+}
+
+void bs_put(struct bs *bs, bool bit) {
+  bs->c <<= 1, bs->c |= bit;
+  if (++bs->n == CHAR_BIT)
+    bs->n = 0, fputc(bs->c, bs->fp);
+}
+
+char *run(struct term **term, struct bs *bs_in, struct bs *bs_out) {
+  *term = term_alloc(*MK_APP(*term, term_alloc(*MK_IO(IO_END))));
+
+  while (1) {
+    whnf(term);
+    int args = 0;
+    struct term *io = *term;
+    while (IS_APP(io))
+      io = io->lhs, args++;
+    if (!IS_IO(io))
+      return "top-level term is not io";
+
+    if (IO_TYP(io) == IO_ERR) {
+      return "top-level term is err";
     }
-  }
-  *tail = term_clone(*MK_LAM(MK_LAM(MK_VAR(0)))); // nil
-
-  struct term *prog_stdout = term_alloc(*MK_APP(term, prog_stdin));
-  norm(&prog_stdout), tail = &prog_stdout;
-
-  for (char c; c = 0, true; fputc(c, stdout_fp)) {
-    for (int i = 0; i < CHAR_BIT; i++) {
-      struct term *t = *tail;
-      if (IS_LAM(t) && (t = t->lhs))
-        if (IS_LAM(t) && (t = t->lhs))
-          if (IS_VAR(t) && t->u.idx == 0 && i == 0)
-            goto brk; // nil
-          else if (IS_APP(t) && (tail = &t->u.rhs, t = t->lhs))
-            if (IS_APP(t) && IS_VAR(t->lhs) && t->lhs->u.idx == 1 &&
-                (t = t->u.rhs))
-              if (IS_LAM(t) && (t = t->lhs))
-                if (IS_LAM(t) && (t = t->lhs))
-                  if (IS_VAR(t) && t->u.idx == 0 || t->u.idx == 1) {
-                    c <<= 1, c |= t->u.idx;
-                    continue;
-                  }
-      term_free(prog_stdout);
-      return false; // stdout malformed
+    if (IO_TYP(io) == IO_END && args == 0) {
+      free(*term), *term = NULL;
+      return NULL;
     }
-  }
-brk:
+    if (IO_TYP(io) == IO_DBG && args == 2) {
+      norm(&(*term)->lhs->u.rhs);
+      term_dump((*term)->lhs->u.rhs), putchar('\n');
+      goto hoist;
+    }
+    if (IO_TYP(io) == IO_GET && args == 1) {
+      bool bit = bs_get(bs_in), eof = bs_eof(bs_in);
+      struct term *arg = term_clone(*MK_LAM(MK_LAM(
+          eof ? MK_VAR(0) : MK_APP(MK_VAR(1), MK_LAM(MK_LAM(MK_VAR(bit)))))));
+      (*term)->u.rhs = term_alloc(*MK_APP((*term)->u.rhs, arg));
+      goto hoist;
+    }
+    if (IO_TYP(io) == IO_PUT && args == 2) {
+      norm(&(*term)->lhs->u.rhs);
+      struct term *arg = ((*term)->lhs->u.rhs);
+      if (!IS_LAM(arg) || !IS_LAM(arg->lhs) || !IS_VAR(arg->lhs->lhs))
+        return IS_IO(arg) && IO_TYP(arg) == IO_ERR ? "io argument is err"
+                                                   : "io argument is malformed";
+      bs_put(bs_out, (*term)->lhs->u.rhs->lhs->lhs->u.idx);
+      goto hoist;
+    }
 
-  term_free(prog_stdout);
-  return true;
+    return "io has wrong argument count";
+
+  hoist:;
+    struct term *cont = (*term)->u.rhs;
+    term_free((*term)->lhs), free(*term), *term = cont;
+  }
 }
 
 struct env {
@@ -212,7 +254,19 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
 
     return term_alloc(*MK_LAM(lhs));
   }
-  default:
+  case '$': {
+    char *var = parse_var(prog, error);
+    if (*error)
+      return NULL;
+
+    for (char **io = ios; *io; io++)
+      if (strncmp(var, *io, *prog - var) == 0)
+        return term_alloc(*MK_IO(io - ios));
+
+    *error = "unknown io", *prog = var;
+    return NULL;
+  }
+  default: {
     --*prog;
     char *var = parse_var(prog, error);
     if (*error)
@@ -226,6 +280,7 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
 
     *error = "unbound variable", *prog = var;
     return NULL;
+  }
   }
 }
 
@@ -247,10 +302,19 @@ struct term *parse(char **prog, char **error) {
 }
 
 int main(int argc, char **argv) {
-  // XXX hacky
-  static char prog[65536] = {0};
+  if (argc != 2)
+    fputs("usage: pnlc <program>\n", stderr), exit(EXIT_FAILURE);
+
+  static char prog[1 << 16] = {0};
   FILE *fp = fopen(argv[1], "r");
-  fread(prog, 1, sizeof(prog), fp);
+  if (fp == NULL)
+    perror("fopen"), exit(EXIT_FAILURE);
+  size_t size = fread(prog, 1, sizeof(prog), fp);
+  if (ferror(fp))
+    perror("fread"), exit(EXIT_FAILURE);
+  if (!feof(fp))
+    fputs("program buffer exhausted\n", stderr), exit(EXIT_FAILURE);
+  prog[size] = '\0';
 
   char *error = NULL, *loc = prog;
   struct term *term = parse(&loc, &error);
@@ -258,6 +322,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "parse error: %s near '%.16s'\n", error, loc),
         exit(EXIT_FAILURE);
 
-  if (run(term, stdin, stdout) == false)
-    fprintf(stderr, "stdout malformed\n"), exit(EXIT_FAILURE);
+  if (error = run(&term, &(struct bs){stdin}, &(struct bs){stdout}))
+    term_free(term), fprintf(stderr, "runtime error: %s\n", error),
+        exit(EXIT_FAILURE);
 }
