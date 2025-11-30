@@ -122,13 +122,13 @@ bool bs_eof(struct bs *bs) { return bs->c == EOF; }
 bool bs_get(struct bs *bs) {
   if (bs->n == 0)
     bs->n = CHAR_BIT, bs->c = fgetc(bs->fp);
-  return bs->c & 1 << --bs->n;
+  return bs->c >> CHAR_BIT - bs->n-- & 1;
 }
 
 void bs_put(struct bs *bs, bool bit) {
-  bs->c <<= 1, bs->c |= bit;
-  if (++bs->n == CHAR_BIT)
-    bs->n = 0, fputc(bs->c, bs->fp);
+  bs->c |= bit << bs->n++;
+  if (bs->n == CHAR_BIT)
+    bs->n = 0, fputc(bs->c, bs->fp), bs->c = 0;
 }
 
 char *run(struct term **term, struct bs *bs_in, struct bs *bs_out) {

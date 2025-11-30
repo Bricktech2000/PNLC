@@ -11,11 +11,39 @@
 .\x x \unit
 .$err \void
 
-# XXX needed to define typeclasses...
+
 .\true \false true \true
 .\true \false false \false
-.\cons \nil nil \nil
+.\bool .true .false bool \not
+.\rhs \lhs .rhs .lhs rhs \and
+.\rhs \lhs .lhs .rhs rhs \or
+.\rhs \lhs .lhs .id .not rhs \xor
+
+.\opt \some \none .opt some \some
+.\some \none none \none
+.\opt .true ..false const opt \isnone
+.\opt .$err .id opt \unwrap
+
+.\fst \snd \pair .snd .fst pair \pair
+.\pair .\fst \snd fst pair \fst
+.\pair .\fst \snd snd pair \snd
+
 .\head \tail \cons \nil .tail .head cons \cons
+.\cons \nil nil \nil
+.\list .true .\head \tail false list \isnil
+.\list .none .\head \tail .head some list \head
+.\list .none .\head \tail .tail some list \tail
+
+.\0 \1 \2 \3 \4 \5 \6 \7 \arr8 .7 .6 .5 .4 .3 .2 .1 .0 arr8 \arr8
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 0 arr8 \arr8.0
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 1 arr8 \arr8.1
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 2 arr8 \arr8.2
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 3 arr8 \arr8.3
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 4 arr8 \arr8.4
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 5 arr8 \arr8.5
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 6 arr8 \arr8.6
+.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 7 arr8 \arr8.7
+
 
 .\lt \et \gt lt \lt
 .\lt \et \gt et \et
@@ -30,12 +58,12 @@
 .\eq \compare \ord .compare .eq ord \ord
 .\ord .\eq \compare eq ord \ord:eq
 .\ord .\eq \compare compare ord \compare
-.\ord \lhs \rhs
-  ..false .true .false .rhs .lhs .ord compare
+.\ord \rhs \lhs
+  ..false .true .false .lhs .rhs .ord compare
   eq
 \ord.eq
-.\ord \lhs \rhs .rhs .lhs .lhs .rhs .lhs .ord compare \min
-.\ord \lhs \rhs .lhs .lhs .rhs .rhs .lhs .ord compare \max
+.\ord \rhs \lhs .lhs .lhs .rhs .lhs .rhs .ord compare \min
+.\ord \rhs \lhs .rhs .lhs .lhs .lhs .rhs .ord compare \max
 
 .\fmap \ftor .fmap ftor \ftor
 .\ftor .\fmap fmap ftor \fmap
@@ -45,15 +73,22 @@
 .\appl .\ftor \pure \apply ftor appl \appl:ftor
 .\appl .\ftor \pure \apply pure appl \pure
 .\appl .\ftor \pure \apply apply appl \apply
-.\appl \func \lhs \rhs
-  .rhs
-  ..lhs .func ..appl appl:ftor fmap
+.\appl \func \fst \snd
+  .snd
+  ..fst .func ..appl appl:ftor fmap
   .appl apply
 \lifta2
 .\appl .thrush .appl lifta2 \rapply
 # XXX why are these so slow?
 .\appl ..const flip .appl lifta2 \bindr
 .\appl .const .appl lifta2 \bindl
+.\appl \left \right \inner
+  ..right
+  .inner
+  .appl bindl
+  .left
+  .appl bindr
+\between
 
 .\appl \bind \monad .bind .appl monad \monad
 .\monad .\appl \bind appl monad \monad:appl
@@ -74,42 +109,43 @@ fix \many
 .\altn \val
   ..val .altn many \manyval
   .manyval .val .cons ..altn altn:appl lifta2
-\some
+\many1
+.\altn \sep \elem
+  ...elem .sep ..altn altn:appl bindr .altn many
+  .elem
+  .cons ..altn altn:appl lifta2
+\sepby1
+.\altn \sep \elem
+  ..nil ..altn altn:appl pure
+  ..elem .sep .altn sepby1
+  .altn alt
+\sepby
 
-.\bool .true .false bool \not
-.\lhs \rhs .lhs .rhs lhs \and
-.\lhs \rhs .rhs .lhs lhs \or
-.\lhs \rhs .rhs .id .not lhs \xor
-  ..\lhs \rhs .rhs .not .id lhs
+
+  ..\rhs \lhs .lhs .not .id rhs
   eq
 \bool:eq
-  ..\lhs \rhs ..et .lt rhs ..gt .et rhs lhs
+  ..\rhs \lhs ..et .gt lhs ..lt .et lhs rhs
   .bool:eq
   ord
 \bool:ord
 
 # TODO instance ord
-.\some \none none \none
-.\opt \some \none .opt some \some
-.\opt .true ..false const opt \isnone
-.\opt .$err .id opt \unwrap
   ..\func \optarg
     .none .\arg ..arg func some optarg
   ftor
 \opt:ftor
   ..\optfunc \optarg
-    .none .\func .none .\arg ..arg func some optarg optfunc
+    .none .\func .optarg .func .opt:ftor fmap optfunc
   .some
   .opt:ftor
   appl
 \opt:appl
-  ..\optarg \func
-    .none .func optarg
+  ..\optarg \func .none .func optarg
   .opt:appl
   monad
 \opt:monad
-  ..\optlhs \optrhs
-    .optrhs .some optlhs
+  ..\optrhs \optlhs .optlhs .some optrhs
   .none
   .opt:appl
   altn
@@ -120,17 +156,14 @@ fix \many
 .none \zero
 .isnone \iszero
 .unwrap \pred
-..\add \lhs \rhs .lhs ...lhs succ add rhs fix \add
-..\mul \lhs \rhs .zero ...lhs mul ..lhs add compose rhs fix \mul
+..\add \rhs \lhs .lhs ...lhs succ add rhs fix \add
+..\mul \rhs \lhs .zero ...lhs mul ..lhs add compose rhs fix \mul
 .opt:ftor \nat:ftor
 .opt:appl \nat:appl
 .opt:altn \nat:altn
 .opt:monad \nat:monad
 
 # TODO instance ord
-.\fst \snd \pair .snd .fst pair \pair
-.\pair .\fst \snd fst pair \fst
-.\pair .\fst \snd snd pair \snd
   ..\func \pairarg
     .\fstarg \sndarg
       ..sndarg func ..fstarg func pair
@@ -141,8 +174,7 @@ fix \many
     .\fstfunc \sndfunc .\fstarg \sndarg
       ..sndarg sndfunc ..fstarg fstfunc pair
     pairarg pairfunc
-  .\arg
-    .arg .arg pair
+  .\arg .arg .arg pair
   .pair:ftor
   appl
 \pair:appl
@@ -155,23 +187,17 @@ fix \many
 \pair:monad
 .\func \zero \pair
   .\fst \snd .snd ..fst .zero func func pair
-\arr8.foldl # XXX foldable
+\pair.foldl # XXX foldable
 .\func \zero \pair
   .\fst \snd ..zero .snd func .fst func pair
-\arr8.foldr # XXX foldable
+\pair.foldr # XXX foldable
+.\elem:appl
+  ..pair .elem:appl pure
+  ..appl apply
+  pair.foldl
+\pair.sequence
 
 # TODO instance ord
-.\list .true .\head \tail false list \isnil
-.\list .none .\head \tail .head some list \head
-.\list .none .\head \tail .tail some list \tail
-..\list.foldr \func \zero \list
-  .zero
-  .\head \tail
-    ..tail .zero .func list.foldr
-    .head
-    func
-  list
-fix \list.foldr # XXX foldable
 ..\list.foldl \func \zero \list
   .zero
   .\head \tail
@@ -181,11 +207,19 @@ fix \list.foldr # XXX foldable
     list.foldl
   list
 fix \list.foldl # XXX foldable
+..\list.foldr \func \zero \list
+  .zero
+  .\head \tail
+    ..tail .zero .func list.foldr
+    .head
+    func
+  list
+fix \list.foldr # XXX foldable
 ..zero ..succ const list.foldr \len
-..nil ..cons flip list.foldl \rev
-.\appl
-  ..nil .appl pure
-  ..cons .appl lifta2
+..nil ..cons flip list.foldl \list.reverse
+.\elem:appl
+  ..nil .elem:appl pure
+  ..cons .elem:appl lifta2
   list.foldr
 \list.sequence # XXX support anything `traversable`
   ..\func
@@ -200,8 +234,7 @@ fix \list.foldl # XXX foldable
     .\func \acc
       .listarg .acc ..func .cons compose list.foldr
     list.foldr
-  .\arg
-    .nil .arg cons
+  .\arg .nil .arg cons
   .list:ftor
   appl
 \list:appl
@@ -220,48 +253,31 @@ fix \list.foldl # XXX foldable
   altn
 \list:altn
 
-.\7 \6 \5 \4 \3 \2 \1 \0 \arr8 .0 .1 .2 .3 .4 .5 .6 .7 arr8 \arr8
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 7 arr8 \arr8.7
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 6 arr8 \arr8.6
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 5 arr8 \arr8.5
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 4 arr8 \arr8.4
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 3 arr8 \arr8.3
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 2 arr8 \arr8.2
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 1 arr8 \arr8.1
-.\arr8 .\7 \6 \5 \4 \3 \2 \1 \0 0 arr8 \arr8.0
-..false .false .false .false .false .false .false .false arr8 \'\0'
-..false .false .true  .true  .true  .true  .true  .false arr8 \'|'
-..false .true  .true  .true  .true  .true  .false .false arr8 \'>'
-..false .true  .false .true  .false .false .false .false arr8 \'\n'
-..false .false .false .false .true  .true  .false .false arr8 \'0'
-..true  .false .false .false .true  .true  .false .false arr8 \'1'
-..true  .true  .true  .true  .true  .true  .false .false arr8 \'?'
-..false .false .false .false .false .true  .false .false arr8 \'\s'
   ..\func \arg8
-    .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
-      ..a0 func
-      ..a1 func
-      ..a2 func
-      ..a3 func
-      ..a4 func
-      ..a5 func
-      ..a6 func
+    .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ..a7 func
+      ..a6 func
+      ..a5 func
+      ..a4 func
+      ..a3 func
+      ..a2 func
+      ..a1 func
+      ..a0 func
       arr8
     arg8
   ftor
 \arr8:ftor
   ..\func8 \arg8
-    .\f7 \f6 \f5 \f4 \f3 \f2 \f1 \f0
-      .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
-        ..a0 f0
-        ..a1 f1
-        ..a2 f2
-        ..a3 f3
-        ..a4 f4
-        ..a5 f5
-        ..a6 f6
+    .\f0 \f1 \f2 \f3 \f4 \f5 \f6 \f7
+      .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
         ..a7 f7
+        ..a6 f6
+        ..a5 f5
+        ..a4 f4
+        ..a3 f3
+        ..a2 f2
+        ..a1 f1
+        ..a0 f0
         arr8
       arg8
     func8
@@ -271,42 +287,43 @@ fix \list.foldl # XXX foldable
   appl
 \arr8:appl
   ..\arg8 \func
-    .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
-      ...a0 func arr8.0
-      ...a1 func arr8.1
-      ...a2 func arr8.2
-      ...a3 func arr8.3
-      ...a4 func arr8.4
-      ...a5 func arr8.5
-      ...a6 func arr8.6
+    .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ...a7 func arr8.7
+      ...a6 func arr8.6
+      ...a5 func arr8.5
+      ...a4 func arr8.4
+      ...a3 func arr8.3
+      ...a2 func arr8.2
+      ...a1 func arr8.1
+      ...a0 func arr8.0
       arr8
     arg8
   .arr8:appl
   monad
 \arr8:monad
 .\func \zero \arr8
-  .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
-    ..a0 ..a1 ..a2 ..a3 ..a4 ..a5 ..a6 ..a7 .zero
+  .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    ..a7 ..a6 ..a5 ..a4 ..a3 ..a2 ..a1 ..a0 .zero
     func func func func func func func func id
   arr8
 \arr8.foldl # XXX foldable
 .\func \zero \arr8
-  .\a7 \a6 \a5 \a4 \a3 \a2 \a1 \a0
+  .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     ........zero
-    .a0 func
-    .a1 func
-    .a2 func
-    .a3 func
-    .a4 func
-    .a5 func
-    .a6 func
     .a7 func
+    .a6 func
+    .a5 func
+    .a4 func
+    .a3 func
+    .a2 func
+    .a1 func
+    .a0 func
   arr8
 \arr8.foldr # XXX foldable
-.\appl
-  ..arr8 .appl pure
-  ..appl apply
+..arr8 .thrush arr8.foldr \arr8.reverse
+.\elem:appl
+  ..arr8 .elem:appl pure
+  ..elem:appl apply
   arr8.foldl
 \arr8.sequence # XXX support anything `traversable`
 .\elem:eq
@@ -317,11 +334,80 @@ fix \list.foldl # XXX foldable
 \arr8:eq # XXX support anything `foldable`
 .\elem:ord
   ....elem:ord compare .arr8:appl lifta2
-  ..et .\cur \acc .cur .acc .cur cur arr8.foldr
+  ..et .\cur \acc .acc .cur .acc acc arr8.foldr
   blackbird
   .arr8:eq
   ord
 \arr8:ord # XXX support anything `foldable`
+
+# type U8 = (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+..false .false .false .false .false .false .false .false arr8 \'\0'u8
+..false .true  .true  .true  .true  .true  .false .false arr8 \'|'u8
+..false .false .true  .true  .true  .true  .true  .false arr8 \'>'u8
+..false .false .false .false .true  .true  .false .true  arr8 \'\r'u8
+..false .false .false .false .true  .false .true  .false arr8 \'\n'u8
+..false .false .true  .true  .false .false .false .false arr8 \'0'u8
+..false .false .true  .true  .false .false .false .true  arr8 \'1'u8
+..false .true  .true  .false .false .false .false .true  arr8 \'a'u8
+..false .true  .false .false .false .false .false .true  arr8 \'A'u8
+..false .false .true  .true  .true  .true  .true  .true  arr8 \'?'u8
+..false .false .true  .false .false .false .false .false arr8 \'\s'u8
+.\c \rhs \lhs
+  # ...lhs .rhs pair .arr8:appl pair.sequence # works too
+  ..lhs .rhs .pair .arr8:appl lifta2
+  ..arr8 .c pair
+  .\acc \cur
+    .\rhs \lhs
+      .\c \arr8
+        ....lhs .rhs xor .c xor arr8
+        ...lhs .rhs and ...lhs .rhs xor .c and or
+        pair
+      acc
+    cur
+  arr8.foldl
+\u8.addc
+.\b \rhs \lhs
+  # ...lhs .rhs pair .arr8:appl pair.sequence # works too
+  ..lhs .rhs .pair .arr8:appl lifta2
+  ..arr8 .b pair
+  .\acc \cur
+    .\rhs \lhs
+      .\b \arr8
+        ....lhs .rhs xor .b xor arr8
+        ....lhs not .rhs and ....lhs not .rhs xor .b and or
+        pair
+      acc
+    cur
+  arr8.foldl
+\u8.subb
+.\c \arg
+  .arg
+  ..arr8 .c pair
+  .\acc \cur
+    .\c \arr8
+      ...cur .c xor arr8
+      ..cur .c and
+      pair
+    acc
+  arr8.foldl
+\u8.incc
+.\b \arg
+  .arg
+  ..arr8 .b pair
+  .\acc \cur
+    .\b \arr8
+      ...cur .b xor arr8
+      ...cur not .b and
+      pair
+    acc
+  arr8.foldl
+\u8.decb
+...false u8.addc .snd blackbird \u8.add
+...false u8.subb .snd blackbird \u8.sub
+...true u8.incc .snd compose \u8.inc
+...true u8.decb .snd compose \u8.dec
+..bool:eq arr8:eq \u8:eq
+..bool:ord arr8:ord \u8:ord
 
 # an `IO a` is a function that takes a continuation and returns "$" functions
 # wrapping the application of the continuation to a value of type `a`
@@ -330,7 +416,7 @@ fix \list.foldl # XXX foldable
   ftor
 \io:ftor
   ..\iofunc \ioarg
-    \cont .\func .\arg ..arg func cont ioarg iofunc
+    \cont .\func .cont .ioarg .func .io:ftor fmap iofunc
   .\arg
     \cont .arg cont
   .io:ftor
@@ -348,7 +434,7 @@ fix \list.foldl # XXX foldable
 # away the `unit` instead of giving it to the continuation.
 .\iounit \cont .\unit cont iounit \main
 .\bit \cont ..unit cont .bit $put \put
-.\term \cont ..unit cont .term $err \err
+.\term \cont ..unit cont .term $dbg \dbg
 .$get \get
   ...put .arr8:ftor fmap
   ..io:appl arr8.sequence
@@ -369,13 +455,66 @@ fix \list.foldl # XXX foldable
     .\chr
       ..getln
       ..nil .io:appl pure
-      .chr .'\n' ..bool:eq arr8:eq equal
+      .chr .'\n'u8 .u8:eq equal
       ..chr cons
       .io:ftor fmap
     opt
   .getc
   .io:monad bind
 fix \getln
+
+# type Parser a = String -> Maybe (a, String)
+  ..\func \parserarg
+    \inp
+      ..inp parserarg
+      .\pairarg ..func .pair compose pairarg
+      .opt:ftor fmap
+  ftor
+\parser:ftor
+  ..\parserfunc \parserarg
+    \inp
+      ..inp parserfunc
+      .\pairfunc .\func .parserarg .func .parser:ftor fmap pairfunc
+      .opt:monad bind
+  .\arg
+    \inp .arg some
+  .parser:ftor
+  appl
+\parser:appl
+  ..\parserarg \func
+    \inp
+      ..inp parserarg
+      .\pairarg .func pairarg
+      .opt:monad bind
+  .parser:appl
+  monad
+\parser:monad
+  ..\parserrhs \parserlhs
+    \inp ..inp parserlhs ..inp parserrhs .opt:altn alt
+  .\inp none
+  .parser:appl
+  altn
+\parser:altn
+.\pred \inp
+  .none
+  .\head \tail
+    .none
+    ...tail .head pair some
+    .head pred
+  inp
+\satp
+.\inp
+  ...nil .unit pair some
+  .\head \tail none
+  inp
+\eofp
+.\chr
+  ..chr .u8:eq equal satp
+\chrp
+.\str
+  ..str .chrp .list:ftor fmap
+  .parser:appl list.sequence
+\strp
 
 # ...$err const .get .io:monad bind main
 # ...$err const .getc .io:monad bind main
@@ -386,9 +525,18 @@ fix \getln
 # ..$err put main
 # ..$err putc main
 # ..true put main
-# ..'|' putc main
+# ..'|'u8 putc main
 # .get main
 # .getc main
+
+# # putc(getc())
+# ..\opt
+#   ..unit .io:appl pure
+#   .putc
+#   opt
+# .getc
+# .io:monad bind
+# main
 
 # # bit-level `cat`
 # ..\main
@@ -410,22 +558,13 @@ fix \getln
 #   .io:monad bind
 # fix main
 
-# # putc(getc())
-# ..\opt
-#   ..unit .io:appl pure
-#   .putc
-#   opt
-# .getc
-# .io:monad bind
-# main
-
 # # truth machine
 # ..\opt
-#   ..'0' putc
+#   ..'0'u8 putc
 #   .\chr
-#     ..'0' putc
-#     ....'1' putc .io:monad bindk fix
-#     .chr .'1' ..bool:eq arr8:eq equal
+#     ..'0'u8 putc
+#     ....'1'u8 putc .io:monad bindk fix
+#     .chr .'1'u8 .u8:eq equal
 #   opt
 # .getc
 # .io:monad bind
@@ -433,12 +572,12 @@ fix \getln
 
 # # parrot line
 #   ...nil
-#   .'\s' cons
-#   .'?' cons
+#   .'\s'u8 cons
+#   .'?'u8 cons
 # \"?\s"
 #   ...nil
-#   .'\s' cons
-#   .'>' cons
+#   .'\s'u8 cons
+#   .'>'u8 cons
 # \">\s"
 # ..\main
 #   ..\str
@@ -453,12 +592,32 @@ fix \getln
 #   .io:monad bindk
 # fix main
 
-# reverse
+# # reverse
+# ..\main
+#   .\str
+#     .main
+#     ......str .'\n'u8 cons list.reverse tail unwrap puts
+#     .io:monad bindk
+#   .getln
+#   .io:monad bind
+# fix main
+
+# rot13
 ..\main
-  .\str
-    .main
-    ......str .'\n' cons rev tail unwrap puts
-    .io:monad bindk
-  .getln
+  .\opt
+    ..unit .io:appl pure
+    .\chr
+      # same implementation as Atto-8
+      .'\r'u8 \13 ..13 .13 u8.add \26
+      ...chr .'\s'u8 .or .arr8:appl lifta2 .'a'u8 u8.sub \idx
+      .main
+        ....chr putc
+        ...chr .13 u8.sub putc
+        ..idx .26 .u8:ord compare islt
+        ...chr .13 u8.add putc
+        ..idx .13 .u8:ord compare islt
+      .io:monad bindk
+    opt
+  .getc
   .io:monad bind
 fix main
