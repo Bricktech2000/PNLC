@@ -1,0 +1,11 @@
+# vim:ft=pnlc:
+# inc:../prelude.pnlc
+
+..\main
+  .\optchr
+    ..unit .io:appl pure
+    .\chr .main ..chr putc .io:monad bindk
+    optchr
+  .getc
+  .io:monad bind
+fix main

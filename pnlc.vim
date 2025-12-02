@@ -1,5 +1,7 @@
 setlocal commentstring=#\ %s
 setlocal comments=b:#
+setlocal define=^\\(\\S.*\\)\\?\\\\\\ze\\S*\\s*$
+setlocal include=\\sinc:
 
 syntax match pnlcLam '\\\_s*#\@![[:graph:]]\+'
 syntax match pnlcLamC '\\\_s*#\@![\.$]\@=[[:graph:]]\+'

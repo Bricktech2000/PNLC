@@ -302,21 +302,32 @@ struct term *parse(char **prog, char **error) {
 }
 
 int main(int argc, char **argv) {
-  if (argc != 2)
-    fputs("usage: pnlc <program>\n", stderr), exit(EXIT_FAILURE);
+  if (argc <= 1)
+    fputs("usage: pnlc <files...>\n", stderr), exit(EXIT_FAILURE);
 
-  static char prog[1 << 16] = {0};
-  FILE *fp = fopen(argv[1], "r");
-  if (fp == NULL)
-    perror("fopen"), exit(EXIT_FAILURE);
-  size_t size = fread(prog, 1, sizeof(prog), fp);
-  if (ferror(fp))
-    perror("fread"), exit(EXIT_FAILURE);
-  if (!feof(fp))
-    fputs("program buffer exhausted\n", stderr), exit(EXIT_FAILURE);
-  prog[size] = '\0';
+  char *buf = NULL;
+  size_t len = 0;
 
-  char *error = NULL, *loc = prog;
+  while (*++argv) {
+    long size;
+    FILE *fp = fopen(*argv, "r");
+    if (fp == NULL)
+      perror("fopen"), exit(EXIT_FAILURE);
+    if (fseek(fp, 0, SEEK_END) == -1)
+      perror("fseek"), exit(EXIT_FAILURE);
+    if ((size = ftell(fp)) == -1)
+      perror("ftell"), exit(EXIT_FAILURE);
+    rewind(fp);
+
+    buf = realloc(buf, len + size + 1);
+    if (fread(buf + len, 1, size, fp) != size)
+      perror("fread"), exit(EXIT_FAILURE);
+    buf[len += size] = '\0';
+    if (fclose(fp) == EOF)
+      perror("fclose"), exit(EXIT_FAILURE);
+  }
+
+  char *error = NULL, *loc = buf;
   struct term *term = parse(&loc, &error);
   if (error)
     fprintf(stderr, "parse error: %s near '%.16s'\n", error, loc),

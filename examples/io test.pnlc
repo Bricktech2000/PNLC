@@ -1,0 +1,19 @@
+# vim:ft=pnlc:
+# inc:../prelude.pnlc
+
+# ...$err kestrel .get .io:monad bind main
+# ...$err kestrel .getc .io:monad bind main
+# ..$err .get .io:monad bind main
+# ..$err .getc .io:monad bind main
+# .get main
+# .getc main
+# ...$err kestrel .put .io:monad bind main
+# ...$err kestrel .putc .io:monad bind main
+# ..$err put main
+# ..$err putc main
+# ..true put main
+# ..'|'u8 putc main
+
+# ...unwrap .put bluebird .get .io:monad bind main
+# ...unwrap .putc bluebird .getc .io:monad bind main
+# ..puts .gets .io:monad bind main

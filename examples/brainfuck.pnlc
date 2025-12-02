@@ -1,0 +1,115 @@
+# vim:ft=pnlc:
+# inc:../prelude.pnlc
+
+.\left \head \right \tape .right .head .left tape \tape
+.\tape .\left \head \right left tape \left
+.\tape .\left \head \right head tape \head
+.\tape .\left \head \right right tape \right
+  ....'\0'u8 pair fix
+  .'\0'u8
+  ...'\0'u8 pair fix
+  tape
+\0tape
+
+..\getbang
+  .\optchr
+    ..nil .io:appl pure
+    .\chr
+      ..getbang ..chr cons .io:ftor fmap
+      ..nil .io:appl pure
+      .chr .'!'u8 .u8:eq equal
+    optchr
+  .getc
+  .io:monad bind
+fix \getbang
+
+..\bfp
+    ...'>'u8 chrp
+    .\tape
+      ..\left \head \right \tape
+        .\fst \snd
+          .snd .fst ..left .head pair tape
+        right
+      tape
+      .io:appl pure
+    .parser:ftor fmapk
+  \'>'p
+    ...'<'u8 chrp
+    .\tape
+      ..\left \head \right \tape
+        .\fst \snd
+          ..right .head pair .fst .snd tape
+        left
+      tape
+      .io:appl pure
+    .parser:ftor fmapk
+  \'<'p
+    ...'+'u8 chrp
+    .\tape
+      ..\left \head \right \tape
+        .right ..head u8.inc .left tape
+      tape
+      .io:appl pure
+    .parser:ftor fmapk
+  \'+'p
+    ...'-'u8 chrp
+    .\tape
+      ..\left \head \right \tape
+        .right ..head u8.dec .left tape
+      tape
+      .io:appl pure
+    .parser:ftor fmapk
+  \'-'p
+    ...'.'u8 chrp
+    .\tape
+      ...tape head putc
+      .tape
+      .io:ftor fmapk
+    .parser:ftor fmapk
+  \'.'p
+    ...','u8 chrp
+    .\tape
+      .getc
+      .\optchr
+        .\left \head \right \tape
+          .right ..'\0'u8 .id optchr .left tape
+        tape
+      .io:ftor fmap
+    .parser:ftor fmapk
+  \','p
+    ...bfp ..']'u8 chrp ..'['u8 chrp .parser:appl between
+    # XXX why the gradual performance degradation?
+    .\bf .\rec \tape
+      .tape
+      .rec .bf .io:monad kleisli
+      ..io:appl pure
+      ..tape head .'\0'u8 .u8:eq equal
+    fix .parser:ftor fmap
+  \[&]p
+    ....']'u8 .u8:eq unequal satp
+    ..io:appl pure
+    .parser:ftor fmapk
+  \!=]p
+
+    ..........parser:altn empty
+    .'>'p .parser:altn alt
+    .'<'p .parser:altn alt
+    .'+'p .parser:altn alt
+    .'-'p .parser:altn alt
+    .'.'p .parser:altn alt
+    .','p .parser:altn alt
+    .[&]p .parser:altn alt
+    .!=]p .parser:altn alt
+  \parser
+  ..bfp .parser ..io:monad kleisli .parser:appl lifta2
+  ...io:appl pure .parser:appl pure
+  .parser:altn alt
+fix \bfp
+
+  ..\str
+    ...'\n'u8 putc ..'!'u8 putc .io:monad bindk
+    .\proginp .\prog \inp .0tape prog proginp
+    .str .eofp .bfp .parser:appl bindl
+  .getbang
+  .io:monad bind
+main

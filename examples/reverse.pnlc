@@ -1,0 +1,11 @@
+# vim:ft=pnlc:
+# inc:../prelude.pnlc
+
+..\main
+  .\str
+    .main
+    ......str .'\n'u8 cons list.reverse tail unwrap puts
+    .io:monad bindk
+  .getln
+  .io:monad bind
+fix main

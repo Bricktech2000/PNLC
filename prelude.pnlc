@@ -1,12 +1,15 @@
+# vim:ft=pnlc:
+
 .\x x \id
-.\x \y x \const
+.\x \y x \kestrel
+.\x \y y \kite
 .\x \f .x f \thrush
 .\x \y \f .y .x f \vireo
-.\f \x \y .x .y f \flip
-.\f \g \x ..x g f \compose
+.\f \x \y .x .y f \cardinal
+.\f \g \x ..x g f \bluebird
 .\f \g \x \y ..y .x g f \blackbird
-.\f .\x ..x x f \x ..x x f \fix
 .\f \x \g \y ..y g .x f \dove
+.\f .\x ..x x f \x ..x x f \fix
 
 .\x x \unit
 .$err \void
@@ -21,7 +24,8 @@
 
 .\opt \some \none .opt some \some
 .\some \none none \none
-.\opt .true ..false const opt \isnone
+.\opt .false ..true kestrel opt \issome
+.\opt .true ..false kestrel opt \isnone
 .\opt .$err .id opt \unwrap
 
 .\fst \snd \pair .snd .fst pair \pair
@@ -30,6 +34,7 @@
 
 .\head \tail \cons \nil .tail .head cons \cons
 .\cons \nil nil \nil
+.\list .false .\head \tail true list \iscons
 .\list .true .\head \tail false list \isnil
 .\list .none .\head \tail .head some list \head
 .\list .none .\head \tail .tail some list \tail
@@ -54,6 +59,7 @@
 
 .\equal \eq .equal eq \eq
 .\eq .\equal equal eq \equal
+.\eq .\equal .equal .not blackbird eq \unequal
 
 .\eq \compare \ord .compare .eq ord \ord
 .\ord .\eq \compare eq ord \ord:eq
@@ -67,7 +73,7 @@
 
 .\fmap \ftor .fmap ftor \ftor
 .\ftor .\fmap fmap ftor \fmap
-.\ftor .const ..ftor fmap compose \fmapk
+.\ftor .kestrel ..ftor fmap bluebird \fmapk
 
 .\ftor \pure \apply \appl .apply .pure .ftor appl \appl
 .\appl .\ftor \pure \apply ftor appl \appl:ftor
@@ -79,9 +85,9 @@
   .appl apply
 \lifta2
 .\appl .thrush .appl lifta2 \rapply
-# XXX why are these so slow?
-.\appl ..const flip .appl lifta2 \bindr
-.\appl .const .appl lifta2 \bindl
+# XXX why are these two so slow?
+.\appl .kestrel .appl lifta2 \bindl
+.\appl .kite .appl lifta2 \bindr
 .\appl \left \right \inner
   ..right
   .inner
@@ -93,23 +99,21 @@
 .\appl \bind \monad .bind .appl monad \monad
 .\monad .\appl \bind appl monad \monad:appl
 .\monad .\appl \bind bind monad \bind
-.\monad \x \f ..f const .x .monad bind \bindk
+.\monad \x \f ..f kestrel .x .monad bind \bindk
 .\monad \f \g \x .g ..x f .monad bind \kleisli
 
 .\appl \empty \alt \altn .alt .empty .appl altn \altn
 .\altn .\appl \empty \alt appl altn \altn:appl
 .\altn .\appl \empty \alt empty altn \empty
 .\altn .\appl \empty \alt alt altn \alt
-# XXX would need the fixed point in two arguments
-.\altn \val .\manyval
-  ..nil ..altn altn:appl pure
-  ..manyval .val .cons ..altn altn:appl lifta2
-  .altn alt
-fix \many
-.\altn \val
-  ..val .altn many \manyval
-  .manyval .val .cons ..altn altn:appl lifta2
+.\many1 \altn \val
+  ..nil ..altn altn:appl pure ..val .altn many1 .altn alt
+\many
+.\many \altn \val
+  ..val .altn many .val .cons ..altn altn:appl lifta2
 \many1
+  ...many .many1 bluebird fix ...many1 .many bluebird fix
+\many \many1
 .\altn \sep \elem
   ...elem .sep ..altn altn:appl bindr .altn many
   .elem
@@ -145,19 +149,21 @@ fix \many
   .opt:appl
   monad
 \opt:monad
-  ..\optrhs \optlhs .optlhs .some optrhs
+  ..\optrhs \optlhs .optrhs .some optlhs
   .none
   .opt:appl
   altn
 \opt:altn
 
 # TODO instance ord
+# TODO induction
 .some \succ
 .none \zero
 .isnone \iszero
 .unwrap \pred
+# XXX redefine in terms of induction
 ..\add \rhs \lhs .lhs ...lhs succ add rhs fix \add
-..\mul \rhs \lhs .zero ...lhs mul ..lhs add compose rhs fix \mul
+..\mul \rhs \lhs .zero ...lhs mul ..lhs add bluebird rhs fix \mul
 .opt:ftor \nat:ftor
 .opt:appl \nat:appl
 .opt:altn \nat:altn
@@ -215,8 +221,10 @@ fix \list.foldl # XXX foldable
     func
   list
 fix \list.foldr # XXX foldable
-..zero ..succ const list.foldr \len
-..nil ..cons flip list.foldl \list.reverse
+..zero ..succ kestrel list.foldr \length
+..nil ..cons cardinal list.foldl \list.reverse
+..none .\elem \acc ..elem .id acc some list.foldr \last
+..none .\elem \acc ..nil ..elem cons acc some list.foldr \init
 .\elem:appl
   ..nil .elem:appl pure
   ..cons .elem:appl lifta2
@@ -224,7 +232,7 @@ fix \list.foldr # XXX foldable
 \list.sequence # XXX support anything `traversable`
   ..\func
     .nil
-    ..func .cons compose
+    ..func .cons bluebird
     list.foldr
   ftor
 \list:ftor
@@ -232,7 +240,7 @@ fix \list.foldr # XXX foldable
     .listfunc
     .nil
     .\func \acc
-      .listarg .acc ..func .cons compose list.foldr
+      .listarg .acc ..func .cons bluebird list.foldr
     list.foldr
   .\arg .nil .arg cons
   .list:ftor
@@ -344,6 +352,15 @@ fix \list.foldr # XXX foldable
 ..false .false .false .false .false .false .false .false arr8 \'\0'u8
 ..false .true  .true  .true  .true  .true  .false .false arr8 \'|'u8
 ..false .false .true  .true  .true  .true  .true  .false arr8 \'>'u8
+..false .false .true  .true  .true  .true  .false .false arr8 \'<'u8
+..false .false .true  .false .true  .false .true  .true  arr8 \'+'u8
+..false .false .true  .false .true  .true  .false .true  arr8 \'-'u8
+..false .false .true  .false .true  .true  .true  .false arr8 \'.'u8
+..false .false .true  .false .true  .true  .false .false arr8 \','u8
+..false .true  .false .true  .true  .false .true  .true  arr8 \'['u8
+..false .true  .false .true  .true  .true  .false .true  arr8 \']'u8
+..false .false .true  .false .false .false .false .true  arr8 \'!'u8
+..false .false .true  .true  .true  .true  .true  .false arr8 \'>'u8
 ..false .false .false .false .true  .true  .false .true  arr8 \'\r'u8
 ..false .false .false .false .true  .false .true  .false arr8 \'\n'u8
 ..false .false .true  .true  .false .false .false .false arr8 \'0'u8
@@ -404,8 +421,8 @@ fix \list.foldr # XXX foldable
 \u8.decb
 ...false u8.addc .snd blackbird \u8.add
 ...false u8.subb .snd blackbird \u8.sub
-...true u8.incc .snd compose \u8.inc
-...true u8.decb .snd compose \u8.dec
+...true u8.incc .snd bluebird \u8.inc
+...true u8.decb .snd bluebird \u8.dec
 ..bool:eq arr8:eq \u8:eq
 ..bool:ord arr8:ord \u8:ord
 
@@ -438,19 +455,27 @@ fix \list.foldr # XXX foldable
 .$get \get
   ...put .arr8:ftor fmap
   ..io:appl arr8.sequence
-  compose
+  bluebird
 \putc
   ...putc .list:ftor fmap
   ..io:appl list.sequence
-  compose
+  bluebird
 \puts
     ....get .arr8:appl pure
     .io:appl arr8.sequence
   ..opt:appl arr8.sequence
   .io:ftor fmap
 \getc
+..\gets
+  .\optchr
+    ..nil .io:appl pure
+    .\chr .gets ..chr cons .io:ftor fmap
+    optchr
+  .getc
+  .io:monad bind
+fix \gets
 ..\getln
-  .\opt
+  .\optchr
     ..nil .io:appl pure
     .\chr
       ..getln
@@ -458,7 +483,7 @@ fix \list.foldr # XXX foldable
       .chr .'\n'u8 .u8:eq equal
       ..chr cons
       .io:ftor fmap
-    opt
+    optchr
   .getc
   .io:monad bind
 fix \getln
@@ -467,24 +492,24 @@ fix \getln
   ..\func \parserarg
     \inp
       ..inp parserarg
-      .\pairarg ..func .pair compose pairarg
+      .\pairarg ..func .pair bluebird pairarg
       .opt:ftor fmap
   ftor
 \parser:ftor
   ..\parserfunc \parserarg
     \inp
-      ..inp parserfunc
       .\pairfunc .\func .parserarg .func .parser:ftor fmap pairfunc
+      ..inp parserfunc
       .opt:monad bind
   .\arg
-    \inp .arg some
+    \inp ..inp .arg pair some
   .parser:ftor
   appl
 \parser:appl
   ..\parserarg \func
     \inp
-      ..inp parserarg
       .\pairarg .func pairarg
+      ..inp parserarg
       .opt:monad bind
   .parser:appl
   monad
@@ -515,109 +540,3 @@ fix \getln
   ..str .chrp .list:ftor fmap
   .parser:appl list.sequence
 \strp
-
-# ...$err const .get .io:monad bind main
-# ...$err const .getc .io:monad bind main
-# ..$err .get .io:monad bind main
-# ..$err .getc .io:monad bind main
-# ...$err const .put .io:monad bind main
-# ...$err const .putc .io:monad bind main
-# ..$err put main
-# ..$err putc main
-# ..true put main
-# ..'|'u8 putc main
-# .get main
-# .getc main
-
-# # putc(getc())
-# ..\opt
-#   ..unit .io:appl pure
-#   .putc
-#   opt
-# .getc
-# .io:monad bind
-# main
-
-# # bit-level `cat`
-# ..\main
-#   .\opt
-#     ..unit .io:appl pure
-#     .\chr .main ..chr put .io:monad bindk
-#     opt
-#   .get
-#   .io:monad bind
-# fix main
-
-# # chr-level `cat`
-# ..\main
-#   .\opt
-#     ..unit .io:appl pure
-#     .\chr .main ..chr putc .io:monad bindk
-#     opt
-#   .getc
-#   .io:monad bind
-# fix main
-
-# # truth machine
-# ..\opt
-#   ..'0'u8 putc
-#   .\chr
-#     ..'0'u8 putc
-#     ....'1'u8 putc .io:monad bindk fix
-#     .chr .'1'u8 .u8:eq equal
-#   opt
-# .getc
-# .io:monad bind
-# main
-
-# # parrot line
-#   ...nil
-#   .'\s'u8 cons
-#   .'?'u8 cons
-# \"?\s"
-#   ...nil
-#   .'\s'u8 cons
-#   .'>'u8 cons
-# \">\s"
-# ..\main
-#   ..\str
-#     ..main
-#     ..str puts
-#     .io:monad bindk
-#     ..">\s" puts
-#     .io:monad bindk
-#   .getln
-#   .io:monad bind
-#   .."?\s" puts
-#   .io:monad bindk
-# fix main
-
-# # reverse
-# ..\main
-#   .\str
-#     .main
-#     ......str .'\n'u8 cons list.reverse tail unwrap puts
-#     .io:monad bindk
-#   .getln
-#   .io:monad bind
-# fix main
-
-# rot13
-..\main
-  .\opt
-    ..unit .io:appl pure
-    .\chr
-      # same implementation as Atto-8
-      .'\r'u8 \13 ..13 .13 u8.add \26
-      ...chr .'\s'u8 .or .arr8:appl lifta2 .'a'u8 u8.sub \idx
-      .main
-        ....chr putc
-        ...chr .13 u8.sub putc
-        ..idx .26 .u8:ord compare islt
-        ...chr .13 u8.add putc
-        ..idx .13 .u8:ord compare islt
-      .io:monad bindk
-    opt
-  .getc
-  .io:monad bind
-fix main
