@@ -1,4 +1,4 @@
-# vim:ft=pnlc:
+# vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
 .\left \head \right \tape .right .head .left tape \tape
@@ -81,7 +81,7 @@ fix \getbang
     # XXX why the gradual performance degradation?
     .\bf .\rec \tape
       .tape
-      .rec .bf .io:monad kleisli
+      ..rec .bf .io:monad kleisli
       ..io:appl pure
       ..tape head .'\0'u8 .u8:eq equal
     fix .parser:ftor fmap

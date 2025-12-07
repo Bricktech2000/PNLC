@@ -1,4 +1,4 @@
-# vim:ft=pnlc:
+# vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
 ..\main
@@ -6,14 +6,14 @@
     ..unit .io:appl pure
     .\chr
       # same implementation as Atto-8
-      .'\r'u8 \13 ..13 .13 u8.add \26
+      .'\r'u8 \13u8 ..13u8 .13u8 u8.add \26u8
       ...chr .'\s'u8 .or .arr8:appl lifta2 .'a'u8 u8.sub \idx
       .main
         ....chr putc
-        ...chr .13 u8.sub putc
-        ..idx .26 .u8:ord compare islt
-        ...chr .13 u8.add putc
-        ..idx .13 .u8:ord compare islt
+        ...chr .13u8 u8.sub putc
+        ..idx .26u8 .u8:ord compare islt
+        ...chr .13u8 u8.add putc
+        ..idx .13u8 .u8:ord compare islt
       .io:monad bindk
     optchr
   .getc
