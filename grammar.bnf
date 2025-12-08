@@ -1,0 +1,5 @@
+# keep in sync with pnlc.c
+<term> ::= "." <ws> <term> <term> | "\\" <ws> <var> <term> | "#" <line> <ws> <term> | <var> & (? head none of ".\\#" ?)
+<line> ::= (? not '\n' ?)* "\n"
+<var> ::= (? `isgraph` ?)+ <ws>:? # non-empty whitespace
+<ws> ::= (? `isspace` ?)*

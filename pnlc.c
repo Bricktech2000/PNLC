@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *ios[] = {"", "err", "get", "put", "dbg", NULL};
+char *ios[] = {"$end", "$err", "$get", "$put", "$dbg", NULL};
 enum {
   IO_END,
   IO_ERR,
@@ -53,7 +53,7 @@ struct term *term_dump(struct term *term) {
   if (IS_VAR(term))
     printf("%d ", term->u.idx);
   if (IS_IO(term))
-    printf("$%s ", ios[IO_TYP(term)]);
+    printf("%s ", ios[IO_TYP(term)]);
   return term;
 }
 
@@ -180,49 +180,33 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out) {
   }
 }
 
+// keep in sync with grammar.bnf
+
 struct env {
   char *begin, *end; // binder name
   struct env *up;    // next binder up the list
 };
 
-void parse_ws(char **prog, char **error) {
-redo:
+void parse_ws(char **prog) {
   while (isspace(**prog))
     ++*prog;
-
-  if (**prog == '#') {
-    char *nl = strchr(*prog, '\n');
-    if (nl == NULL) {
-      *error = "unterminated comment";
-      return;
-    }
-
-    *prog = nl + 1;
-    goto redo;
-  }
 }
 
 char *parse_var(char **prog, char **error) {
-  parse_ws(prog, error);
-  if (*error)
-    return NULL;
-
   if (!isgraph(**prog)) {
     *error = "expected var";
     return NULL;
   }
 
-  char *var = *prog;
   while (isgraph(**prog))
     ++*prog;
-  return var;
+
+  char *end = (*prog)++;
+  parse_ws(prog);
+  return end;
 }
 
 struct term *parse_term(char **prog, char **error, struct env *env) {
-  parse_ws(prog, error);
-  if (*error)
-    return NULL;
-
   if (**prog == '\0') {
     *error = "expected term";
     return NULL;
@@ -230,6 +214,8 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
 
   switch (*(*prog)++) {
   case '.': {
+    parse_ws(prog);
+
     struct term *rhs = parse_term(prog, error, env);
     if (*error)
       return NULL;
@@ -241,12 +227,14 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
     return term_alloc(*MK_APP(lhs, rhs));
   }
   case '\\': {
-    char *var = parse_var(prog, error);
+    parse_ws(prog);
+
+    char *begin = *prog, *end = parse_var(prog, error);
     if (*error)
       return NULL;
 
     // allocate new binder
-    env = &(struct env){.begin = var, .end = *prog, .up = env};
+    env = &(struct env){.begin = begin, .end = end, .up = env};
 
     struct term *lhs = parse_term(prog, error, env);
     if (*error)
@@ -254,44 +242,46 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
 
     return term_alloc(*MK_LAM(lhs));
   }
-  case '$': {
-    char *var = parse_var(prog, error);
-    if (*error)
+  case '#': {
+    char *nl = strchr(*prog, '\n');
+    if (nl == NULL) {
+      *error = "unterminated comment", --*prog;
       return NULL;
+    }
 
-    for (char **io = ios; *io; io++)
-      if (strncmp(var, *io, *prog - var) == 0)
-        return term_alloc(*MK_IO(io - ios));
-
-    *error = "unknown io", *prog = var;
-    return NULL;
+    *prog = nl + 1, parse_ws(prog);
+    return parse_term(prog, error, env);
   }
   default: {
     --*prog;
-    char *var = parse_var(prog, error);
+
+    char *begin = *prog, *end = parse_var(prog, error);
     if (*error)
       return NULL;
 
-    // find corresponding binder
+    // check if the variable is an IO
+    for (char **io = ios + 1 /* IO_END is reserved */; *io; io++)
+      if (end - begin == strlen(*io) && strncmp(begin, *io, end - begin) == 0)
+        return term_alloc(*MK_IO(io - ios));
+
+    // else find corresponding binder
     for (int idx = 0; env; env = env->up, idx++)
-      if (*prog - var == env->end - env->begin &&
-          strncmp(var, env->begin, *prog - var) == 0)
+      if (end - begin == env->end - env->begin &&
+          strncmp(begin, env->begin, end - begin) == 0)
         return term_alloc(*MK_VAR(idx));
 
-    *error = "unbound variable", *prog = var;
+    *error = "unbound variable", *prog = begin;
     return NULL;
   }
   }
 }
 
 struct term *parse(char **prog, char **error) {
+  parse_ws(prog);
+
   struct term *term = parse_term(prog, error, NULL);
   if (*error)
     return NULL;
-
-  parse_ws(prog, error);
-  if (*error)
-    return term_free(term), NULL;
 
   if (**prog != '\0') {
     *error = "trailing characters";

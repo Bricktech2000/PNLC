@@ -3,58 +3,58 @@ setlocal comments=b:#
 setlocal define=\\sdef:\\\|^\\(\\S.*\\)\\?\\\\\\ze\\S*\\s*$
 setlocal include=\\sinc:
 
-syntax match pnlcLam '\\\_s*#\@![[:graph:]]\+'
-syntax match pnlcLamC '\\\_s*#\@![\.$]\@=[[:graph:]]\+'
-syntax match pnlcIO '\$[[:graph:]]\+'
+syntax match pnlcLam '\\\_[[:space:]]*[[:graph:]]\+\_[[:space:]]\+'
+syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[[:graph:]]\+\_[[:space:]]\+'
+syntax match pnlcIO '\_[[:space:].]\@<=\(\$end\|\$err\|\$get\|\$put\|\$dbg\)\_[[:space:]]\+'
 syntax match pnlcApp0 '
-      \\(\(\.\_s*[\.#]\@!\|\\\_s*#\@!\)[[:graph:]]\+\_s\+\)*
-      \[\.#]\@![[:graph:]]\+
-      \' contains=pnlcLamC,pnlcIO
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \[.\#]\@![[:graph:]]\+
+      \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp1 '
-      \\(\(\.\_s*[\.#]\@!\|\\\_s*#\@!\)[[:graph:]]\+\_s\+\)*
-      \\.\_s*
-      \\.\_s*
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \' contains=pnlcLamC,pnlcIO
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\.\_[[:space:]]*
+      \\.\_[[:space:]]*
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp2 '
-      \\(\(\.\_s*[\.#]\@!\|\\\_s*#\@!\)[[:graph:]]\+\_s\+\)*
-      \\.\_s*
-      \\.\_s*
-      \\.\_s*
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \' contains=pnlcLamC,pnlcIO
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\.\_[[:space:]]*
+      \\.\_[[:space:]]*
+      \\.\_[[:space:]]*
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp3 '
-      \\(\(\.\_s*[\.#]\@!\|\\\_s*#\@!\)[[:graph:]]\+\_s\+\)*
-      \\.\_s*
-      \\.\_s*
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \\.\_s*
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \' contains=pnlcLamC,pnlcIO
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\.\_[[:space:]]*
+      \\.\_[[:space:]]*
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \\.\_[[:space:]]*
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp4 '
-      \\(\(\.\_s*[\.#]\@!\|\\\_s*#\@!\)[[:graph:]]\+\_s\+\)*
-      \\.\_s*
-      \\.\_s*
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \\.\_s*
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \[\.#]\@![[:graph:]]\+\_s\+
-      \' contains=pnlcLamC,pnlcIO
-syntax match pnlcVar '[\.#]\@![[:graph:]]\+' contains=pnlcIO
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\.\_[[:space:]]*
+      \\.\_[[:space:]]*
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \\.\_[[:space:]]*
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \' contains=pnlcIgn,pnlcIO
+syntax match pnlcVar '[.\#]\@![[:graph:]]\+' contains=pnlcIO
 syntax match pnlcComment '#.*$' contains=pnlcTodo
 syntax keyword pnlcTodo TODO FIXME XXX NOTE contained
 
 " mostly the same order as vim/runtime/syntax/csv.vim
 highlight default link pnlcLam Statement
-highlight default link pnlcLamC Comment
+highlight default link pnlcIgn Comment
 highlight default link pnlcIO Constant
 highlight default link pnlcApp0 Type
 highlight default link pnlcApp1 PreProc
