@@ -1,4 +1,4 @@
-# keep in sync with pnlc.c
+# keep in sync with pnlc.c and pnlc.vim
 <term> ::= "." <ws> <term> <term> | "\\" <ws> <var> <term> | "#" <line> <ws> <term> | <var> & (? head none of ".\\#" ?)
 <line> ::= (? not '\n' ?)* "\n"
 <var> ::= (? `isgraph` ?)+ <ws>:? # non-empty whitespace

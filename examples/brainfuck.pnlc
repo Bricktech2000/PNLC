@@ -1,16 +1,44 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
+# data Tape = Tape (Stream U8) U8 (Stream U8) -- where:
+# type Stream a = Fix (Pair a) -- where:
+# data Fix f = Fix (f (Fix f))
 .\left \head \right \tape .right .head .left tape \tape
 .\tape .\left \head \right left tape \left
 .\tape .\left \head \right head tape \head
 .\tape .\left \head \right right tape \right
+# apply `func` to the `head`
+  ..\func \tape
+    .\left \head \right \tape
+      .right ..head func .left tape
+    tape
+  ftor
+\tape:ftor
+# an infinite tape of zeroes
   ....'\0'u8 pair fix
   .'\0'u8
   ...'\0'u8 pair fix
   tape
 \0tape
+.\tape
+  .\left \head \right \tape
+    .\fst \snd
+      .snd .fst ..left .head pair tape
+    right
+  tape
+\tape.shl
+.\tape
+  .\left \head \right \tape
+    .\fst \snd
+      ..right .head pair .fst .snd tape
+    left
+  tape
+\tape.shr
 
+# read characters from stdin until a '!'. we use the character '!' to separate
+# the Brainfuck program from its input. that is, '!' ends a program string and
+# and begins its execution
 ..\getbang
   .\optchr
     ..nil .io:appl pure
@@ -23,41 +51,25 @@
   .io:monad bind
 fix \getbang
 
+# bfp :: Parser (Tape -> IO Tape)
+# all the component parsers also have this type. this way, juxtaposition of
+# Brainfuck program strings corresponds to `liftA2 (>=>)`, that is, penetration
+# of parsers with Kleisli composition
 ..\bfp
     ...'>'u8 chrp
-    .\tape
-      ..\left \head \right \tape
-        .\fst \snd
-          .snd .fst ..left .head pair tape
-        right
-      tape
-      .io:appl pure
+    ..tape.shl ..io:appl pure bluebird
     .parser:ftor fmapk
   \'>'p
     ...'<'u8 chrp
-    .\tape
-      ..\left \head \right \tape
-        .\fst \snd
-          ..right .head pair .fst .snd tape
-        left
-      tape
-      .io:appl pure
+    ..tape.shr ..io:appl pure bluebird
     .parser:ftor fmapk
   \'<'p
     ...'+'u8 chrp
-    .\tape
-      ..\left \head \right \tape
-        .right ..head u8.inc .left tape
-      tape
-      .io:appl pure
+    ...u8.inc .tape:ftor fmap ..io:appl pure bluebird
     .parser:ftor fmapk
   \'+'p
     ...'-'u8 chrp
-    .\tape
-      ..\left \head \right \tape
-        .right ..head u8.dec .left tape
-      tape
-      .io:appl pure
+    ...u8.dec .tape:ftor fmap ..io:appl pure bluebird
     .parser:ftor fmapk
   \'-'p
     ...'.'u8 chrp
@@ -70,15 +82,11 @@ fix \getbang
     ...','u8 chrp
     .\tape
       .getc
-      .\optchr
-        .\left \head \right \tape
-          .right ..'\0'u8 .id optchr .left tape
-        tape
+      .\optchr .tape ..'\0'u8 .id optchr .tape:ftor fmapk
       .io:ftor fmap
     .parser:ftor fmapk
   \','p
     ...bfp ..']'u8 chrp ..'['u8 chrp .parser:appl between
-    # XXX why the gradual performance degradation?
     .\bf .\rec \tape
       .tape
       ..rec .bf .io:monad kleisli
@@ -86,10 +94,10 @@ fix \getbang
       ..tape head .'\0'u8 .u8:eq equal
     fix .parser:ftor fmap
   \[&]p
-    ....']'u8 .u8:eq unequal satp
+    .....']'u8 .u8:eq unequal ..'['u8 .u8:eq unequal .and phi satp
     ..io:appl pure
     .parser:ftor fmapk
-  \!=]p
+  \![]p
 
     ..........parser:altn empty
     .'>'p .parser:altn alt
@@ -99,9 +107,10 @@ fix \getbang
     .'.'p .parser:altn alt
     .','p .parser:altn alt
     .[&]p .parser:altn alt
-    .!=]p .parser:altn alt
-  \parser
-  ..bfp .parser ..io:monad kleisli .parser:appl lifta2
+    .![]p .parser:altn alt
+  \atomp
+  # bfp = liftA2 (>=>) atomp bfp <|> pure pure
+  ..bfp .atomp ..io:monad kleisli .parser:appl lifta2
   ...io:appl pure .parser:appl pure
   .parser:altn alt
 fix \bfp

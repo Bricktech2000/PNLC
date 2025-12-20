@@ -3,9 +3,12 @@ setlocal comments=b:#
 setlocal define=\\sdef:\\\|^\\(\\S.*\\)\\?\\\\\\ze\\S*\\s*$
 setlocal include=\\sinc:
 
+" keep in sync with grammar.bnf and pnlc.c
+
 syntax match pnlcLam '\\\_[[:space:]]*[[:graph:]]\+\_[[:space:]]\+'
 syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[[:graph:]]\+\_[[:space:]]\+'
-syntax match pnlcIO '\_[[:space:].]\@<=\(\$end\|\$err\|\$get\|\$put\|\$dbg\)\_[[:space:]]\+'
+" keep in sync with README.md and pnlc.c
+syntax match pnlcIO '\_[[:space:].]\@<=\(\$exit\|\$err\|\$get\|\$put\|\$dump\)\_[[:space:]]\+'
 syntax match pnlcApp0 '
       \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
       \[.\#]\@![[:graph:]]\+

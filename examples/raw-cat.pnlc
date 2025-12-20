@@ -1,0 +1,9 @@
+# vim:tw=80:ft=pnlc:
+
+.\rec
+  .\optbit
+    .$exit
+    .\bit .rec .bit $put
+    optbit
+  $get
+fix

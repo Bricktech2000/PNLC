@@ -5,23 +5,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum { TYPE_APP, TYPE_LAM, TYPE_VAR, TYPE_IO };
-char *ios[] = {"$end", "$err", "$get", "$put", "$dbg", NULL};
-enum { IO_END, IO_ERR, IO_GET, IO_PUT, IO_DBG };
+enum { TYPE_APP, TYPE_LAM, TYPE_VAR };
+
+// "IO"s are opaque lambda-terms that are handled in special ways. when `term.
+// type < 0`, the term is an IO, and `~term.type` will be one of the following:
+enum { IO_EXIT, IO_ERR, IO_GET, IO_PUT, IO_DUMP };
+// keep in sync with README.md and pnlc.vim
+char *ios[] = {"$exit", "$err", "$get", "$put", "$dump", NULL};
+
+// a `struct term` is a node in a directed acyclic graph. `refcount` is the
+// in-degree. `beta` is a borrow, and together with `visited` it forms a cache
+// for beta-reduction. for applications, when `type = TYPE_APP`, `lhs` is the
+// function and `rhs` is the argument. for abstractions, when `type = TYPE_LAM`,
+// `lhs` is the variable and `rhs` is the body. several abstraction nodes might
+// bind the same variable node
+struct term {
+  int type;
+  unsigned refcount;
+  unsigned long visited;
+  struct term *lhs, *rhs;
+  struct term *beta;
+};
 
 #define APP(LHS, RHS)                                                          \
   term_alloc((struct term){TYPE_APP, .lhs = LHS, .rhs = RHS})
 #define LAM(LHS, RHS)                                                          \
   term_alloc((struct term){TYPE_LAM, .lhs = LHS, .rhs = RHS})
 #define VAR() term_alloc((struct term){TYPE_VAR})
-#define IO(TYP) term_alloc((struct term){TYPE_IO + TYP})
-
-struct term {
-  int type;
-  unsigned refcount;
-  struct term *lhs, *rhs;
-  struct term *beta;
-};
+#define IO(TYP) term_alloc((struct term){~(TYP)})
 
 struct term *term_alloc(struct term fields) {
   struct term *term = malloc(sizeof(*term));
@@ -30,19 +41,19 @@ struct term *term_alloc(struct term fields) {
 }
 
 struct term *term_dump(struct term *term) {
-  // printf("%u|", term->refcount);
+  // fprintf(stderr, "%u|", term->refcount);
   switch (term->type) {
   case TYPE_APP:
-    putchar('.'), term_dump(term->rhs), term_dump(term->lhs);
+    fprintf(stderr, "."), term_dump(term->rhs), term_dump(term->lhs);
     break;
   case TYPE_LAM:
-    printf("\\%p ", (void *)term->lhs), term_dump(term->rhs);
+    fprintf(stderr, "\\%p ", (void *)term->lhs), term_dump(term->rhs);
     break;
   case TYPE_VAR:
-    printf("%p ", (void *)term);
+    fprintf(stderr, "%p ", (void *)term);
     break;
-  default: // TYPE_IO
-    printf("%s ", ios[term->type - TYPE_IO]);
+  default:
+    fprintf(stderr, "%s ", ios[~term->type]);
     break;
   }
   return term;
@@ -60,73 +71,86 @@ struct term *term_decref(struct term *term) {
   return free(term), NULL;
 }
 
-void unmark(struct term *term) {
-  if (!term->beta || (term->beta = NULL))
-    return;
-  if (term->lhs)
-    unmark(term->lhs);
-  if (term->rhs)
-    unmark(term->rhs);
-}
-
 // XXX doc ownership:
 //   - `beta` returns owned
 //   - `.beta` is a borrow
 //   - XXX the two above things are safe because within `beta`, `decref` is only
 //     called on owned things with refcount > 1
-//   - `beta` borrows `term`
+//   - `beta` moves `term`
 //   - `beta` borrows `var` and `arg`
-// XXX opt no need to alloc when refcount is 1
-// XXX opt there would be no need to `unmark` if we had a `long visited`
 
-struct term *beta(struct term *term, struct term *var, struct term *arg) {
-  if (term->beta)
-    return term_incref(term->beta);
+struct term *beta(struct term *term, struct term *var, struct term *arg,
+                  unsigned long visited) {
+  if (term->visited == visited) {
+    struct term *beta = term_incref(term->beta);
+    return term_decref(term), beta;
+  }
 
   switch (term->type) {
   case TYPE_APP: {
-    struct term *lhs = beta(term->lhs, var, arg);
-    struct term *rhs = beta(term->rhs, var, arg);
-    if (lhs == term->lhs && rhs == term->rhs)
-      term_decref(lhs), term_decref(rhs), term->beta = term_incref(term);
-    else
-      term->beta = APP(lhs, rhs);
+    struct term *lhs = beta(term_incref(term->lhs), var, arg, visited);
+    struct term *rhs = beta(term_incref(term->rhs), var, arg, visited);
+    if (lhs == term->lhs && rhs == term->rhs) {
+      term_decref(lhs), term_decref(rhs), term->beta = term;
+    } else if (term->refcount == 1) {
+      term_decref(term->lhs), term->lhs = lhs;
+      term_decref(term->rhs), term->rhs = rhs;
+      term->beta = term;
+    } else
+      term_decref(term), term->beta = APP(lhs, rhs);
   } break;
   case TYPE_LAM: {
-    if (term->lhs == var) {
-      term->beta = term_incref(term);
+    if (term->lhs == var ? term->beta = term : 0)
       break; // XXX doc
-    }
-    struct term *rhs = beta(term->rhs, var, arg);
+    struct term *rhs = beta(term_incref(term->rhs), var, arg, visited);
     if (rhs == term->rhs)
-      term_decref(rhs), term->beta = term_incref(term);
-    else
-      term->beta = LAM(term_incref(term->lhs), rhs);
+      term_decref(rhs), term->beta = term;
+    else if (term->refcount == 1) {
+      term_decref(term->rhs), term->rhs = rhs;
+      term->beta = term;
+    } else {
+      struct term *lhs = term_incref(term->lhs);
+      term_decref(term), term->beta = LAM(lhs, rhs);
+    }
   } break;
   case TYPE_VAR:
-    term->beta = term_incref(term == var ? arg : term);
+    term->beta = term == var ? term_decref(term), term_incref(arg) : term;
     break;
-  default: // TYPE_IO
-    term->beta = term_incref(term);
+  default:
+    term->beta = term;
     break;
   }
 
-  return term->beta; // XXX doc move ownership
+  term->visited = visited;
+  return term->beta; // move out
 }
 
-void whnf(struct term **term) {
-  if ((*term)->type != TYPE_APP)
+void whnf(struct term *term, unsigned long *visited) {
+  // reduce to weak head normal form using normal-order semantics. this means we
+  // reduce the leftmost outermost redex first and ignore any redexes inside
+  // abstractions or in the argument position of applications. the resulting
+  // beta-reduction of `term` is written into `*term` itself so the computation
+  // is shared across pointees.
+
+  if (term->type != TYPE_APP)
     return;
 
-  whnf(&(*term)->lhs);
-  if ((*term)->lhs->type != TYPE_LAM)
+  whnf(term->lhs, visited);
+  if (term->lhs->type != TYPE_LAM)
     return;
 
-  struct term *body = (*term)->lhs->rhs;
-  body = beta(body, (*term)->lhs->lhs, (*term)->rhs);
-  unmark((*term)->lhs->rhs);
-  term_decref(*term), *term = body;
-  whnf(term);
+  // we do some gymnastics to make sure `term` doesn't hold a reference to
+  // `body` because `beta` can avoid an allocation when its `refcount` is 1.
+  struct term *var = term_incref(term->lhs->lhs),
+              *body = term_incref(term->lhs->rhs);
+  term_decref(term->lhs);
+  struct term *rep = beta(body, var, term->rhs, ++*visited);
+  term_decref(var), term_decref(term->rhs);
+  term->type = rep->type;
+  term->lhs = rep->lhs ? term_incref(rep->lhs) : NULL;
+  term->rhs = rep->rhs ? term_incref(rep->rhs) : NULL;
+  term_decref(rep);
+  whnf(term, visited);
 }
 
 // bit stream
@@ -150,70 +174,86 @@ void bs_put(struct bs *bs, bool bit) {
     bs->n = 0, fputc(bs->c, bs->fp), bs->c = 0;
 }
 
-char *run(struct term **term, struct bs *bs_in, struct bs *bs_out) {
-  *term = APP(*term, IO(IO_END));
+// XXX doc:
+
+// XXX realization: when doing `whnf`, we can use a `beta` that assumes the
+// argument is closed. this simplifies everything. note: crazy, why does no one
+// ever mention this? and for `.arg $put`, instead of doing `norm(arg)` then
+// pattern-matching on the result, we can do `whnf(app(app(norm, $true),
+// $false))` and check whether the result is `$true` or `$false`. no need for
+// `norm`.
+
+char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
+          unsigned long *visited) {
+  // takes ownership of `*term`. upon successful termination, returns `NULL` and
+  // writes `NULL` into `*term`; otherwise, returns an error message and stores
+  // the problematic term into `*term`
 
   for (struct term *cont;; term_decref(*term), *term = cont) {
-    whnf(term);
-    int args = 0;
+    whnf(*term, visited);
+    int argc = 0;
     struct term *io = *term;
     while (io->type == TYPE_APP)
-      io = io->lhs, args++;
-    if (io->type < TYPE_IO)
-      return "top-level term is not io";
+      io = io->lhs, argc++;
+    if (io->type >= 0)
+      return "top-level term is not IO";
 
-    switch (io->type - TYPE_IO) {
+    switch (~io->type) {
     case IO_ERR:
-      return "top-level term is err";
-    case IO_END:
-      if (args != 0)
-        return "$end expects 0 arguments";
-      term_decref(*term), *term = NULL;
+      return "top-level term is $err";
+    case IO_EXIT:
+      if (argc != 0)
+        return "$exit expects 0 arguments";
+      *term = term_decref(*term);
       return NULL;
-    case IO_DBG:
-      if (args != 2)
-        return "$dbg expects 2 arguments";
-      whnf(&(*term)->lhs->rhs);
+    case IO_DUMP:
+      if (argc != 2)
+        return "$dump expects 2 arguments";
+      whnf((*term)->lhs->rhs, visited);
       term_dump((*term)->lhs->rhs), putchar('\n');
       cont = term_incref((*term)->rhs);
       break;
     case IO_GET: {
-      if (args != 1)
+      if (argc != 1)
         return "$get expects 1 argument";
       bool bit = bs_get(bs_in), eof = bs_eof(bs_in);
-      struct term *some, *none, *one, *zero;
+      struct term *some, *none, *tru, *fals;
       // clang-format off
       struct term *arg =
           (some = VAR(), LAM(some,
           (none = VAR(), LAM(none,
               eof ? term_incref(none)
                   : APP(term_incref(some),
-                        (one = VAR(), LAM(one,
-                        (zero = VAR(), LAM(zero,
-                            term_incref(bit ? one : zero))))))))));
+                        (tru = VAR(), LAM(tru,
+                        (fals = VAR(), LAM(fals,
+                            term_incref(bit ? tru : fals))))))))));
       // clang-format on
       cont = APP(term_incref((*term)->rhs), arg);
     } break;
     case IO_PUT: {
-      if (args != 2)
+      if (argc != 2)
         return "$put expects 2 arguments";
-      struct term *one = VAR(), *zero = VAR();
-      struct term *bit = APP(APP(term_incref((*term)->lhs->rhs), one), zero);
-      whnf(&bit);
-      if (bit != one && bit != zero)
-        return term_decref(bit), "io argument is malformed";
-      bs_put(bs_out, bit == one), free(bit);
+      // two sentinel lambda-terms with bogus `type` so they get treated like
+      // IOs and with huge `refcount` so nobody attempts to free them
+      struct term tru = {INT_MIN + 1, INT_MAX}, fals = {INT_MIN + 0, INT_MAX};
+      struct term *bit = APP(APP(term_incref((*term)->lhs->rhs), &tru), &fals);
+      whnf(bit, visited);
+      if (bit->type != tru.type && bit->type != fals.type)
+        return term_decref(bit), "$put argument is malformed";
+      bs_put(bs_out, bit->type == tru.type), term_decref(bit);
       cont = term_incref((*term)->rhs);
     } break;
+    default:
+      abort();
     }
   }
 }
 
-// keep in sync with grammar.bnf
+// keep in sync with grammar.bnf and pnlc.vim
 
 struct env {
   char *begin, *end; // binder name
-  struct term *var;  // XXX doc
+  struct term *var;  // borrow of bound variable node
   struct env *up;    // next binder up the list
 };
 
@@ -291,7 +331,7 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
       return NULL;
 
     // check if the variable is an IO
-    for (char **io = ios + 1 /* IO_END is reserved */; *io; io++)
+    for (char **io = ios; *io; io++)
       if (end - begin == strlen(*io) && strncmp(begin, *io, end - begin) == 0)
         return IO(io - ios);
 
@@ -356,7 +396,8 @@ int main(int argc, char **argv) {
 
   free(buf);
 
-  if (error = run(&term, &(struct bs){stdin}, &(struct bs){stdout}))
+  if (error = run(&term, &(struct bs){stdin}, &(struct bs){stdout},
+                  &(unsigned long){0}))
     term_decref(term), fprintf(stderr, "runtime error: %s\n", error),
         exit(EXIT_FAILURE);
 }
