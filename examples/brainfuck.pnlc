@@ -118,7 +118,7 @@ fix \bfp
   ..\str
     ...'\n'u8 putc ..'!'u8 putc .io:monad bindk
     .\proginp .\prog \inp .0tape prog proginp
-    .str .eofp .bfp .parser:appl bindl
+    .str .eofp .bfp .parser:appl seql
   .getbang
   .io:monad bind
 main

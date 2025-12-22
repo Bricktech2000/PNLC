@@ -14,6 +14,7 @@
 .\f \g \x \y ..y g ..x g f \psi
 .\f .\x ..x x f \x ..x x f \fix
 
+ # constructors and eliminators
 
 .$err \void
 .\x x \unit
@@ -72,6 +73,7 @@
 .\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 6 arr8 \arr8.6
 .\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 7 arr8 \arr8.7
 
+ # typeclass definitions
 
 .\equal \eq .equal eq \eq
 .\eq .\equal equal eq \equal
@@ -105,7 +107,7 @@ bndd \max:mnid
 .\sappend \sgrp .sappend sgrp \sgrp
 .\sgrp .\sappend sappend sgrp \sappend
 # dual semigroup, the semigroup obtained by swapping arguments to `sappend`
-.\inner:sgrp ..cardinal .sgrp bluebird inner:sgrp \dual:sgrp
+.\inner:sgrp .\sappend ..sappend cardinal sgrp inner:sgrp \dual:sgrp
 # XXX binary exponentiation?
 .\sgrp \elem \count
   .count .elem ..elem .sgrp sappend ind
@@ -115,7 +117,7 @@ bndd \max:mnid
 .\mnid .\sgrp \mempty sgrp mnid \mnid:sgrp
 .\mnid .\sgrp \mempty mempty mnid \mempty
 # dual monoid, the monoid obtained by swapping arguments to `sappend`
-.\inner:mnid ..dual:sgrp .mnid bluebird inner:mnid \dual:mnid
+.\inner:mnid .\sgrp ..sgrp dual:sgrp mnid inner:mnid \dual:mnid
 .\mnid \elem \count .\sgrp \mempty
   .mempty ..elem .sgrp stimes count
 mnid \mtimes
@@ -135,14 +137,14 @@ mnid \mtimes
 \lifta2
 .\appl .thrush .appl lifta2 \rapply
 # XXX why are these two so slow?
-.\appl .kestrel .appl lifta2 \bindl
-.\appl .kite .appl lifta2 \bindr
+.\appl .kestrel .appl lifta2 \seql
+.\appl .kite .appl lifta2 \seqr
 .\appl \left \right \inner
   ..right
   .inner
-  .appl bindl
+  .appl seql
   .left
-  .appl bindr
+  .appl seqr
 \between
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` by lifting the monoid pointwise
 .\appl \inner:sgrp .\innersappend
@@ -151,7 +153,7 @@ mnid \mtimes
 inner:sgrp \ap:sgrp
 .\appl \inner:mnid .\inner:sgrp \innermempty
   ..innermempty .appl pure
-  ..appl .inner:sgrp ap:sgrp
+  ..inner:sgrp .appl ap:sgrp
   mnid
 inner:mnid \ap:mnid
 
@@ -177,7 +179,7 @@ inner:mnid \ap:mnid
   ...many .many1 bluebird fix ...many1 .many bluebird fix
 \many \many1
 .\altn \sep \elem
-  ...elem .sep ..altn altn:appl bindr .altn many
+  ...elem .sep ..altn altn:appl seqr .altn many
   .elem
   .cons ..altn altn:appl lifta2
 \sepby1
@@ -190,6 +192,7 @@ inner:mnid \ap:mnid
 .\altn ..altn alt sgrp \alt:sgrp
 .\altn ..altn empty .alt:sgrp mnid \alt:mnid
 
+ # utility functions and typeclass instances
 
 # the left-zero and right-zero semigroups over the carrier set
 ..kite sgrp \first:sgrp
@@ -263,7 +266,7 @@ ret:sgrp \func:sgrp
 inner:ord \down:ord
 # the reverse bounding, obtained by swapping `top` and `bot`
 .\inner:bndd .\innertop \innerbot
-  .top .bot bndd
+  .innerbot .innertop bndd
 inner:bndd \down:bndd
 
   ..\func \optarg
@@ -298,21 +301,24 @@ inner:sgrp \optsgrp:sgrp
 # `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.First a`.
 # no need for `Data.Monoid.Last a`, it'd be isomorphic to `Dual (Alt Maybe a)`
 # and to `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.Last a`.
-.\elem:eq .\elemequal
+#
+# these typeclass instances need to be lazy in the element typeclass instance so
+# we can take their fixed points to define the equivalent instances for `nat`
+.\elem:eq
   .\rhs \lhs
     ..true ..false kestrel lhs
-    ...false kestrel ..elemequal cardinal lhs
+    ...false kestrel ...elem:eq equal cardinal lhs
     rhs
   eq
-elem:eq \opt:eq
-.\elem:ord .\elem:eq \elemcompare
+\opt:eq
+.\elem:ord
   .\rhs \lhs
     ..et ..gt kestrel lhs
-    ...lt kestrel ..elemcompare cardinal lhs
+    ...lt kestrel ...elem:ord compare cardinal lhs
     rhs
-  ..elem:eq opt:eq
+  ...elem:ord ord:eq opt:eq
   ord
-elem:ord \opt:ord
+\opt:ord
 .\elem:bndd .none ...elem:bndd top some bndd \opt:bndd
 # `type Every a = Down (Maybe (Down a))`
 # the ordering where `Nothing` is the top element instead of the bottom element
@@ -355,12 +361,11 @@ elem:ord \opt:ord
 #         and:mnid means 'monoid induced by `and`'
 #   - terse typeclass names because manual resolution
 
-
 .\fst:eq \snd:eq .\fstequal .\sndequal
   .\rhs \lhs
     .\rhsfst \rhssnd .\lhsfst \lhssnd
-      ..lhssnd .rhssnd fstequal
-      ..lhsfst .rhsfst sndequal
+      ..lhsfst .rhsfst fstequal
+      ..lhssnd .rhssnd sndequal
       .and:sgrp sappend # and
     lhs rhs
   eq
@@ -434,14 +439,13 @@ fst:sgrp fst:mnid \pair:monad
   .\rhs \lhs
     ..lhs swap
     ..rhs swap
-    .fst:ord .snd:ord pair:eq
+    .fst:ord .snd:ord pair:ord
   ..fst:eq .snd:eq swap:eq
   ord
 fst:ord snd:ord \swap:ord
 # the bounding obtained by swapping elements of the pair bounding
 .\snd:bndd \fst:bndd
-  ..fst:bndd .snd:bndd pair:bndd
-  bndd
+  .fst:bndd .snd:bndd pair:bndd
 \swap:bndd
 # the monad obtained by swapping elements of the pair monad
   ..\fstfunc \pairarg
@@ -866,5 +870,5 @@ fix \getln
   ..str .chrp .list:ftor fmap
   .parser:appl list.sequence
 \strp
-  ..\head true satp
+  ...true kestrel satp
 \getp
