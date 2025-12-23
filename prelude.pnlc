@@ -1,302 +1,291 @@
 # vim:tw=80:ft=pnlc:
+.\p .p \x \f .f x \def
 
-.\x x \id
-.\x \y x \kestrel
-.\x \y y \kite
-.\x \f .x f \thrush
-.\x \y \f .y .x f \vireo
-.\f \x .x .x f \mockingbird
-.\f \x \y .x .y f \cardinal
-.\f \g \x ..x g f \bluebird
-.\f \g \x \y ..y .x g f \blackbird
-.\f \x \g \y ..y g .x f \dove
-.\f \g \h \x ..x h ..x g f \phi
-.\f \g \x \y ..y g ..x g f \psi
-.\f .\x ..x x f \x ..x x f \fix
+..def \x x \id
+..def \x \y x \kestrel
+..def \x \y y \kite
+..def \x \f .f x \thrush
+..def \x \y \f ..f x y \vireo
+..def \f \x ..f x x \mockingbird
+..def \f \x \y ..f y x \cardinal
+..def \f \g \x .f .g x \bluebird
+..def \f \g \x \y .f ..g x y \blackbird
+..def \f \x \g \y ..f x .g y \dove
+..def \f \g \h \x ..f .g x .h x \phi
+..def \f \g \x \y ..f .g x .g y \psi
+..def \f .\x .f .x x \x .f .x x \fix
 
  # constructors and eliminators
 
-.$err \void
-.\x x \unit
+..def $err \void
+..def \x x \unit
 
 # def:bool
-.\true \false true \true
-.\true \false false \false
-.\bool .true .false bool \not
-.\rhs \lhs .rhs .lhs rhs \and
-.\rhs \lhs .lhs .rhs rhs \or
-.\rhs \lhs .lhs .id .not rhs \xor
+..def \true \false true \true
+..def \true \false false \false
+..def \bool ..bool false true \not
+..def \rhs \lhs ..rhs lhs rhs \and
+..def \rhs \lhs ..rhs rhs lhs \or
+..def \rhs \lhs ...rhs not id lhs \xor
 
 # def:cmp
-.\lt \et \gt lt \lt
-.\lt \et \gt et \et
-.\lt \et \gt gt \gt
-.\cmp .false .false .true cmp \islt
-.\cmp .false .true .false cmp \iseq
-.\cmp .true .false .false cmp \isgt
+..def \lt \et \gt lt \lt
+..def \lt \et \gt et \et
+..def \lt \et \gt gt \gt
+..def \cmp ...cmp true false false \islt
+..def \cmp ...cmp false true false \iseq
+..def \cmp ...cmp false false true \isgt
 
 # def:opt
-.\opt \some \none .opt some \some
-.\some \none none \none
-.\opt .false ..true kestrel opt \issome
-.\opt .true ..false kestrel opt \isnone
-.\opt .$err .id opt \unwrap
+..def \opt \some \none .some opt \some
+..def \some \none none \none
+..def \opt ..opt .kestrel true false \issome
+..def \opt ..opt .kestrel false true \isnone
+..def \opt ..opt id $err \unwrap
 
 # def:nat
-.\nat \succ \zero .nat succ \succ
-.\succ \zero zero \zero
-.\nat .false ..true kestrel nat \issucc
-.\nat .true ..false kestrel nat \iszero
-.\nat .$err .id nat \pred
-.\func \zero .\ind \nat .zero .ind nat fix \ind
+..def \nat \succ \zero .succ nat \succ
+..def \succ \zero zero \zero
+..def \nat ..nat .kestrel true false \issucc
+..def \nat ..nat .kestrel false true \iszero
+..def \nat ..nat id $err \pred
+..def \func \zero .fix \ind \nat ..nat ind zero \ind
 
-.\fst \snd \pair .snd .fst pair \pair
-.\pair .\fst \snd fst pair \fst
-.\pair .\fst \snd snd pair \snd
+..def \fst \snd \pair ..pair fst snd \pair
+..def \pair .pair \fst \snd fst \fst
+..def \pair .pair \fst \snd snd \snd
 
 # def:list
-.\head \tail \cons \nil .tail .head cons \cons
-.\cons \nil nil \nil
-.\list .false .\head \tail true list \iscons
-.\list .true .\head \tail false list \isnil
-.\list .none .\head \tail .head some list \head
-.\list .none .\head \tail .tail some list \tail
+..def \head \tail \cons \nil ..cons head tail \cons
+..def \cons \nil nil \nil
+..def \list ..list \head \tail true false \iscons
+..def \list ..list \head \tail false true \isnil
+..def \list ..list \head \tail .some head none \head
+..def \list ..list \head \tail .some tail none \tail
 
 # type Arr8 a = (a, a, a, a, a, a, a, a)
-.\0 \1 \2 \3 \4 \5 \6 \7 \arr8 .7 .6 .5 .4 .3 .2 .1 .0 arr8 \arr8
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 0 arr8 \arr8.0
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 1 arr8 \arr8.1
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 2 arr8 \arr8.2
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 3 arr8 \arr8.3
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 4 arr8 \arr8.4
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 5 arr8 \arr8.5
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 6 arr8 \arr8.6
-.\arr8 .\0 \1 \2 \3 \4 \5 \6 \7 7 arr8 \arr8.7
+..def \0 \1 \2 \3 \4 \5 \6 \7 \arr8 ........arr8 0 1 2 3 4 5 6 7 \arr8
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 0 \arr8.0
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 1 \arr8.1
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 2 \arr8.2
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 3 \arr8.3
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 4 \arr8.4
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 5 \arr8.5
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 6 \arr8.6
+..def \arr8 .arr8 \0 \1 \2 \3 \4 \5 \6 \7 7 \arr8.7
 
  # typeclass definitions
 
-.\equal \eq .equal eq \eq
-.\eq .\equal equal eq \equal
-.\eq .\equal .equal .not blackbird eq \unequal
+..def \equal \eq .eq equal \eq
+..def \eq .eq \equal equal \equal
+..def \eq .eq \equal ..blackbird not equal \unequal
 
-.\eq \compare \ord .compare .eq ord \ord
-.\ord .\eq \compare eq ord \ord:eq
-.\ord .\eq \compare compare ord \compare
-.\ord \rhs \lhs
-  ..false .true .false .lhs .rhs .ord compare
-  eq
+..def \eq \compare \ord ..ord eq compare \ord
+..def \ord .ord \eq \compare eq \ord:eq
+..def \ord .ord \eq \compare compare \compare
+..def \ord \rhs \lhs .eq
+  ......compare ord rhs lhs false true false
 \ord.eq
 # return the left-hand side when the arguments compare equal
-.\ord \rhs \lhs .lhs .lhs .rhs .lhs .rhs .ord compare \min
-.\ord \rhs \lhs .rhs .lhs .lhs .lhs .rhs .ord compare \max
-.\ord \sgrp ..ord min sgrp \min:sgrp
-.\ord \sgrp ..ord max sgrp \max:sgrp
-.\ord \bndd \mnid .\top \bot
-  .top ..ord min:sgrp mnid
-bndd \min:mnid
-.\ord \bndd \mnid .\top \bot
-  .bot ..ord max:sgrp mnid
-bndd \max:mnid
+..def \ord \rhs \lhs ......compare ord rhs lhs rhs lhs lhs \min
+..def \ord \rhs \lhs ......compare ord rhs lhs lhs lhs rhs \max
+..def \ord \sgrp .sgrp .min ord \min:sgrp
+..def \ord \sgrp .sgrp .max ord \max:sgrp
+..def \ord \bndd \mnid .bndd \top \bot
+  ..mnid .min:sgrp ord top
+\min:mnid
+..def \ord \bndd \mnid .bndd \top \bot
+  ..mnid .max:sgrp ord bot
+\max:mnid
 # return the argument when it is equal to one or both bounds
-.\ord \bounds .\lo \hi ..lo .ord max ..hi .ord min bluebird bounds \clamp
+..def \ord \bounds .bounds \lo \hi ..bluebird ..min ord hi ..max ord lo \clamp
 
-.\top \bot \bndd .bot .top bndd \bndd
-.\bndd .\top \bot top bndd \top
-.\bndd .\top \bot bot bndd \bot
+..def \top \bot \bndd ..bndd top bot \bndd
+..def \bndd .bndd \top \bot top \top
+..def \bndd .bndd \top \bot bot \bot
 
-.\sappend \sgrp .sappend sgrp \sgrp
-.\sgrp .\sappend sappend sgrp \sappend
+..def \sappend \sgrp .sgrp sappend \sgrp
+..def \sgrp .sgrp \sappend sappend \sappend
 # dual semigroup, the semigroup obtained by swapping arguments to `sappend`
-.\inner:sgrp .\sappend ..sappend cardinal sgrp inner:sgrp \dual:sgrp
+..def \inner:sgrp .inner:sgrp \sappend .sgrp .cardinal sappend \dual:sgrp
 # XXX binary exponentiation?
-.\sgrp \elem \count
-  .count .elem ..elem .sgrp sappend ind
+..def \sgrp \elem \count
+  ...ind ..sappend sgrp elem elem count
 \stimes
 
-.\sgrp \mempty \mnid .mempty .sgrp mnid \mnid
-.\mnid .\sgrp \mempty sgrp mnid \mnid:sgrp
-.\mnid .\sgrp \mempty mempty mnid \mempty
+..def \sgrp \mempty \mnid ..mnid sgrp mempty \mnid
+..def \mnid .mnid \sgrp \mempty sgrp \mnid:sgrp
+..def \mnid .mnid \sgrp \mempty mempty \mempty
 # dual monoid, the monoid obtained by swapping arguments to `sappend`
-.\inner:mnid .\sgrp ..sgrp dual:sgrp mnid inner:mnid \dual:mnid
-.\mnid \elem \count .\sgrp \mempty
-  .mempty ..elem .sgrp stimes count
-mnid \mtimes
+..def \inner:mnid .inner:mnid \sgrp .mnid .dual:sgrp sgrp \dual:mnid
+..def \mnid \elem \count .mnid \sgrp \mempty
+  ..count ..stimes sgrp elem mempty
+\mtimes
 
-.\fmap \ftor .fmap ftor \ftor
-.\ftor .\fmap fmap ftor \fmap
-.\ftor .kestrel ..ftor fmap bluebird \fmapk
+..def \fmap \ftor .ftor fmap \ftor
+..def \ftor .ftor \fmap fmap \fmap
+..def \ftor ..bluebird .fmap ftor kestrel \fmapk
 
-.\ftor \pure \apply \appl .apply .pure .ftor appl \appl
-.\appl .\ftor \pure \apply ftor appl \appl:ftor
-.\appl .\ftor \pure \apply pure appl \pure
-.\appl .\ftor \pure \apply apply appl \apply
-.\appl \func \fst \snd
-  .snd
-  ..fst .func ..appl appl:ftor fmap
-  .appl apply
+..def \ftor \pure \apply \appl ...appl ftor pure apply \appl
+..def \appl .appl \ftor \pure \apply ftor \appl:ftor
+..def \appl .appl \ftor \pure \apply pure \pure
+..def \appl .appl \ftor \pure \apply apply \apply
+..def \appl \func \fst \snd
+  ...apply appl
+    ...fmap .appl:ftor appl func fst
+    snd
 \lifta2
-.\appl .thrush .appl lifta2 \rapply
+..def \appl ..lifta2 appl thrush \rapply
 # XXX why are these two so slow?
-.\appl .kestrel .appl lifta2 \seql
-.\appl .kite .appl lifta2 \seqr
-.\appl \left \right \inner
-  ..right
-  .inner
-  .appl seql
-  .left
-  .appl seqr
+..def \appl ..lifta2 appl kestrel \seql
+..def \appl ..lifta2 appl kite \seqr
+..def \appl \left \right \inner
+  ...seqr appl left ...seql appl inner right
 \between
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` by lifting the monoid pointwise
-.\appl \inner:sgrp .\innersappend
-  ..innersappend .appl lifta2
-  sgrp
-inner:sgrp \ap:sgrp
-.\appl \inner:mnid .\inner:sgrp \innermempty
-  ..innermempty .appl pure
-  ..inner:sgrp .appl ap:sgrp
-  mnid
-inner:mnid \ap:mnid
+..def \appl \inner:sgrp .inner:sgrp \innersappend
+  .sgrp ..lifta2 appl innersappend
+\ap:sgrp
+..def \appl \inner:mnid .inner:mnid \inner:sgrp \innermempty
+  ..mnid
+    ..ap:sgrp appl inner:sgrp
+    ..pure appl innermempty
+\ap:mnid
 
-.\appl \bind \monad .bind .appl monad \monad
-.\monad .\appl \bind appl monad \monad:appl
-.\monad .\appl \bind bind monad \bind
-.\monad \x \f ..f kestrel .x .monad bind \bindk
-.\monad \f \g \x .g ..x f .monad bind \kleisli
+..def \appl \bind \monad ..monad appl bind \monad
+..def \monad .monad \appl \bind appl \monad:appl
+..def \monad .monad \appl \bind bind \bind
+..def \monad \x \f ...bind monad x .kestrel f \bindk
+..def \monad \f \g \x ...bind monad .f x g \kleisli
 # the monoid of Kleisli endomorphisms under Kleisli composition
-.\monad ..monad kleisli sgrp \kendo:sgrp
-.\monad ...monad monad:appl pure ..monad kendo:sgrp mnid \kendo:mnid
+..def \monad .sgrp .kleisli monad \kendo:sgrp
+..def \monad ..mnid .kendo:sgrp monad .pure .monad:appl monad \kendo:mnid
 
-.\appl \empty \alt \altn .alt .empty .appl altn \altn
-.\altn .\appl \empty \alt appl altn \altn:appl
-.\altn .\appl \empty \alt empty altn \empty
-.\altn .\appl \empty \alt alt altn \alt
-.\many1 \altn \val
-  ..nil ..altn altn:appl pure ..val .altn many1 .altn alt
+..def \appl \empty \alt \altn ...altn appl empty alt \altn
+..def \altn .altn \appl \empty \alt appl \altn:appl
+..def \altn .altn \appl \empty \alt empty \empty
+..def \altn .altn \appl \empty \alt alt \alt
+..def \many1 \altn \val
+  ...alt altn ..many1 altn val ..pure .altn:appl altn nil
 \many
-.\many \altn \val
-  ..val .altn many .val .cons ..altn altn:appl lifta2
+..def \many \altn \val
+  ....lifta2 .altn:appl altn cons val ..many altn val
 \many1
-  ...many .many1 bluebird fix ...many1 .many bluebird fix
+..def .fix ..bluebird many1 many
+..def .fix ..bluebird many many1
 \many \many1
-.\altn \sep \elem
-  ...elem .sep ..altn altn:appl seqr .altn many
-  .elem
-  .cons ..altn altn:appl lifta2
+..def \altn \sep \elem
+  ....lifta2 .altn:appl altn cons
+    elem
+    ..many altn ...seqr .altn:appl altn sep elem
 \sepby1
-.\altn \sep \elem
-  ..nil ..altn altn:appl pure
-  ..elem .sep .altn sepby1
-  .altn alt
+..def \altn \sep \elem
+  ...alt altn
+    ...sepby1 altn sep elem
+    ..pure .altn:appl altn nil
 \sepby
 # the monoid induced by `alt`
-.\altn ..altn alt sgrp \alt:sgrp
-.\altn ..altn empty .alt:sgrp mnid \alt:mnid
+..def \altn .sgrp .alt altn \alt:sgrp
+..def \altn ..mnid alt:sgrp .empty altn \alt:mnid
 
  # utility functions and typeclass instances
 
 # the left-zero and right-zero semigroups over the carrier set
-..kite sgrp \first:sgrp
-..kestrel sgrp \last:sgrp
+..def .sgrp kite \first:sgrp
+..def .sgrp kestrel \last:sgrp
 # the monoid of endomorphisms under composition
-..bluebird sgrp \endo:sgrp
-..id .endo:sgrp mnid \endo:mnid
+..def .sgrp bluebird \endo:sgrp
+..def ..mnid endo:sgrp id \endo:mnid
 # `Monoid b => Monoid (a -> b)` by combining return values
-.\ret:sgrp .\retsappend
-  .\rhs \lhs \arg ..arg lhs ..arg rhs retsappend sgrp
-ret:sgrp \func:sgrp
-.\ret:mnid ..func:sgrp .mnid bluebird ret:mnid \func:mnid
+..def \ret:sgrp .ret:sgrp \retsappend
+  .sgrp \rhs \lhs \arg ..retsappend .rhs arg .lhs arg
+\func:sgrp
+..def \ret:mnid .ret:mnid ..bluebird mnid func:sgrp \func:mnid
 
-..\rhs \lhs true eq \unit:eq
-..\rhs \lhs void eq \void:eq
-..\rhs \lhs et .unit:eq ord \unit:ord
-..\rhs \lhs void .void:eq ord \void:ord
-..unit .unit bndd \unit:bndd
-..void .void bndd \void:bndd
-..\rhs \lhs void sgrp \void:sgrp
-..\rhs \lhs unit sgrp \unit:sgrp
-..void .void:sgrp mnid \void:mnid
-..unit .unit:sgrp mnid \unit:mnid
+..def .eq \rhs \lhs true \unit:eq
+..def .eq \rhs \lhs void \void:eq
+..def ..ord unit:eq \rhs \lhs et \unit:ord
+..def ..ord void:eq \rhs \lhs void \void:ord
+..def ..bndd unit unit \unit:bndd
+..def ..bndd void void \void:bndd
+..def .sgrp \rhs \lhs void \void:sgrp
+..def .sgrp \rhs \lhs unit \unit:sgrp
+..def ..mnid void:sgrp void \void:mnid
+..def ..mnid unit:sgrp unit \unit:mnid
 
-  ..\rhs \lhs
-    ..true .false lhs
-    ..false .true lhs
-    rhs
-  eq
+..def .eq
+  \rhs \lhs ..rhs
+    ..lhs true false
+    ..lhs false true
 \bool:eq
-  ..\rhs \lhs
-    ..et .gt lhs
-    ..lt .et lhs
-    rhs
-  .bool:eq
-  ord
+..def ..ord
+  bool:eq
+  \rhs \lhs ..rhs
+    ..lhs et lt
+    ..lhs gt et
 \bool:ord
-..false .true bndd \bool:bndd
+..def ..bndd true false \bool:bndd
 # XXX duplicates of `.bool:ord min:sgrp` and `.bool:bndd .bool:ord min:mnid`
 # XXX duplicates of `.bool:ord max:sgrp` and `.bool:bndd .bool:ord max:mnid`
-..and sgrp \and:sgrp
-..or sgrp \or:sgrp
-..xor sgrp \xor:sgrp
-..true .and:sgrp mnid \and:mnid
-..false .or:sgrp mnid \or:mnid
-..false .xor:sgrp mnid \xor:mnid
+..def .sgrp and \and:sgrp
+..def .sgrp or \or:sgrp
+..def .sgrp xor \xor:sgrp
+..def ..mnid and:sgrp true \and:mnid
+..def ..mnid or:sgrp false \or:mnid
+..def ..mnid xor:sgrp false \xor:mnid
 
-  ..\rhs \lhs
-    ..true  .false .false lhs
-    ..false .true  .false lhs
-    ..false .false .true  lhs
-    rhs
-  eq
+..def .eq
+  \rhs \lhs ...rhs
+    ...lhs true false false
+    ...lhs false true false
+    ...lhs false false true
 \cmp:eq
-  ..\rhs \lhs
-    ..et .lt .lt lhs
-    ..gt .et .lt lhs
-    ..gt .gt .et lhs
-    rhs
-  .cmp:eq
-  ord
+..def ..ord
+  cmp:eq
+  \rhs \lhs ...rhs
+    ...lhs et gt gt
+    ...lhs lt et gt
+    ...lhs lt lt et
 \cmp:ord
-..lt .gt bndd \cmp:bndd
-..\rhs \lhs .lhs .rhs .lhs lhs sgrp \cmp:sgrp
-..et .cmp:sgrp mnid \cmp:mnid
+..def ..bndd gt lt \cmp:bndd
+..def .sgrp \rhs \lhs ...lhs lhs rhs lhs \cmp:sgrp
+..def ..mnid cmp:sgrp et \cmp:mnid
 # the reverse ordering, obtained by swapping arguments to `compare`
-.\inner:ord .\innereq \innercompare
-  ..innercompare cardinal
-  .innereq
-  ord
-inner:ord \down:ord
+..def \inner:ord .inner:ord \innereq \innercompare
+  ..ord innereq .cardinal innercompare
+\down:ord
 # the reverse bounding, obtained by swapping `top` and `bot`
-.\inner:bndd .\innertop \innerbot
-  .innerbot .innertop bndd
-inner:bndd \down:bndd
+..def \inner:bndd .inner:bndd \innertop \innerbot
+  ..bndd innertop innerbot
+\down:bndd
 
-  ..\func \optarg
-    .none .\arg ..arg func some optarg
-  ftor
+..def .ftor
+  \func \optarg
+    ..optarg \arg .some .func arg none
 \opt:ftor
-  ..\optfunc \optarg
-    .none .\func .optarg .func .opt:ftor fmap optfunc
-  .some
-  .opt:ftor
-  appl
+..def ...appl
+  opt:ftor
+  some
+  \optfunc \optarg
+    ..optfunc \func ...fmap opt:ftor func optarg none
 \opt:appl
-  ..\optarg \func .none .func optarg
-  .opt:appl
-  monad
+..def ..monad
+  opt:appl
+  \optarg \func ..optarg func none
 \opt:monad
-  ..\optrhs \optlhs .optrhs .some optlhs
-  .none
-  .opt:appl
-  altn
+..def ...altn
+  opt:appl
+  none
+  \optrhs \optlhs ..optlhs some optrhs
 \opt:altn
 # `Semigroup a => Monoid (Maybe a)` by adjoining `Nothing` as neutral element
-.\inner:sgrp .\innersappend
-  .\optrhs \optlhs
-    .optlhs
-    .\rhs .optlhs ..rhs innersappend .opt:ftor fmap
-    optrhs
-  sgrp
-inner:sgrp \optsgrp:sgrp
-.\inner:sgrp .none ..inner:sgrp optsgrp:sgrp mnid \optsgrp:mnid
+..def \inner:sgrp .inner:sgrp \innersappend
+  .sgrp
+    \optrhs \optlhs ..optrhs
+      \rhs ...fmap opt:ftor .innersappend rhs optlhs
+      optlhs
+\optsgrp:sgrp
+..def \inner:sgrp ..mnid .optsgrp:sgrp inner:sgrp none \optsgrp:mnid
 # no need for `Data.Monoid.First a`, it'd be isomorphic to `Alt Maybe a` and to
 # `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.First a`.
 # no need for `Data.Monoid.Last a`, it'd be isomorphic to `Dual (Alt Maybe a)`
@@ -304,42 +293,38 @@ inner:sgrp \optsgrp:sgrp
 #
 # these typeclass instances need to be lazy in the element typeclass instance so
 # we can take their fixed points to define the equivalent instances for `nat`
-.\elem:eq
-  .\rhs \lhs
-    ..true ..false kestrel lhs
-    ...false kestrel ...elem:eq equal cardinal lhs
-    rhs
-  eq
+..def \elem:eq .eq
+  \rhs \lhs ..rhs
+    ..lhs .cardinal .equal elem:eq .kestrel false
+    ..lhs .kestrel false true
 \opt:eq
-.\elem:ord
-  .\rhs \lhs
-    ..et ..gt kestrel lhs
-    ...lt kestrel ...elem:ord compare cardinal lhs
-    rhs
-  ...elem:ord ord:eq opt:eq
-  ord
+..def \elem:ord ..ord
+  .opt:eq .ord:eq elem:ord
+  \rhs \lhs ..rhs
+    ..lhs .cardinal .compare elem:ord .kestrel lt
+    ..lhs .kestrel gt et
 \opt:ord
-.\elem:bndd .none ...elem:bndd top some bndd \opt:bndd
+..def \elem:bndd ..bndd .some .top elem:bndd none \opt:bndd
 # `type Every a = Down (Maybe (Down a))`
 # the ordering where `Nothing` is the top element instead of the bottom element
-.\elem:ord ...elem:ord down:ord opt:ord down:ord \every:ord
-.\elem:bndd ...elem:bndd down:bndd opt:bndd down:bndd \every:bndd
+..def \elem:ord .down:ord .opt:ord .down:ord elem:ord \every:ord
+..def \elem:bndd .down:bndd .opt:bndd .down:bndd elem:bndd \every:bndd
 
-.\rhs \lhs .rhs .lhs .succ ind \add
-.\rhs \lhs .rhs .zero ..lhs add ind \mul
-.\rhs \lhs .rhs ..zero succ ..lhs mul ind \exp
-.\rhs \lhs .rhs ..zero succ ..lhs .exp cardinal ind \tet
-..add sgrp \add:sgrp
-..mul sgrp \mul:sgrp
-..zero .add:sgrp mnid \add:mnid
-...zero succ .mul:sgrp mnid \mul:mnid
-.opt:ftor \nat:ftor
-.opt:appl \nat:appl
-.opt:altn \nat:altn
-.opt:monad \nat:monad
-..opt:eq fix \nat:eq
-..opt:ord fix \nat:ord
-..opt:bndd fix \nat:bndd # zero, fix succ
+..def \rhs \lhs ...ind succ lhs rhs \add
+..def \rhs \lhs ...ind .add lhs zero rhs \mul
+..def \rhs \lhs ...ind .mul lhs .succ zero rhs \exp
+..def \rhs \lhs ...ind ..cardinal exp lhs .succ zero rhs \tet
+..def .sgrp add \add:sgrp
+..def .sgrp mul \mul:sgrp
+..def ..mnid add:sgrp zero \add:mnid
+..def ..mnid mul:sgrp .succ zero \mul:mnid
+..def opt:ftor \nat:ftor
+..def opt:appl \nat:appl
+..def opt:altn \nat:altn
+..def opt:monad \nat:monad
+..def .fix opt:eq \nat:eq
+..def .fix opt:ord \nat:ord
+..def .fix opt:bndd \nat:bndd # zero, fix succ
 
 # XXX doc wrappers? currently:
 #   - ap
@@ -361,514 +346,466 @@ inner:sgrp \optsgrp:sgrp
 #         and:mnid means 'monoid induced by `and`'
 #   - terse typeclass names because manual resolution
 
-.\fst:eq \snd:eq .\fstequal .\sndequal
-  .\rhs \lhs
-    .\rhsfst \rhssnd .\lhsfst \lhssnd
-      ..lhsfst .rhsfst fstequal
-      ..lhssnd .rhssnd sndequal
-      .and:sgrp sappend # and
-    lhs rhs
-  eq
-snd:eq fst:eq \pair:eq
-.\fst:ord \snd:ord .\fst:eq \fstcompare .\snd:eq \sndcompare
-  .\rhs \lhs
-    .\rhsfst \rhssnd .\lhsfst \lhssnd
-      ..lhsfst .rhsfst fstcompare
-      ..lhssnd .rhssnd sndcompare
-      .cmp:sgrp sappend
-    lhs rhs
-  ..snd:eq .fst:eq pair:eq
-  ord
-snd:ord fst:ord \pair:ord
-.\fst:bndd \snd:bndd .\fsttop \fstbot .\sndtop \sndbot
-  ..sndbot .fstbot pair
-  ..sndtop .fsttop pair
-  bndd
-snd:bndd fst:bndd \pair:bndd
-.\fst:sgrp \snd:sgrp .\fstsappend .\sndsappend
-  .\rhs \lhs
-    .\rhsfst \rhssnd .\lhsfst \lhssnd
-      ..lhssnd .rhssnd sndsappend
-      ..lhsfst .rhsfst fstsappend
-      pair
-    lhs rhs
-  sgrp
-snd:sgrp fst:sgrp \pair:sgrp
-.\fst:mnid \snd:mnid .\fst:sgrp \fstmempty .\snd:sgrp \sndmempty
-  ..sndmempty .fstmempty pair
-  ..snd:sgrp .fst:sgrp pair:sgrp
-  mnid
-snd:mnid fst:mnid \pair:mnid
-  ..\sndfunc \pairarg
-    .\fstarg \sndarg
-      ..sndarg sndfunc .fstarg pair
-    pairarg
-  ftor
+..def \fst:eq \snd:eq .fst:eq \fstequal .snd:eq \sndequal
+    .eq
+      \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
+        ...sappend and:sgrp # and
+          ..sndequal rhssnd lhssnd
+          ..fstequal rhsfst lhsfst
+\pair:eq
+..def \fst:ord \snd:ord
+  .fst:ord \fst:eq \fstcompare .snd:ord \snd:eq \sndcompare
+    ..ord
+      ..pair:eq fst:eq snd:eq
+      \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
+        ...sappend cmp:sgrp
+          ..sndcompare rhssnd lhssnd
+          ..fstcompare rhsfst lhsfst
+\pair:ord
+..def \fst:bndd \snd:bndd .fst:bndd \fsttop \fstbot .snd:bndd \sndtop \sndbot
+    ..bndd
+      ..pair fsttop sndtop
+      ..pair fstbot sndbot
+\pair:bndd
+..def \fst:sgrp \snd:sgrp .fst:sgrp \fstsappend .snd:sgrp \sndsappend
+    .sgrp
+      \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
+        ..pair
+          ..fstsappend rhsfst lhsfst
+          ..sndsappend rhssnd lhssnd
+\pair:sgrp
+..def \fst:mnid \snd:mnid
+  .fst:mnid \fst:sgrp \fstmempty .snd:mnid \snd:sgrp \sndmempty
+    ..mnid
+      ..pair:sgrp fst:sgrp snd:sgrp
+      ..pair fstmempty sndmempty
+\pair:mnid
+..def .ftor \sndfunc \pairarg
+  .pairarg \fstarg \sndarg
+    ..pair fstarg .sndfunc sndarg
 \pair:ftor
-.\fst:mnid .\fst:sgrp \fstmempty .\fstsappend
-  .\pairfunc \pairarg
-    .\fstfunc \sndfunc .\fstarg \sndarg
-      ..sndarg sndfunc ..fstfunc .fstarg fstsappend pair
-    pairarg pairfunc
-  .\sndarg .sndarg .fstmempty pair
-  .pair:ftor
-  appl
-fst:sgrp fst:mnid \pair:appl
-.\fst:mnid .\fst:sgrp \fstmempty .\fstsappend
-  .\pairarg \sndfunc
-    .\fstarg \sndarg
-      .\fstret \sndret .sndret ..fstarg .fstret fstsappend pair
-      .sndarg sndfunc
-    pairarg
-  ..fst:mnid pair:appl
-  monad
-fst:sgrp fst:mnid \pair:monad
-.\pair .cardinal .pair bluebird \swap
+..def \fst:mnid .fst:mnid \fst:sgrp \fstmempty .fst:sgrp \fstsappend
+    ...appl
+      pair:ftor
+      \sndarg ..pair fstmempty sndarg
+      \pairfunc \pairarg .pairfunc \fstfunc \sndfunc .pairarg \fstarg \sndarg
+        ..pair ..fstsappend fstarg fstfunc .sndfunc sndarg
+\pair:appl
+..def \fst:mnid .fst:mnid \fst:sgrp \fstmempty .fst:sgrp \fstsappend
+    ..monad
+      .pair:appl fst:mnid
+      \pairarg \sndfunc .pairarg \fstarg \sndarg
+        ..sndfunc sndarg \fstret \sndret
+          ..pair ..fstsappend fstret fstarg sndret
+\pair:monad
+..def \pair ..bluebird pair cardinal \swap
 
 # type Swap a b = (b, a)
 #
 # the ordering obtained by swapping elements of the pair ordering
-.\snd:eq \fst:eq
-  .\rhs \lhs
-    ..lhs swap
-    ..rhs swap
-    .fst:eq .snd:eq pair:eq
-  eq
+..def \snd:eq \fst:eq
+  .eq
+    \rhs \lhs
+      ....pair:eq snd:eq fst:eq
+        .swap rhs
+        .swap lhs
 \swap:eq
-.\snd:ord \fst:ord .\snd:eq \sndcompare .\fst:eq \fstcompare
-  .\rhs \lhs
-    ..lhs swap
-    ..rhs swap
-    .fst:ord .snd:ord pair:ord
-  ..fst:eq .snd:eq swap:eq
-  ord
-fst:ord snd:ord \swap:ord
+..def \snd:ord \fst:ord
+  .snd:ord \snd:eq \sndcompare .fst:ord \fst:eq \fstcompare
+    ..ord
+      ..swap:eq snd:eq fst:eq
+      \rhs \lhs
+        ....pair:ord snd:ord fst:ord
+          .swap rhs
+          .swap lhs
+\swap:ord
 # the bounding obtained by swapping elements of the pair bounding
-.\snd:bndd \fst:bndd
-  .fst:bndd .snd:bndd pair:bndd
+..def \snd:bndd \fst:bndd
+  ..pair:bndd snd:bndd fst:bndd
 \swap:bndd
 # the monad obtained by swapping elements of the pair monad
-  ..\fstfunc \pairarg
-    ...pairarg swap
-    .fstfunc .pair:ftor fmap
-    swap
-  ftor
+..def .ftor
+  \fstfunc \pairarg .swap
+    ...fmap pair:ftor fstfunc
+      .swap pairarg
 \swap:ftor
-.\snd:mnid
-  .\pairfunc \pairarg
-    ...pairarg swap
-    ..pairfunc swap
-    ..snd:mnid pair:appl apply
-    swap
-  .\fstarg
-    ..fstarg
-    ..snd:mnid pair:appl pure
-    swap
-  .swap:ftor
-  appl
+..def \snd:mnid
+  ...appl
+    swap:ftor
+    \fstarg .swap
+      ..pure .pair:appl snd:mnid
+        fstarg
+    \pairfunc \pairarg .swap
+      ...apply .pair:appl snd:mnid
+        .swap pairfunc
+        .swap pairarg
 \swap:appl
-.\snd:mnid
-  .\pairarg \fstfunc
-    ...fstfunc .swap bluebird
-    ..pairarg swap
-    ..snd:mnid pair:monad bind
-    swap
-  ..snd:mnid swap:appl
-  monad
+..def \snd:mnid
+  ..monad
+    .swap:appl snd:mnid
+    \pairarg \fstfunc .swap
+      ...bind .pair:monad snd:mnid
+        .swap pairarg
+        ..bluebird swap fstfunc
 \swap:monad
 
 # type Sqr a = (a, a)
-..pair:eq mockingbird \sqr:eq
-..pair:ord mockingbird \sqr:ord
-..pair:bndd mockingbird \sqr:bndd
+..def .mockingbird pair:eq \sqr:eq
+..def .mockingbird pair:ord \sqr:ord
+..def .mockingbird pair:bndd \sqr:bndd
 # no need for `Monoid a => Monoid (Sqr a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Sqr`
-  ..\func \sqrarg
-    .\fstarg \sndarg
-      ..sndarg func ..fstarg func pair
-    sqrarg
-  ftor
+..def .ftor
+  \func \sqrarg .sqrarg \fstarg \sndarg
+    ..pair .func fstarg .func sndarg
 \sqr:ftor
-  ..\sqrfunc \sqrarg
-    .\fstfunc \sndfunc .\fstarg \sndarg
-      ..sndarg sndfunc ..fstarg fstfunc pair
-    sqrarg sqrfunc
-  .\arg .arg .arg pair
-  .sqr:ftor
-  appl
+..def ...appl
+  sqr:ftor
+  \arg ..pair arg arg
+  \sqrfunc \sqrarg .sqrfunc \fstfunc \sndfunc .sqrarg \fstarg \sndarg
+    ..pair .fstfunc fstarg .sndfunc sndarg
 \sqr:appl
-  ..\sqrarg \func
-    .\fstarg \sndarg
-      ...sndarg func snd ...fstarg func fst pair
-    sqrarg
-  .sqr:appl
-  monad
+..def ..monad
+  sqr:appl
+  \sqrarg \func .sqrarg \fstarg \sndarg
+    ..pair .fst .func fstarg .snd .func sndarg
 \sqr:monad
-.\func \zero \sqr
-  .\fst \snd .snd ..fst .zero func func sqr
+..def \func \zero \sqr
+  .sqr \fst \snd ..func ..func zero fst snd
 \sqr.foldl # XXX foldable
-.\func \zero \sqr
-  .\fst \snd ..zero .snd func .fst func sqr
+..def \func \zero \sqr
+  .sqr \fst \snd ..func fst ..func snd zero
 \sqr.foldr # XXX foldable
-.\elem:appl
-  ..pair .elem:appl pure
-  ..appl apply
-  sqr.foldl
+..def \elem:appl
+  ..sqr.foldl
+    .apply appl
+    ..pure elem:appl pair
 \sqr.sequence # XXX support anything `traversable`
 
 # TODO instance ord
 # TODO instance bounded
 # TODO instance `Down (List (Down a))`, see every:ord and every:bndd
-..\list.foldl \func \zero \list
-  .zero
-  .\head \tail
-    .tail
-    ..head .zero func
-    .func
-    list.foldl
-  list
-fix \list.foldl # XXX foldable
-..\list.foldr \func \zero \list
-  .zero
-  .\head \tail
-    ..tail .zero .func list.foldr
-    .head
-    func
-  list
-fix \list.foldr # XXX foldable
-..zero ..succ kestrel list.foldr \length
-..nil ..cons cardinal list.foldl \list.reverse
-..none .\elem \acc ..elem .id acc some list.foldr \last
-..none .\elem \acc ..nil ..elem cons acc some list.foldr \init
-.\elem:appl
-  ..nil .elem:appl pure
-  ..cons .elem:appl lifta2
-  list.foldr
+..def .fix \list.foldl \func \zero \list
+  ..list
+    \head \tail ...list.foldl func ..func zero head tail
+    zero
+\list.foldl # XXX foldable
+..def .fix \list.foldr \func \zero \list
+  ..list
+    \head \tail ..func head ...list.foldr func zero tail
+    zero
+\list.foldr # XXX foldable
+..def ..list.foldr .kestrel succ zero \length
+..def ..list.foldl .cardinal cons nil \list.reverse
+..def ..list.foldr \elem \acc .some ..acc id elem none \last
+..def ..list.foldr \elem \acc .some ..acc .cons elem nil none \init
+..def \elem:appl
+  ..list.foldr ..lifta2 elem:appl cons ..pure elem:appl nil
 \list.sequence # XXX support anything `traversable`
 # no need for `Monoid [a]`, it'd be isomorphic to `Alternative f =>
 # Monoid (Alt f a)` for `f ~ []`
-  ..\func
-    .nil
-    ..func .cons bluebird
-    list.foldr
-  ftor
+..def .ftor
+  \func ..list.foldr ..bluebird cons func nil
 \list:ftor
-  ..\listfunc \listarg
-    .listfunc
-    .nil
-    .\func \acc
-      .listarg .acc ..func .cons bluebird list.foldr
-    list.foldr
-  .\arg .nil .arg cons
-  .list:ftor
-  appl
+..def ...appl
+  list:ftor
+  \arg ..cons arg nil
+  \listfunc \listarg ...list.foldr
+    \func \acc ...list.foldr ..bluebird cons func acc listarg
+    nil
+    listfunc
 \list:appl
-  ..\listarg \func
-    .listarg
-    .nil
-    .\arg \acc
-      ..arg func .acc .cons list.foldr
-    list.foldr
-  .list:appl
-  monad
+..def ..monad
+  list:appl
+  \listarg \func ...list.foldr
+    \arg \acc ...list.foldr cons acc .func arg
+    nil
+    listarg
 \list:monad
-  ...cons list.foldr
-  .nil
-  .list:appl
-  altn
+..def ...altn
+  list:appl
+  nil
+  .list.foldr cons
 \list:altn
 
-  ..\func \arg8
-    .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-      ..a7 func
-      ..a6 func
-      ..a5 func
-      ..a4 func
-      ..a3 func
-      ..a2 func
-      ..a1 func
-      ..a0 func
-      arr8
-    arg8
-  ftor
+..def .ftor
+  \func \arg8
+    .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+      ........arr8
+        .func a0
+        .func a1
+        .func a2
+        .func a3
+        .func a4
+        .func a5
+        .func a6
+        .func a7
 \arr8:ftor
-  ..\func8 \arg8
-    .\f0 \f1 \f2 \f3 \f4 \f5 \f6 \f7
-      .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-        ..a7 f7
-        ..a6 f6
-        ..a5 f5
-        ..a4 f4
-        ..a3 f3
-        ..a2 f2
-        ..a1 f1
-        ..a0 f0
-        arr8
-      arg8
-    func8
-  .\arg
-    .arg .arg .arg .arg .arg .arg .arg .arg arr8
-  .arr8:ftor
-  appl
+..def ...appl
+  arr8:ftor
+  \arg ........arr8 arg arg arg arg arg arg arg arg
+  \func8 \arg8
+    .func8 \f0 \f1 \f2 \f3 \f4 \f5 \f6 \f7
+      .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+        ........arr8
+          .f0 a0
+          .f1 a1
+          .f2 a2
+          .f3 a3
+          .f4 a4
+          .f5 a5
+          .f6 a6
+          .f7 a7
 \arr8:appl
-  ..\arg8 \func
-    .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-      ...a7 func arr8.7
-      ...a6 func arr8.6
-      ...a5 func arr8.5
-      ...a4 func arr8.4
-      ...a3 func arr8.3
-      ...a2 func arr8.2
-      ...a1 func arr8.1
-      ...a0 func arr8.0
-      arr8
-    arg8
-  .arr8:appl
-  monad
+..def ..monad
+  arr8:appl
+  \arg8 \func
+    .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+      ........arr8
+        .arr8.0 .func a0
+        .arr8.1 .func a1
+        .arr8.2 .func a2
+        .arr8.3 .func a3
+        .arr8.4 .func a4
+        .arr8.5 .func a5
+        .arr8.6 .func a6
+        .arr8.7 .func a7
 \arr8:monad
-.\func \zero \arr8
-  .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-    ..a7 ..a6 ..a5 ..a4 ..a3 ..a2 ..a1 ..a0 .zero
-    func func func func func func func func id
-  arr8
+..def \func \zero \arr8
+  .arr8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    ..func
+      ..func
+        ..func
+          ..func
+            ..func
+              ..func
+                ..func
+                  ..func
+                    zero
+                    a0
+                  a1
+                a2
+              a3
+            a4
+          a5
+        a6
+      a7
 \arr8.foldl # XXX foldable
-.\func \zero \arr8
-  .\a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-    ........zero
-    .a7 func
-    .a6 func
-    .a5 func
-    .a4 func
-    .a3 func
-    .a2 func
-    .a1 func
-    .a0 func
-  arr8
+..def \func \zero \arr8
+  .arr8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    ..func a0
+      ..func a1
+        ..func a2
+          ..func a3
+            ..func a4
+              ..func a5
+                ..func a6
+                  ..func a7
+                    zero
 \arr8.foldr # XXX foldable
-..arr8 .thrush arr8.foldr \arr8.reverse
-.\elem:appl .\elem:ftor \elempure \elemapply
-  ..arr8 elempure .elemapply arr8.foldl
-elem:appl \arr8.sequence # XXX support anything `traversable`
-.\elem:eq .\elemequal
-  ...elemequal .arr8:appl lifta2
-  # XXX use `.and:mnid .arr8:fldb fold` instead
-  ..true .and arr8.foldr
-  blackbird
-  eq
-elem:eq \arr8:eq # XXX support anything `foldable`
-.\elem:ord .\elem:eq \elemcompare
-  ...elemcompare .arr8:appl lifta2
-  # XXX use `.cmp:mnid .arr8:fldb fold` instead
-  ..et ..cmp:sgrp sappend arr8.foldr
-  blackbird
-  ..elem:eq arr8:eq
-  ord
-elem:ord \arr8:ord # XXX support anything `foldable`
-.\elem:bndd .\elemtop \elembot
-  ..elembot .arr8:appl pure
-  ..elemtop .arr8:appl pure
-  bndd
-elem:bndd \arr8:bndd
+..def ..arr8.foldr thrush arr8 \arr8.reverse
+..def \elem:appl .elem:appl \elem:ftor \elempure \elemapply
+  ..arr8.foldl elemapply .elempure arr8
+\arr8.sequence # XXX support anything `traversable`
+..def \elem:eq .elem:eq \elemequal
+  .eq
+    ..blackbird
+      # XXX use `.and:mnid .arr8:fldb fold` instead
+      ..arr8.foldr and true
+      ..lifta2 arr8:appl elemequal
+\arr8:eq # XXX support anything `foldable`
+..def \elem:ord .elem:ord \elem:eq \elemcompare
+  ..ord
+    .arr8:eq elem:eq
+    ..blackbird
+      # XXX use `.cmp:mnid .arr8:fldb fold` instead
+      ..arr8.foldr .sappend cmp:sgrp et
+      ..lifta2 arr8:appl elemcompare
+\arr8:ord # XXX support anything `foldable`
+..def \elem:bndd .elem:bndd \elemtop \elembot
+  ..bndd
+    ..pure arr8:appl elemtop
+    ..pure arr8:appl elembot
+\arr8:bndd
 
 # type U8 = Arr8 Bool = (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
-..false .false .false .false .false .false .false .false arr8 \'\0'u8
-..false .true  .true  .true  .true  .true  .false .false arr8 \'|'u8
-..false .false .true  .true  .true  .true  .true  .false arr8 \'>'u8
-..false .false .true  .true  .true  .true  .false .false arr8 \'<'u8
-..false .false .true  .false .true  .false .true  .true  arr8 \'+'u8
-..false .false .true  .false .true  .true  .false .true  arr8 \'-'u8
-..false .false .true  .false .true  .true  .true  .false arr8 \'.'u8
-..false .false .true  .false .true  .true  .false .false arr8 \','u8
-..false .true  .false .true  .true  .false .true  .true  arr8 \'['u8
-..false .true  .false .true  .true  .true  .false .true  arr8 \']'u8
-..false .false .true  .false .false .false .false .true  arr8 \'!'u8
-..false .false .true  .true  .true  .true  .true  .false arr8 \'>'u8
-..false .false .false .false .true  .true  .false .true  arr8 \'\r'u8
-..false .false .false .false .true  .false .true  .false arr8 \'\n'u8
-..false .false .true  .true  .false .false .false .false arr8 \'0'u8
-..false .false .true  .true  .false .false .false .true  arr8 \'1'u8
-..false .true  .true  .false .false .false .false .true  arr8 \'a'u8
-..false .true  .false .false .false .false .false .true  arr8 \'A'u8
-..false .false .true  .true  .true  .true  .true  .true  arr8 \'?'u8
-..false .false .true  .false .false .false .false .false arr8 \'\s'u8
-.\c \rhs \lhs
-  # ...lhs .rhs pair .arr8:appl sqr.sequence # works too
-  ..lhs .rhs .pair .arr8:appl lifta2
-  ..arr8 .c pair
-  .\acc \cur
-    .\rhs \lhs .\c \arr8
-      ....lhs .rhs xor .c xor arr8
-      ...lhs .rhs and ...lhs .rhs xor .c and or
-      pair
-    acc cur
-  arr8.foldl
+..def ........arr8 false false false false false false false false \'\0'u8
+..def ........arr8 false false true  true  true  true  true  false \'|'u8
+..def ........arr8 false true  true  true  true  true  false false \'>'u8
+..def ........arr8 false false true  true  true  true  false false \'<'u8
+..def ........arr8 true  true  false true  false true  false false \'+'u8
+..def ........arr8 true  false true  true  false true  false false \'-'u8
+..def ........arr8 false true  true  true  false true  false false \'.'u8
+..def ........arr8 false false true  true  false true  false false \','u8
+..def ........arr8 true  true  false true  true  false true  false \'['u8
+..def ........arr8 true  false true  true  true  false true  false \']'u8
+..def ........arr8 true  false false false false true  false false \'!'u8
+..def ........arr8 false true  true  true  true  true  false false \'>'u8
+..def ........arr8 true  false true  true  false false false false \'\r'u8
+..def ........arr8 false true  false true  false false false false \'\n'u8
+..def ........arr8 false false false false true  true  false false \'0'u8
+..def ........arr8 true  false false false true  true  false false \'1'u8
+..def ........arr8 true  false false false false true  true  false \'a'u8
+..def ........arr8 true  false false false false false true  false \'A'u8
+..def ........arr8 true  true  true  true  true  true  false false \'?'u8
+..def ........arr8 false false false false false true  false false \'\s'u8
+..def \c \rhs \lhs
+  ...arr8.foldl
+    \acc \cur .cur \rhs \lhs .acc \c \arr8
+      ..pair
+        ..or ..and c ..xor rhs lhs ..and rhs lhs
+        .arr8 ..xor c ..xor rhs lhs
+    ..pair c arr8
+    # ..srq.sequence arr8:appl ..pair rhs lhs # works too
+    ....lifta2 arr8:appl pair rhs lhs
 \u8.addc
-.\b \rhs \lhs
-  # ...lhs .rhs pair .arr8:appl sqr.sequence # works too
-  ..lhs .rhs .pair .arr8:appl lifta2
-  ..arr8 .b pair
-  .\acc \cur
-    .\rhs \lhs .\b \arr8
-      ....lhs .rhs xor .b xor arr8
-      ....lhs not .rhs and ....lhs not .rhs xor .b and or
-      pair
-    acc cur
-  arr8.foldl
+..def \b \rhs \lhs
+  ...arr8.foldl
+    \acc \cur .cur \rhs \lhs .acc \b \arr8
+      ..pair
+        ..or ..and b ..xor rhs .not lhs ..and rhs .not lhs
+        .arr8 ..xor b ..xor rhs lhs
+    ..pair b arr8
+    # ..srq.sequence arr8:appl ..pair rhs lhs # works too
+    ....lifta2 arr8:appl pair rhs lhs
 \u8.subb
-.\c \arg
-  .arg
-  ..arr8 .c pair
-  .\acc \cur
-    .\c \arr8
-      ...cur .c xor arr8
-      ..cur .c and
-      pair
-    acc
-  arr8.foldl
+..def \c \arg
+  ...arr8.foldl
+    \acc \cur .acc \c \arr8
+      ..pair
+        ..and c cur
+        .arr8 ..xor c cur
+    ..pair c arr8
+    arg
 \u8.incc
-.\b \arg
-  .arg
-  ..arr8 .b pair
-  .\acc \cur
-    .\b \arr8
-      ...cur .b xor arr8
-      ...cur not .b and
-      pair
-    acc
-  arr8.foldl
+..def \b \arg
+  ...arr8.foldl
+    \acc \cur .acc \b \arr8
+      ..pair
+        ..and b .not cur
+        .arr8 ..xor b cur
+    ..pair b arr8
+    arg
 \u8.decb
-...false u8.addc .snd blackbird \u8.add
-...false u8.subb .snd blackbird \u8.sub
-...true u8.incc .snd bluebird \u8.inc
-...true u8.decb .snd bluebird \u8.dec
-..u8.add sgrp \u8.add:sgrp
-..'\0'u8 .u8.add:sgrp mnid \u8.add:mnid
-..bool:eq arr8:eq \u8:eq
-..bool:ord arr8:ord \u8:ord
-..bool:bndd arr8:bndd \u8:bndd
+..def ..blackbird snd .u8.addc false \u8.add
+..def ..blackbird snd .u8.subb false \u8.sub
+..def ..bluebird snd .u8.incc true \u8.inc
+..def ..bluebird snd .u8.decb true \u8.dec
+..def .sgrp u8.add \u8.add:sgrp
+..def ..mnid u8.add:sgrp '\0'u8 \u8.add:mnid
+..def .arr8:eq bool:eq \u8:eq
+..def .arr8:ord bool:ord \u8:ord
+..def .arr8:bndd bool:bndd \u8:bndd
 
 # an `IO a` is a function that takes a continuation and returns "$" functions
 # wrapping the application of the continuation to a value of type `a`.
 #
 # no need for `Monoid a => Monoid (IO a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ IO`
-  ..\func \ioarg
-    \cont .\arg ..arg func cont ioarg
-  ftor
+..def .ftor
+  \func \ioarg
+    \cont .ioarg \arg .cont .func arg
 \io:ftor
-  ..\iofunc \ioarg
-    \cont .\func .cont .ioarg .func .io:ftor fmap iofunc
-  .\arg
-    \cont .arg cont
-  .io:ftor
-  appl
+..def ...appl
+  io:ftor
+  \arg
+    \cont .cont arg
+  \iofunc \ioarg
+    \cont .iofunc \func ....fmap io:ftor func ioarg cont
 \io:appl
-  ..\ioarg \func
-    \cont .\arg .cont .arg func ioarg
-  .io:appl
-  monad
+..def ..monad
+  io:appl
+  \ioarg \func
+    \cont .ioarg \arg ..func arg cont
 \io:monad
 # "$" functions like `$put` expect a continuation that takes no arguments, so
 # we make wrappers of type `IO ()` that expect continuations that take a `unit`.
 # similarly, functions like `$exit` expect no continuation, so we make wrappers
 # of type `IO Void` that throw away the continuation.
-.\cont $exit \exit
-.\cont $err \err
-.$get \get
-.\bit \cont ..unit cont .bit $put \put
-.\term \cont ..unit cont .term $dump \dump
+..def \cont $exit \exit
+..def \cont $err \err
+..def $get \get
+..def \bit \cont ..$put bit .cont unit \put
+..def \term \cont ..$dump term .cont unit \dump
 # we define a function `main` that takes an `IO ()` and invokes it with the
 # continuation `\unit $exit`, throwing away the `unit` and returninng `$exit`
 # to ultimately terminate the program
-.\iounit .\unit $exit iounit \main
-  ...put .arr8:ftor fmap
-  ..io:appl arr8.sequence
-  bluebird
+..def \iounit .iounit \unit $exit \main
+..def ..bluebird
+  .arr8.sequence io:appl
+  ..fmap arr8:ftor put
 \putc
-  ...putc .list:ftor fmap
-  ..io:appl list.sequence
-  bluebird
+..def ..bluebird
+  .list.sequence io:appl
+  ..fmap list:ftor putc
 \puts
-    ....get .arr8:appl pure
-    .io:appl arr8.sequence
-  ..opt:appl arr8.sequence
-  .io:ftor fmap
+..def ...fmap io:ftor
+  .arr8.sequence opt:appl
+  ..arr8.sequence io:appl
+    ..pure arr8:appl get
 \getc
-..\gets
-  .\optchr
-    ..nil .io:appl pure
-    .\chr .gets ..chr cons .io:ftor fmap
-    optchr
-  .getc
-  .io:monad bind
-fix \gets
-..\getln
-  .\optchr
-    ..nil .io:appl pure
-    .\chr
-      ..getln
-      ..nil .io:appl pure
-      .chr .'\n'u8 .u8:eq equal
-      ..chr cons
-      .io:ftor fmap
-    optchr
-  .getc
-  .io:monad bind
-fix \getln
+..def .fix \gets
+  ...bind io:monad getc \optchr ..optchr
+    \chr ...fmap io:ftor .cons chr gets
+    ..pure io:appl nil
+\gets
+..def .fix \getln
+  ...bind io:monad getc \optchr ..optchr
+    \chr ...fmap io:ftor
+      .cons chr
+      .....equal u8:eq '\n'u8 chr
+        ..pure io:appl nil
+        getln
+    ..pure io:appl nil
+\getln
 
 # type Parser a = String -> Maybe (a, String)
-  ..\func \parserarg
-    \inp
-      ..inp parserarg
-      ..func .swap:ftor fmap
-      .opt:ftor fmap
-  ftor
+..def .ftor
+  \func \parserarg
+    \inp ...fmap opt:ftor
+      ..fmap swap:ftor func
+      .parserarg inp
 \parser:ftor
-  ..\parserfunc \parserarg
-    \inp
-      .\pairfunc
-          .\func .parserarg .func .parser:ftor fmap
-        pairfunc
-      ..inp parserfunc
-      .opt:monad bind
-  .\arg
-    \inp ..inp .arg pair .opt:appl pure
-  .parser:ftor
-  appl
+..def ...appl
+  parser:ftor
+  \arg
+    \inp ..pure opt:appl ..pair arg inp
+  \parserfunc \parserarg
+    \inp ...bind opt:monad
+      .parserfunc inp
+      \pairfunc .pairfunc \func
+        ...fmap parser:ftor func parserarg
 \parser:appl
-  ..\parserarg \func
-    \inp
-      .\pairarg .func pairarg
-      ..inp parserarg
-      .opt:monad bind
-  .parser:appl
-  monad
+..def ..monad
+  parser:appl
+  \parserarg \func
+    \inp ...bind opt:monad
+      .parserarg inp
+      \pairarg .pairarg func
 \parser:monad
-  ..\parserrhs \parserlhs
-    \inp ..inp parserlhs ..inp parserrhs .opt:altn alt
-  .\inp .opt:altn pure
-  .parser:appl
-  altn
+..def ...altn
+  parser:appl
+  \inp .pure opt:altn
+  \parserrhs \parserlhs
+    \inp ...alt opt:altn .parserrhs inp .parserlhs inp
 \parser:altn
-.\pred \inp
-  .none
-  .\head \tail
-    .none
-    ...tail .head pair some
-    .head pred
-  inp
+..def \pred \inp ..inp
+  \head \tail ...pred head
+    .some ..pair head tail
+    none
+  none
 \satp
-.\inp
-  ...nil .unit pair some
-  .\head \tail none
-  inp
+..def \inp ..inp
+  \head \tail none
+  .some ..pair unit nil
 \eofp
-.\chr
-  ..chr .u8:eq equal satp
+..def \chr
+  .satp ..equal u8:eq chr
 \chrp
-.\str
-  ..str .chrp .list:ftor fmap
-  .parser:appl list.sequence
+..def \str
+  ..list.sequence parser:appl
+  ...fmap list:ftor chrp str
 \strp
-  ...true kestrel satp
+..def
+  .satp .kestrel true
 \getp

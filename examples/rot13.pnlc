@@ -1,21 +1,17 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-..\main
-  .\optchr
-    ..unit .io:appl pure
-    .\chr
+.main .fix \main
+  ...bind io:monad getc \optchr ..optchr
+    \chr
       # same implementation as Atto-8
-      .'\r'u8 \13u8 ..13u8 .13u8 u8.add \26u8
-      ...chr .'\s'u8 .or .arr8:appl lifta2 .'a'u8 u8.sub \idx
-      .main
-        ....chr putc
-        ...chr .13u8 u8.sub putc
-        ..idx .26u8 .u8:ord compare islt
-        ...chr .13u8 u8.add putc
-        ..idx .13u8 .u8:ord compare islt
-      .io:monad bindk
-    optchr
-  .getc
-  .io:monad bind
-fix main
+      ..def '\r'u8 \13u8 ..def ..u8.add 13u8 13u8 \26u8
+      ..def ..u8.sub 'a'u8 ....lifta2 arr8:appl or '\s'u8 chr \idx
+      ...bindk io:monad
+        ...islt ...compare u8:ord 13u8 idx
+          .putc ..u8.add 13u8 chr
+          ...islt ...compare u8:ord 26u8 idx
+            .putc ..u8.sub 13u8 chr
+            .putc chr
+        main
+    ..pure io:appl unit

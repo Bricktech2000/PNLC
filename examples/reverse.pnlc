@@ -1,11 +1,8 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-..\main
-  .\str
-    .main
-    ......str .'\n'u8 cons list.reverse tail unwrap puts
-    .io:monad bindk
-  .getln
-  .io:monad bind
-fix main
+.main .fix \main
+  ...bind io:monad getln \str
+    ...bindk io:monad
+      .puts .unwrap .tail .list.reverse ..cons '\n'u8 str
+      main

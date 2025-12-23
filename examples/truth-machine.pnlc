@@ -1,13 +1,9 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-..\optchr
-  ..'0'u8 putc
-  .\chr
-    ..'0'u8 putc
-    ....'1'u8 putc .io:monad bindk fix
-    .chr .'1'u8 .u8:eq equal
-  optchr
-.getc
-.io:monad bind
-main
+.main
+  ...bind io:monad getc \optchr ..optchr
+    \chr .....equal u8:eq '1'u8 chr
+      .fix ..bindk io:monad .putc '1'u8
+      .putc '0'u8
+    .putc '0'u8

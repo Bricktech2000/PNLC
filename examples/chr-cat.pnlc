@@ -1,11 +1,7 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-..\main
-  .\optchr
-    ..unit .io:appl pure
-    .\chr .main ..chr putc .io:monad bindk
-    optchr
-  .getc
-  .io:monad bind
-fix main
+.main .fix \main
+  ...bind io:monad getc \optchr ..optchr
+    \chr ...bindk io:monad .putc chr main
+    ..pure io:appl unit

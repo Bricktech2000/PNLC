@@ -1,9 +1,6 @@
 # vim:tw=80:ft=pnlc:
 
-.\rec
-  .\optbit
-    .$exit
-    .\bit .rec .bit $put
-    optbit
-  $get
-fix
+.\f .\x .f .x x \x .f .x x \rec
+  .$get \optbit ..optbit
+    \bit ..$put bit rec
+    $exit

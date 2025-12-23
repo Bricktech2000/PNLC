@@ -44,7 +44,7 @@ struct term *term_dump(struct term *term) {
   // fprintf(stderr, "%u|", term->refcount);
   switch (term->type) {
   case TYPE_APP:
-    fprintf(stderr, "."), term_dump(term->rhs), term_dump(term->lhs);
+    fprintf(stderr, "."), term_dump(term->lhs), term_dump(term->rhs);
     break;
   case TYPE_LAM:
     fprintf(stderr, "\\%p ", (void *)term->lhs), term_dump(term->rhs);
@@ -286,13 +286,13 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
   case '.': {
     parse_ws(prog);
 
-    struct term *rhs = parse_term(prog, error, env);
+    struct term *lhs = parse_term(prog, error, env);
     if (*error)
       return NULL;
 
-    struct term *lhs = parse_term(prog, error, env);
+    struct term *rhs = parse_term(prog, error, env);
     if (*error)
-      return term_decref(rhs), NULL;
+      return term_decref(lhs), NULL;
 
     return APP(lhs, rhs);
   }
