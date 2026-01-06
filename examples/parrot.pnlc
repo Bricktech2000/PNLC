@@ -5,8 +5,8 @@
 ..def ..cons '>'u8 ..cons '\s'u8 nil \">\s"
 
 .main .fix \main
-  ...bindk io:monad .puts "?\s"
-    ...bind io:monad getln \str
-      ...bindk io:monad .puts ">\s"
-        ...bindk io:monad .puts str
+  ...bindk io:mnad .puts "?\s"
+    ...bind io:mnad getln \str
+      ...bindk io:mnad .puts ">\s"
+        ...bindk io:mnad .puts str
           main

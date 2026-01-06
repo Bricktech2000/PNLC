@@ -2,7 +2,7 @@
 # inc:../prelude.pnlc
 
 .main .fix \main
-  ...bind io:monad getln \str
-    ...bindk io:monad
-      .puts .unwrap .tail .list.reverse ..cons '\n'u8 str
+  ...bind io:mnad getln \str
+    ...bindk io:mnad
+      .puts .unwrap .tail .rev ..cons '\n'u8 str
       main

@@ -40,19 +40,38 @@ struct term *term_alloc(struct term fields) {
   return *term = fields, term;
 }
 
-struct term *term_dump(struct term *term) {
-  // fprintf(stderr, "%u|", term->refcount);
+struct term *term_dump(struct term *term, unsigned long visited) {
+  // uncomment to dump already-dumped terms as single '#' characters. the dump
+  // will be ambiguous but its length will be linear, not exponential, in the
+  // amount of memory `term` uses
+  // if (term->visited == visited)
+  //   switch (term->type)
+  //   case TYPE_APP:
+  //   case TYPE_LAM:
+  //     return fprintf(stderr, "# "), term;
+
+  // uncomment to dump refcounts. can make the dump harder to read
+  // for (int i = 1; i < term->refcount; i++)
+  //   fputc(term->visited == visited ? '<' : '>', stderr);
+
+  term->visited = visited;
   switch (term->type) {
   case TYPE_APP:
-    fprintf(stderr, "."), term_dump(term->lhs), term_dump(term->rhs);
+    fputc('.', stderr);
+    term_dump(term->lhs, visited), term_dump(term->rhs, visited);
     break;
   case TYPE_LAM:
-    fprintf(stderr, "\\%p ", (void *)term->lhs), term_dump(term->rhs);
+    fputc('\\', stderr);
+    term_dump(term->lhs, visited), term_dump(term->rhs, visited);
     break;
   case TYPE_VAR:
-    fprintf(stderr, "%p ", (void *)term);
+    if (term->lhs && term->rhs) {
+      char *begin = (char *)term->lhs, *end = (char *)term->rhs;
+      fprintf(stderr, "%.*s ", (int)(end - begin), begin);
+    } else
+      fprintf(stderr, "%p ", (void *)term);
     break;
-  default:
+  default: // IO
     fprintf(stderr, "%s ", ios[~term->type]);
     break;
   }
@@ -61,26 +80,40 @@ struct term *term_dump(struct term *term) {
 
 struct term *term_incref(struct term *term) { return term->refcount++, term; }
 struct term *term_decref(struct term *term) {
-  // always returns `NULL` so you can go `term = regex_decref(term);`
+  // always returns `NULL` so you can go `term = term_decref(term);`
   if (--term->refcount)
     return NULL;
-  if (term->lhs)
-    term_decref(term->lhs);
-  if (term->rhs)
-    term_decref(term->rhs);
+  switch (term->type) {
+  case TYPE_APP:
+  case TYPE_LAM:
+    term_decref(term->lhs), term_decref(term->rhs);
+  case TYPE_VAR:
+  default:; // IO
+  }
   return free(term), NULL;
 }
 
-// XXX doc ownership:
-//   - `beta` returns owned
-//   - `.beta` is a borrow
-//   - XXX the two above things are safe because within `beta`, `decref` is only
-//     called on owned things with refcount > 1
-//   - `beta` moves `term`
-//   - `beta` borrows `var` and `arg`
+// reduction to weak normal form or to weak head normal form only ever beta-
+// reduces applications whose argument is closed, because the top-level term is
+// always closed and neither algorithm recurses into abstractions. this means
+// that naive substitution with no alpha-conversion is sufficient, and thus
+// the only parts of the lambda body that need to be copied are the transitive
+// parents of the variable being substituted. in particular, we can clone an
+// abstraction node without cloning the variable node it binds, so the parts of
+// the abstraction body that depend on that variable but not on the variable
+// being substituted don't need to be copied either. as a result, several
+// abstraction nodes might bind the same variable node, and the intuition is
+// the usual one: when one of the abstractions contains another, the inner
+// abstraction shadows the outer one
 
 struct term *beta(struct term *term, struct term *var, struct term *arg,
                   unsigned long visited) {
+  // returns the result of substituting `var` for `arg` in `term`. moves in
+  // `term` but borrows `var` and `arg`. we cache intermediate results in
+  // `beta` fields to ensure the DAG doesn't degenerate to a tree. `beta`
+  // fields hold weak references, which is safe because this function only
+  // ever calls `term_decref` on terms whose `refcount > 1`
+
   if (term->visited == visited) {
     struct term *beta = term_incref(term->beta);
     return term_decref(term), beta;
@@ -101,7 +134,7 @@ struct term *beta(struct term *term, struct term *var, struct term *arg,
   } break;
   case TYPE_LAM: {
     if (term->lhs == var ? term->beta = term : 0)
-      break; // XXX doc
+      break; // stop recursing, this abstraction shadows the top-level one
     struct term *rhs = beta(term_incref(term->rhs), var, arg, visited);
     if (rhs == term->rhs)
       term_decref(rhs), term->beta = term;
@@ -116,7 +149,7 @@ struct term *beta(struct term *term, struct term *var, struct term *arg,
   case TYPE_VAR:
     term->beta = term == var ? term_decref(term), term_incref(arg) : term;
     break;
-  default:
+  default: // IO
     term->beta = term;
     break;
   }
@@ -174,15 +207,6 @@ void bs_put(struct bs *bs, bool bit) {
     bs->n = 0, fputc(bs->c, bs->fp), bs->c = 0;
 }
 
-// XXX doc:
-
-// XXX realization: when doing `whnf`, we can use a `beta` that assumes the
-// argument is closed. this simplifies everything. note: crazy, why does no one
-// ever mention this? and for `.arg $put`, instead of doing `norm(arg)` then
-// pattern-matching on the result, we can do `whnf(app(app(norm, $true),
-// $false))` and check whether the result is `$true` or `$false`. no need for
-// `norm`.
-
 char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
           unsigned long *visited) {
   // takes ownership of `*term`. upon successful termination, returns `NULL` and
@@ -210,7 +234,7 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
       if (argc != 2)
         return "$dump expects 2 arguments";
       whnf((*term)->lhs->rhs, visited);
-      term_dump((*term)->lhs->rhs), putchar('\n');
+      term_dump((*term)->lhs->rhs, ++*visited), fputc('\n', stderr);
       cont = term_incref((*term)->rhs);
       break;
     case IO_GET: {
@@ -251,12 +275,6 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
 
 // keep in sync with grammar.bnf and pnlc.vim
 
-struct env {
-  char *begin, *end; // binder name
-  struct term *var;  // borrow of bound variable node
-  struct env *up;    // next binder up the list
-};
-
 void parse_ws(char **prog) {
   while (isspace(**prog))
     ++*prog;
@@ -276,7 +294,7 @@ char *parse_var(char **prog, char **error) {
   return end;
 }
 
-struct term *parse_term(char **prog, char **error, struct env *env) {
+struct term *parse_term(char **prog, char **error, struct term *env) {
   if (**prog == '\0') {
     *error = "expected term";
     return NULL;
@@ -303,13 +321,20 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
     if (*error)
       return NULL;
 
-    // allocate new binder
-    struct term *lhs = VAR();
-    env = &(struct env){.begin = begin, .end = end, .var = lhs, .up = env};
+    struct term *lhs = env = term_alloc((struct term){
+        TYPE_VAR,
+        .lhs = (void *)begin, // binder name
+        .rhs = (void *)end,   // end of binder name
+        .beta = env,          // next binder up
+    });
 
     struct term *rhs = parse_term(prog, error, env);
     if (*error)
       return term_decref(lhs), NULL;
+
+    // uncomment this to avoid holding any pointers into `prog` when we return.
+    // `term_dump` will dump variables as their own memory address instead
+    // lhs->lhs = lhs->rhs = NULL;
 
     return LAM(lhs, rhs);
   }
@@ -330,16 +355,17 @@ struct term *parse_term(char **prog, char **error, struct env *env) {
     if (*error)
       return NULL;
 
-    // check if the variable is an IO
-    for (char **io = ios; *io; io++)
-      if (end - begin == strlen(*io) && strncmp(begin, *io, end - begin) == 0)
-        return IO(io - ios);
+    // search binders first and IOs second so the IO functions can be shadowed
 
-    // else find corresponding binder
-    for (; env; env = env->up)
-      if (end - begin == env->end - env->begin &&
-          strncmp(begin, env->begin, end - begin) == 0)
-        return term_incref(env->var);
+    for (; env; env = env->beta)
+      if (end - begin == (char *)env->rhs - (char *)env->lhs &&
+          strncmp(begin, (char *)env->lhs, end - begin) == 0)
+        return term_incref(env);
+
+    for (char **io = ios; *io; io++)
+      if (end - begin == strlen(*io) && //
+          strncmp(begin, *io, end - begin) == 0)
+        return IO(io - ios);
 
     *error = "unbound variable", *prog = begin;
     return NULL;
@@ -390,14 +416,19 @@ int main(int argc, char **argv) {
 
   char *error = NULL, *loc = buf;
   struct term *term = parse(&loc, &error);
-  if (error)
-    fprintf(stderr, "parse error: %s near '%.16s'\n", error, loc),
-        exit(EXIT_FAILURE);
+  if (error) {
+    fprintf(stderr, "parse error: %s near '%.16s'\n", error, loc);
+    free(buf), exit(EXIT_FAILURE);
+  }
+
+  unsigned long visited = 0;
+  if (error = run(&term, &(struct bs){stdin}, &(struct bs){stdout}, &visited)) {
+    // uncomment this to dump the top-level term on error
+    // term_dump(term, ++visited), fputc('\n', stderr);
+
+    fprintf(stderr, "runtime error: %s\n", error);
+    free(buf), term_decref(term), exit(EXIT_FAILURE);
+  }
 
   free(buf);
-
-  if (error = run(&term, &(struct bs){stdin}, &(struct bs){stdout},
-                  &(unsigned long){0}))
-    term_decref(term), fprintf(stderr, "runtime error: %s\n", error),
-        exit(EXIT_FAILURE);
 }

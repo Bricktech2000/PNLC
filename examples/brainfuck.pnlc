@@ -30,11 +30,11 @@
 # the Brainfuck program from its input. that is, '!' ends a program string and
 # and begins its execution
 ..def .fix \getbang
-  ...bind io:monad getc \optchr ..optchr
+  ...bind io:mnad getc ..vireo
     \chr .....equal u8:eq '!'u8 chr
-      ..pure io:appl nil
+      ..pure io:aptv nil
       ...fmap io:ftor .cons chr getbang
-    ..pure io:appl nil
+    ..pure io:aptv nil
 \getbang
 
 # bfp :: Parser (Tape -> IO Tape)
@@ -43,19 +43,19 @@
 # of parsers with Kleisli composition
 ..def .fix \bfp
  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:appl tape.shl
+    ..bluebird .pure io:aptv tape.shl
     .chrp '>'u8
   \'>'p
  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:appl tape.shr
+    ..bluebird .pure io:aptv tape.shr
     .chrp '<'u8
   \'<'p
  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:appl ..fmap tape:ftor u8.inc
+    ..bluebird .pure io:aptv ..fmap tape:ftor u8.inc
     .chrp '+'u8
   \'+'p
  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:appl ..fmap tape:ftor u8.dec
+    ..bluebird .pure io:aptv ..fmap tape:ftor u8.dec
     .chrp '-'u8
   \'-'p
  ..def ...fmapk parser:ftor
@@ -73,35 +73,35 @@
  ..def ...fmap parser:ftor
     \bf .fix \rec \tape
       ......equal u8:eq '\0'u8 .head tape
-        .pure io:appl
-        ...kleisli io:monad bf rec
+        .pure io:aptv
+        ...kleisli io:mnad bf rec
       tape
-    ....between parser:appl .chrp '['u8 .chrp ']'u8 bfp
+    ....between parser:aptv .chrp '['u8 .chrp ']'u8 bfp
   \[&]p
  ..def ...fmapk parser:ftor
-    .pure io:appl
+    .pure io:aptv
     .satp ...phi and ..unequal u8:eq '['u8 ..unequal u8:eq ']'u8
   \![]p
 
  ..def
-    ...alt parser:altn ![]p
-    ...alt parser:altn [&]p
-    ...alt parser:altn ','p
-    ...alt parser:altn '.'p
-    ...alt parser:altn '-'p
-    ...alt parser:altn '+'p
-    ...alt parser:altn '<'p
-    ...alt parser:altn '>'p
-    .empty parser:altn
+    ...alt parser:altv ![]p
+    ...alt parser:altv [&]p
+    ...alt parser:altv ','p
+    ...alt parser:altv '.'p
+    ...alt parser:altv '-'p
+    ...alt parser:altv '+'p
+    ...alt parser:altv '<'p
+    ...alt parser:altv '>'p
+    .empty parser:altv
   \atomp
   # bfp = liftA2 (>=>) atomp bfp <|> pure pure
-  ...alt parser:altn
-    ..pure parser:appl .pure io:appl
-    ....lifta2 parser:appl .kleisli io:monad atomp bfp
+  ...alt parser:altv
+    ..pure parser:aptv .pure io:aptv
+    ....lifta2 parser:aptv .kleisli io:mnad atomp bfp
 \bfp
 
 .main
-  ...bind io:monad getbang \str
-    ......seql parser:appl bfp eofp str
-      \proginp .proginp \prog \inp .prog 0tape
-      ...bindk io:monad .putc '!'u8 .putc '\n'u8
+  ...bind io:mnad getbang \str
+    ......seql parser:aptv bfp eofp str
+      .thrush \prog \inp .prog 0tape
+      ...seqr io:aptv .putc '!'u8 .putc '\n'u8
