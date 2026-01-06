@@ -7,7 +7,7 @@ setlocal include=\\sinc:
 
 syntax match pnlcLam '\\\_[[:space:]]*[[:graph:]]\+\_[[:space:]]\+'
 syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[[:graph:]]\+\_[[:space:]]\+'
-" keep in sync with README.md and pnlc.c
+" keep in sync with README.md, pnlc.c and io\ hook.pnlc
 syntax match pnlcIO '\_[[:space:].]\@<=\(\$exit\|\$err\|\$get\|\$put\|\$dump\)\_[[:space:]]\+'
 syntax match pnlcApp0 '
       \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*

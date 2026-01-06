@@ -1152,6 +1152,9 @@
 # continuation `\unit $exit`, throwing away the `unit` and returninng `$exit`
 # to ultimately terminate the program
 ..def \iounit .iounit \unit $exit \main
+# a hook that dumps the top-level term just before its effect is executed
+..def \term ..$dump term term \$hook
+..def \cont .$hook .cont unit \hook
 ..def ..bluebird
   .sequence .arr8:tvsb io:aptv
   ..fmap arr8:ftor put

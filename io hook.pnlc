@@ -1,0 +1,12 @@
+# vim:tw=80:ft=pnlc:
+
+# installs a hook onto the IO functions that dumps the top-level term just
+# before its effect is executed
+
+# keep in sync with README.md, pnlc.c and pnlc.vim
+.\p .p \term ..$dump term term \$hook
+.\p .p .$hook $exit \$exit
+.\p .p .$hook $err \$err
+.\p .p \cont .$hook .$get cont \$get
+.\p .p \bit \cont .$hook ..$put bit cont \$put
+.\p .p \term \cont .$hook ..$dump term cont \$dump

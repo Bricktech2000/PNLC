@@ -10,7 +10,7 @@ enum { TYPE_APP, TYPE_LAM, TYPE_VAR };
 // "IO"s are opaque lambda-terms that are handled in special ways. when `term.
 // type < 0`, the term is an IO, and `~term.type` will be one of the following:
 enum { IO_EXIT, IO_ERR, IO_GET, IO_PUT, IO_DUMP };
-// keep in sync with README.md and pnlc.vim
+// keep in sync with README.md, pnlc.vim and io\ hook.pnlc
 char *ios[] = {"$exit", "$err", "$get", "$put", "$dump", NULL};
 
 // a `struct term` is a node in a directed acyclic graph. `refcount` is the
