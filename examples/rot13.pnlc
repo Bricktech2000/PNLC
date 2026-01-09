@@ -5,8 +5,8 @@
   ...bind io:mnad getc ..vireo
     \chr
       # same implementation as Atto-8
-      ..def '\r'u8 \13u8 ..def ..u8.add 13u8 13u8 \26u8
-      ..def ..u8.sub 'a'u8 ....lifta2 arr8:aptv or '\s'u8 chr \idx
+      ..def '\r' \13u8 ..def sub \26u8
+      ..def ..u8.sub 'a' ....lifta2 arr8:aptv or .' ' chr \idx
       ...bindk io:mnad
         ...islt ...compare u8:ord 13u8 idx
           .putc ..u8.add 13u8 chr

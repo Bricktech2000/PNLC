@@ -15,9 +15,9 @@
 \tape:ftor
 # an infinite tape of zeroes
 ..def ...tape
-  .fix .pair '\0'u8
-  '\0'u8
-  .fix .pair '\0'u8
+  .fix .pair '\0'
+  '\0'
+  .fix .pair '\0'
 \0tape
 ..def \tape .tape \left \head \right \tape .right \fst \snd
   ...tape ..pair head left fst snd
@@ -31,7 +31,7 @@
 # and begins its execution
 ..def .fix \getbang
   ...bind io:mnad getc ..vireo
-    \chr .....equal u8:eq '!'u8 chr
+    \chr .....equal u8:eq '!' chr
       ..pure io:aptv nil
       ...fmap io:ftor .cons chr getbang
     ..pure io:aptv nil
@@ -44,43 +44,43 @@
 ..def .fix \bfp
  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv tape.shl
-    .chrp '>'u8
+    .chrp '>'
   \'>'p
  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv tape.shr
-    .chrp '<'u8
+    .chrp '<'
   \'<'p
  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv ..fmap tape:ftor u8.inc
-    .chrp '+'u8
+    .chrp '+'
   \'+'p
  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv ..fmap tape:ftor u8.dec
-    .chrp '-'u8
+    .chrp '-'
   \'-'p
  ..def ...fmapk parser:ftor
     \tape ...fmapk io:ftor
       tape
       .putc .head tape
-    .chrp '.'u8
+    .chrp '.'
   \'.'p
  ..def ...fmapk parser:ftor
     \tape ...fmap io:ftor
-      \optchr ...fmapk tape:ftor ..optchr id '\0'u8 tape
+      \optchr ...fmapk tape:ftor ..optchr id '\0' tape
       getc
-    .chrp ','u8
+    .chrp ','
   \','p
  ..def ...fmap parser:ftor
     \bf .fix \rec \tape
-      ......equal u8:eq '\0'u8 .head tape
+      ......equal u8:eq '\0' .head tape
         .pure io:aptv
         ...kleisli io:mnad bf rec
       tape
-    ....between parser:aptv .chrp '['u8 .chrp ']'u8 bfp
+    ....between parser:aptv .chrp '[' .chrp ']' bfp
   \[&]p
  ..def ...fmapk parser:ftor
     .pure io:aptv
-    .satp ...phi and ..unequal u8:eq '['u8 ..unequal u8:eq ']'u8
+    .satp ...phi and ..unequal u8:eq '[' ..unequal u8:eq ']'
   \![]p
 
  ..def
@@ -104,4 +104,4 @@
   ...bind io:mnad getbang \str
     ......seql parser:aptv bfp eofp str
       .thrush \prog \inp .prog 0tape
-      ...seqr io:aptv .putc '!'u8 .putc '\n'u8
+      .puts .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

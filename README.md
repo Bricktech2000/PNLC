@@ -28,7 +28,7 @@ bin/pnlc examples/raw-cat.pnlc
 bin/pnlc prelude.pnlc examples/bit-cat.pnlc
 bin/pnlc prelude.pnlc examples/chr-cat.pnlc
 bin/pnlc prelude.pnlc examples/truth-machine.pnlc
-bin/pnlc prelude.pnlc examples/parrot.pnlc
+bin/pnlc prelude.pnlc examples/greeting.pnlc
 bin/pnlc prelude.pnlc examples/reverse.pnlc
 bin/pnlc prelude.pnlc examples/rot13.pnlc
 bin/pnlc prelude.pnlc examples/brainfuck.pnlc

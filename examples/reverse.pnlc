@@ -2,7 +2,8 @@
 # inc:../prelude.pnlc
 
 .main .fix \main
-  ...bind io:mnad getln \str
+  ...bind io:mnad getln \str ...isnil str
+    ..pure io:aptv unit
     ...bindk io:mnad
-      .puts .unwrap .tail .rev ..cons '\n'u8 str
+      .puts .unwrap .tail .rev .:\n str
       main

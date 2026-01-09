@@ -1,57 +1,58 @@
 setlocal commentstring=#\ %s
 setlocal comments=b:#
-setlocal define=\\sdef:\\\|^\\(\\S.*\\)\\?\\\\\\ze\\S*\\s*$
-setlocal include=\\sinc:
+setlocal indentexpr=-1 indentkeys=
+let &l:define = '\sdef:' . '\|^\(\S.*\)\?\\\ze\S*\(\s\+\(#.*\)\?\)\?$'
+let &l:include = '\sinc:'
 
 " keep in sync with grammar.bnf and pnlc.c
 
-syntax match pnlcLam '\\\_[[:space:]]*[[:graph:]]\+\_[[:space:]]\+'
-syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[[:graph:]]\+\_[[:space:]]\+'
+syntax match pnlcLam '\\\_[[:space:]]*[^[:space:]]\+\_[[:space:]]\+'
+syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[^[:space:]]\+\_[[:space:]]\+'
 " keep in sync with README.md, pnlc.c and io\ hook.pnlc
 syntax match pnlcIO '\_[[:space:].]\@<=\(\$exit\|\$err\|\$get\|\$put\|\$dump\)\_[[:space:]]\+'
 syntax match pnlcApp0 '
-      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
-      \[.\#]\@![[:graph:]]\+
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
+      \[.\#]\@![^[:space:]]\+
       \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp1 '
-      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
       \\.\_[[:space:]]*
       \\.\_[[:space:]]*
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
       \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp2 '
-      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
       \\.\_[[:space:]]*
       \\.\_[[:space:]]*
       \\.\_[[:space:]]*
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
       \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp3 '
-      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
       \\.\_[[:space:]]*
       \\.\_[[:space:]]*
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
       \\.\_[[:space:]]*
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
       \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp4 '
-      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[[:graph:]]\+\_[[:space:]]\+\)*
+      \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
       \\.\_[[:space:]]*
       \\.\_[[:space:]]*
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
       \\.\_[[:space:]]*
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
-      \[.\#]\@![[:graph:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
       \' contains=pnlcIgn,pnlcIO
-syntax match pnlcVar '[.\#]\@![[:graph:]]\+' contains=pnlcIO
+syntax match pnlcVar '[.\#]\@![^[:space:]]\+' contains=pnlcIO
 syntax match pnlcComment '#.*$' contains=pnlcTodo
 syntax keyword pnlcTodo TODO FIXME XXX NOTE contained
 

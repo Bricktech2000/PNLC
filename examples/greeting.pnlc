@@ -1,0 +1,11 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+.main .fix \main
+  ...bindk io:mnad
+    .puts .:E .:n .:t .:e .:r .:  .:y .:o .:u .:r .:  .:n .:a .:m .:e .:: .: nil
+    ...bind io:mnad getln \str ...isnil str
+      ..pure io:aptv unit
+      ...bindk io:mnad
+        .puts .:G .:r .:e .:e .:t .:i .:n .:g .:s .:, .:  str
+        main

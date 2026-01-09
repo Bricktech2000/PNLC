@@ -27,6 +27,16 @@ struct term {
   struct term *beta;
 };
 
+// keep track of the nubmer of abstraction nodes binding each variable node.
+// whenever we allocate or free an abstraction node, we call BIND() or UNBIND()
+// on the variable node it binds. of course a variable node's in-degree can be
+// greater than 0x100, so NBINDS() is really an upper bound on the true number
+// of binders and NREFS() is really a lower bound on the true in-degree
+#define BIND(VAR) ((VAR)->refcount += 0x100, VAR)
+#define UNBIND(VAR) ((VAR)->refcount -= 0x100, VAR)
+#define NBINDS(VAR) ((VAR)->refcount / 0x100) // upper bound
+#define NREFS(VAR) ((VAR)->refcount % 0x100)  // lower bound
+
 #define APP(LHS, RHS)                                                          \
   term_alloc((struct term){TYPE_APP, .lhs = LHS, .rhs = RHS})
 #define LAM(LHS, RHS)                                                          \
@@ -36,6 +46,7 @@ struct term {
 
 struct term *term_alloc(struct term fields) {
   struct term *term = malloc(sizeof(*term));
+  fields.type == TYPE_LAM ? BIND(fields.lhs) : 0;
   fields.refcount = 1;
   return *term = fields, term;
 }
@@ -51,7 +62,7 @@ struct term *term_dump(struct term *term, unsigned long visited) {
   //     return fprintf(stderr, "# "), term;
 
   // uncomment to dump refcounts. can make the dump harder to read
-  // for (int i = 1; i < term->refcount; i++)
+  // for (int i = 1; i < NREFS(term); i++)
   //   fputc(term->visited == visited ? '<' : '>', stderr);
 
   term->visited = visited;
@@ -84,8 +95,9 @@ struct term *term_decref(struct term *term) {
   if (--term->refcount)
     return NULL;
   switch (term->type) {
-  case TYPE_APP:
   case TYPE_LAM:
+    UNBIND(term->lhs);
+  case TYPE_APP:
     term_decref(term->lhs), term_decref(term->rhs);
   case TYPE_VAR:
   default:; // IO
@@ -110,7 +122,7 @@ struct term *beta(struct term *term, struct term *var, struct term *arg,
                   unsigned long visited) {
   // returns the result of substituting `var` for `arg` in `term`. moves in
   // `term` but borrows `var` and `arg`. we cache intermediate results in
-  // `beta` fields to ensure the DAG doesn't degenerate to a tree. `beta`
+  // `beta` fields to ensure the graph doesn't degenerate to a tree. `beta`
   // fields hold weak references, which is safe because this function only
   // ever calls `term_decref` on terms whose `refcount > 1`
 
@@ -175,14 +187,24 @@ void whnf(struct term *term, unsigned long *visited) {
   // we do some gymnastics to make sure `term` doesn't hold a reference to
   // `body` because `beta` can avoid an allocation when its `refcount` is 1.
   struct term *var = term_incref(term->lhs->lhs),
-              *body = term_incref(term->lhs->rhs);
-  term_decref(term->lhs);
-  struct term *rep = beta(body, var, term->rhs, ++*visited);
-  term_decref(var), term_decref(term->rhs);
-  term->type = rep->type;
-  term->lhs = rep->lhs ? term_incref(rep->lhs) : NULL;
-  term->rhs = rep->rhs ? term_incref(rep->rhs) : NULL;
-  term_decref(rep);
+              *body = term_incref(term->lhs->rhs),
+              *arg = term_incref(term->rhs);
+  term_decref(term->lhs), term_decref(term->rhs); // move out
+  // small optimization: if `term` held the only reference to the abstraction
+  // node and the abstraction node was the only binder of `var`, we can just
+  // memcpy `*arg` into `*var` and skip calling `beta`. we only do so when we
+  // hold the only reference to `arg`, else we might induce duplicate work
+  if (NBINDS(var) == 0 && arg->refcount == 1) {
+    (var->type = arg->type) == TYPE_LAM ? BIND(arg->lhs) : 0;
+    var->lhs = arg->lhs ? term_incref(arg->lhs) : NULL;
+    var->rhs = arg->rhs ? term_incref(arg->rhs) : NULL;
+  } else
+    body = beta(body, var, arg, ++*visited);
+  term_decref(var), term_decref(arg);
+  (term->type = body->type) == TYPE_LAM ? BIND(body->lhs) : 0;
+  term->lhs = body->lhs ? term_incref(body->lhs) : NULL;
+  term->rhs = body->rhs ? term_incref(body->rhs) : NULL;
+  term_decref(body);
   whnf(term, visited);
 }
 
@@ -281,15 +303,16 @@ void parse_ws(char **prog) {
 }
 
 char *parse_var(char **prog, char **error) {
-  if (!isgraph(**prog)) {
+  if (isspace(**prog)) {
     *error = "expected var";
     return NULL;
   }
 
-  while (isgraph(**prog))
+  // be maximally permissive with identifier characters
+  while (**prog && !isspace(**prog))
     ++*prog;
 
-  char *end = (*prog)++;
+  char *end = *prog;
   parse_ws(prog);
   return end;
 }

@@ -3,7 +3,7 @@
 
 .main
   ...bind io:mnad getc ..vireo
-    \chr .....equal u8:eq '1'u8 chr
-      .fix ..bindk io:mnad .putc '1'u8
-      .putc '0'u8
-    .putc '0'u8
+    \chr .....equal u8:eq '1' chr
+      .fix ..bindk io:mnad .putc '1'
+      .putc '0'
+    .putc '0'
