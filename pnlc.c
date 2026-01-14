@@ -22,7 +22,7 @@ char *ios[] = {"$exit", "$err", "$get", "$put", "$dump", NULL};
 struct term {
   int type;
   unsigned refcount;
-  unsigned long visited;
+  long long visited;
   struct term *lhs, *rhs;
   struct term *beta;
 };
@@ -51,7 +51,7 @@ struct term *term_alloc(struct term fields) {
   return *term = fields, term;
 }
 
-struct term *term_dump(struct term *term, unsigned long visited) {
+struct term *term_dump(struct term *term, long long visited) {
   // uncomment to dump already-dumped terms as single '#' characters. the dump
   // will be ambiguous but its length will be linear, not exponential, in the
   // amount of memory `term` uses
@@ -59,7 +59,7 @@ struct term *term_dump(struct term *term, unsigned long visited) {
   //   switch (term->type)
   //   case TYPE_APP:
   //   case TYPE_LAM:
-  //     return fprintf(stderr, "# "), term;
+  //     return fputs("# ", stderr), term;
 
   // uncomment to dump refcounts. can make the dump harder to read
   // for (int i = 1; i < NREFS(term); i++)
@@ -119,7 +119,7 @@ struct term *term_decref(struct term *term) {
 // abstraction shadows the outer one
 
 struct term *beta(struct term *term, struct term *var, struct term *arg,
-                  unsigned long visited) {
+                  long long visited) {
   // returns the result of substituting `var` for `arg` in `term`. moves in
   // `term` but borrows `var` and `arg`. we cache intermediate results in
   // `beta` fields to ensure the graph doesn't degenerate to a tree. `beta`
@@ -170,19 +170,20 @@ struct term *beta(struct term *term, struct term *var, struct term *arg,
   return term->beta; // move out
 }
 
-void whnf(struct term *term, unsigned long *visited) {
+struct term *whnf(struct term *term, long long *visited) {
   // reduce to weak head normal form using normal-order semantics. this means we
   // reduce the leftmost outermost redex first and ignore any redexes inside
   // abstractions or in the argument position of applications. the resulting
   // beta-reduction of `term` is written into `*term` itself so the computation
-  // is shared across pointees.
+  // is shared across pointees. returns a borrow to the head term and stores the
+  // negation of its depth in its `visited` field
 
   if (term->type != TYPE_APP)
-    return;
+    return term->visited = 0, term;
 
-  whnf(term->lhs, visited);
+  struct term *head = whnf(term->lhs, visited);
   if (term->lhs->type != TYPE_LAM)
-    return;
+    return head->visited--, head;
 
   // we do some gymnastics to make sure `term` doesn't hold a reference to
   // `body` because `beta` can avoid an allocation when its `refcount` is 1.
@@ -205,7 +206,7 @@ void whnf(struct term *term, unsigned long *visited) {
   term->lhs = body->lhs ? term_incref(body->lhs) : NULL;
   term->rhs = body->rhs ? term_incref(body->rhs) : NULL;
   term_decref(body);
-  whnf(term, visited);
+  return whnf(term, visited);
 }
 
 // bit stream
@@ -230,37 +231,30 @@ void bs_put(struct bs *bs, bool bit) {
 }
 
 char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
-          unsigned long *visited) {
+          long long *visited) {
   // takes ownership of `*term`. upon successful termination, returns `NULL` and
   // writes `NULL` into `*term`; otherwise, returns an error message and stores
   // the problematic term into `*term`
 
   for (struct term *cont;; term_decref(*term), *term = cont) {
-    whnf(*term, visited);
-    int argc = 0;
-    struct term *io = *term;
-    while (io->type == TYPE_APP)
-      io = io->lhs, argc++;
-    if (io->type >= 0)
-      return "top-level term is not IO";
-
-    switch (~io->type) {
+    struct term *head = whnf(*term, visited);
+    switch (~head->type) {
     case IO_ERR:
-      return "top-level term is $err";
+      return "hit $err at top level";
     case IO_EXIT:
-      if (argc != 0)
+      if (-head->visited != 0)
         return "$exit expects 0 arguments";
       *term = term_decref(*term);
       return NULL;
     case IO_DUMP:
-      if (argc != 2)
+      if (-head->visited != 2)
         return "$dump expects 2 arguments";
       whnf((*term)->lhs->rhs, visited);
       term_dump((*term)->lhs->rhs, ++*visited), fputc('\n', stderr);
       cont = term_incref((*term)->rhs);
       break;
     case IO_GET: {
-      if (argc != 1)
+      if (-head->visited != 1)
         return "$get expects 1 argument";
       bool bit = bs_get(bs_in), eof = bs_eof(bs_in);
       struct term *some, *none, *tru, *fals;
@@ -277,20 +271,21 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
       cont = APP(term_incref((*term)->rhs), arg);
     } break;
     case IO_PUT: {
-      if (argc != 2)
+      if (-head->visited != 2)
         return "$put expects 2 arguments";
       // two sentinel lambda-terms with bogus `type` so they get treated like
       // IOs and with huge `refcount` so nobody attempts to free them
       struct term tru = {INT_MIN + 1, INT_MAX}, fals = {INT_MIN + 0, INT_MAX};
       struct term *bit = APP(APP(term_incref((*term)->lhs->rhs), &tru), &fals);
-      whnf(bit, visited);
+      if (~whnf(bit, visited)->type == IO_ERR)
+        return term_decref(bit), "hit $err in $put argument";
       if (bit->type != tru.type && bit->type != fals.type)
         return term_decref(bit), "$put argument is malformed";
       bs_put(bs_out, bit->type == tru.type), term_decref(bit);
       cont = term_incref((*term)->rhs);
     } break;
     default:
-      abort();
+      return "top level is irreducible";
     }
   }
 }
@@ -303,7 +298,7 @@ void parse_ws(char **prog) {
 }
 
 char *parse_var(char **prog, char **error) {
-  if (isspace(**prog)) {
+  if (!**prog || isspace(**prog)) {
     *error = "expected var";
     return NULL;
   }
@@ -318,7 +313,7 @@ char *parse_var(char **prog, char **error) {
 }
 
 struct term *parse_term(char **prog, char **error, struct term *env) {
-  if (**prog == '\0') {
+  if (!**prog) {
     *error = "expected term";
     return NULL;
   }
@@ -403,7 +398,7 @@ struct term *parse(char **prog, char **error) {
   if (*error)
     return NULL;
 
-  if (**prog != '\0') {
+  if (**prog) {
     *error = "trailing characters";
     return term_decref(term), NULL;
   }
@@ -415,36 +410,45 @@ int main(int argc, char **argv) {
   if (argc <= 1)
     fputs("usage: pnlc <files...>\n", stderr), exit(EXIT_FAILURE);
 
+  long sizes[argc];
   char *buf = NULL;
   size_t len = 0;
 
-  while (*++argv) {
-    long size;
-    FILE *fp = fopen(*argv, "r");
+  long *size = sizes;
+  for (char **file = argv + 1; *file; file++, size++) {
+    FILE *fp = fopen(*file, "r");
     if (fp == NULL)
       perror("fopen"), exit(EXIT_FAILURE);
     if (fseek(fp, 0, SEEK_END) == -1)
       perror("fseek"), exit(EXIT_FAILURE);
-    if ((size = ftell(fp)) == -1)
+    if ((*size = ftell(fp)) == -1)
       perror("ftell"), exit(EXIT_FAILURE);
     rewind(fp);
 
-    buf = realloc(buf, len + size + 1);
-    if (fread(buf + len, 1, size, fp) != size)
+    buf = realloc(buf, len + *size + 1);
+    if (fread(buf + len, 1, *size, fp) != *size)
       perror("fread"), exit(EXIT_FAILURE);
-    buf[len += size] = '\0';
+    buf[len += *size] = '\0';
     if (fclose(fp) == EOF)
       perror("fclose"), exit(EXIT_FAILURE);
   }
 
   char *error = NULL, *loc = buf;
   struct term *term = parse(&loc, &error);
+
   if (error) {
-    fprintf(stderr, "parse error: %s near '%.16s'\n", error, loc);
+    char **file = argv + 1;
+    size_t off = loc - buf;
+    for (long *size = sizes; off >= *size; size++, file++)
+      off -= *size;
+
+    fprintf(stderr,
+            *file ? "%s%s at %s[%zu] near '%.16s'\n" : "%s%s at end of input\n",
+            "parse error: ", error, *file, off, loc);
     free(buf), exit(EXIT_FAILURE);
   }
 
-  unsigned long visited = 0;
+  long long visited = 0;
   if (error = run(&term, &(struct bs){stdin}, &(struct bs){stdout}, &visited)) {
     // uncomment this to dump the top-level term on error
     // term_dump(term, ++visited), fputc('\n', stderr);

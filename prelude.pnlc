@@ -7,16 +7,27 @@
 ..def \x \f .f x \thrush
 ..def \x \y \f ..f x y \vireo
 ..def \x \y \z \f ...f x y z \veery # made this one up
+..def \x \y \f ..f y x \finch
+..def \x \f \y ..f y x \robin
 ..def \f .f f \mockingbird
 ..def \f \x ..f x x \warbler
 ..def \f \x \y ..f y x \cardinal
+..def \g \f \x .f .g x \queerbird
+..def \f \x \g .f .g x \quixoticbird
+..def \x \f \g .f .g x \quizzicalbird
+..def \g \x \f .f .g x \quirkybird
+..def \x \g \f .f .g x \quackybird
 ..def \f \g \x .f .g x \bluebird
 ..def \f \g \x \y .f ..g x y \blackbird
+..def \f \g \x \y \z .f ...g x y z \bunting
+..def \f \g \h \x .f .g .h x \becard
 ..def \f \x \g \y ..f x .g y \dove
 ..def \f \x \y \g \z ...f x y .g z \dickcissel
 ..def \f \g \x \h \y ..f .g x .h y \dovekies
+..def \f \x \g \y \z ..f x ..g y z \eagle
 ..def \f \g \x ..f x .g x \starling
 ..def \f \g \x ..f .g x x \violet # -backed starling
+..def \f \g \x \y ..f y .g x \goldfinch
 ..def \f \g \h \x ..f .g x .h x \phi
 ..def \f \g \x \y ..f .g x .g y \psi
 ..def \f .\x .f .x x \x .f .x x \fix
@@ -39,8 +50,11 @@
 ..def \lt \et \gt et \et
 ..def \lt \et \gt gt \gt
 ..def ...veery true false false \islt
-..def ...veery false true false \iseq
+..def ...veery false true false \iset
 ..def ...veery false false true \isgt
+..def ...veery false true true \isge
+..def ...veery true false true \isne
+..def ...veery true true false \isle
 
 # def:opt
 ..def \opt \some \none .some opt \some
@@ -71,12 +85,13 @@
 # def:list
 ..def \head \tail \cons \nil ..cons head tail \cons
 ..def \cons \nil nil \nil
-..def ..vireo \head \tail true false \iscons
-..def ..vireo \head \tail false true \isnil
+..def ..vireo .kestrel .kestrel true false \iscons
+..def ..vireo .kestrel .kestrel false true \isnil
 ..def ..vireo \head \tail .some head none \head
 ..def ..vireo \head \tail .some tail none \tail
 
 # def:free the free monad
+# data Free f a = Roll (f (Free f a)) | Return a
 ..def \term \roll \return .roll term \roll
 ..def \var \roll \return .return var \return
 ..def ..vireo .kestrel true .kestrel false \isroll
@@ -85,6 +100,7 @@
 ..def ..vireo .kestrel none some \var
 
 # the cofree comonad
+# data Cofree f a = Cofree (f (Cofree a)) a
 ..def \trace \ann ..vireo trace ann \cofree
 ..def .thrush \trace \ann trace \trace
 ..def .thrush \trace \ann ann \ann
@@ -125,6 +141,10 @@
 \max:mnid
 # return the argument when it is equal to one or both bounds
 ..def \ord \lo \hi ..bluebird ..min ord hi ..max ord lo \clamp
+..def \ord \lo \hi \val ..and
+  .isge ...compare ord lo val
+  .isle ...compare ord hi val
+\clamped
 
 ..def \top \bot ..vireo top bot \bndd
 ..def .thrush \top \bot top \top
@@ -151,6 +171,7 @@
 ..def \fmap .thrush fmap \ftor
 ..def .thrush \fmap fmap \fmap
 ..def \ftor ..bluebird .fmap ftor kestrel \fmapk
+..def \ftor ...phi pair ..fmap ftor fst ..fmap ftor snd \unzip
 
 ..def \ftor \pure \apply ...veery ftor pure apply \aptv
 ..def .thrush \ftor \pure \apply ftor \aptv:ftor
@@ -162,8 +183,6 @@
     snd
 \lifta2
 ..def \aptv ..lifta2 aptv thrush \rapply
-# XXX why are these two so slow on the IO applicative?
-# XXX --> because of `io:ftor`'s `fmap`. but why?
 ..def \aptv ..lifta2 aptv kestrel \seql
 ..def \aptv ..lifta2 aptv kite \seqr
 ..def \aptv \left \right \inner
@@ -220,7 +239,7 @@
 # the monoid induced by `alt`
 ..def \altv .sgrp .alt altv \alt:sgrp
 ..def \altv ..mnid alt:sgrp .empty altv \alt:mnid
-# no need for `asum`, it'd be the same as `.fold .alt:mnid something:altn`
+# no need for `asum`, it'd be equivalent to `.fold .alt:mnid something:altn`
 
 # "The Foldable class represents data structures that can be reduced to a
 # summary value one element at a time." well that's the list catamorphism, so
@@ -232,16 +251,22 @@
 ..def \tolist .thrush tolist \fldb
 ..def .thrush \tolist tolist \tolist
 
-# TODO get rid of arr8.fold[lr]
 ..def \ftor \fldb \sequence ...veery ftor fldb sequence \tvsb
 ..def .thrush \ftor \fldb \sequence ftor \tvsb:ftor
 ..def .thrush \ftor \fldb \sequence fldb \tvsb:fldb
 ..def .thrush \ftor \fldb \sequence sequence \sequence
 
+# `Distributive`, supposedly the categorical dual of `Traversable`
+# distribute :: (Functor f, Distributive g) => f (g a) -> g (f a)
+..def \ftor \distribute ..vireo ftor distribute \dstv
+..def .thrush \ftor \distribute ftor \dstv:ftor
+..def .thrush \ftor \distribute distribute \distribute
+
  # utility functions and typeclass instances
 
 # catamorphisms, anamorphisms, hylomorphisms, paramorphisms, apomorphisms,
 # histomorphisms and futumorphisms.
+# data Fix f = Fix (f (Fix f))
 # cata :: Functor f => (f a -> a) -> Fix f -> a
 # ana :: Functor f => (a -> f a) -> a -> Fix f
 # hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
@@ -265,13 +290,13 @@
   .alg ...fmap ftor ..kite seed hylo .coalg seed
 \hylo
 ..def \ftor \ralg .fix \para \init
-  .ralg ...fmap ftor ..kite init ...phi pair id para init
+  .ralg ...fmap ftor ..kite init ..starling pair para init
 \para
 ..def \ftor \rcoalg .fix \apo \seed
   ...fmap ftor ..kite seed ..vireo ana id .rcoalg seed
 \apo
 ..def \ftor \cvalg ..bluebird ann .fix \histo \init
-  ....phi cofree id cvalg ...fmap ftor ..kite init histo init
+  ...starling cofree cvalg ...fmap ftor ..kite init histo init
 \histo
 ..def \ftor \cvcoalg .fix \futu \seed
   ..fix \rec ..fmap ftor ..kite seed ..vireo rec futu .cvcoalg seed
@@ -302,6 +327,9 @@
 ..def .ftor bluebird \env:ftor
 ..def ...aptv env:ftor kestrel starling \env:aptv # liftA2 = phi
 ..def ..mnad env:aptv .cardinal violet \env:mnad # join = warbler
+..def \outer:ftor .outer:ftor \outerfmap
+  ..dstv env:ftor \ftorenv \env ..outerfmap .thrush env ftorenv
+\env:dstv
 
 ..def .eq \rhs \lhs true \unit:eq
 ..def .eq \rhs \lhs void \void:eq
@@ -385,7 +413,7 @@
 ..def \elem:aptv ...tvsb
   opt:ftor
   opt:fldb
-  \optarg ..optarg
+  \optaptv ..optaptv
     ..fmap .aptv:ftor elem:aptv some
     ..pure elem:aptv none
 \opt:tvsb
@@ -406,12 +434,11 @@
     ..lhs .cardinal .equal elem:eq .kestrel false
     ..lhs .kestrel false true
 \opt:eq
-..def \elem:ord .elem:ord \elem:eq \elemcompare
-  ..ord
-    .opt:eq elem:eq
-    \rhs \lhs ..rhs
-      ..lhs .cardinal elemcompare .kestrel lt
-      ..lhs .kestrel gt et
+..def \elem:ord ..ord
+  .opt:eq .ord:eq elem:ord
+  \rhs \lhs ..rhs
+    ..lhs .cardinal .compare elem:ord .kestrel lt
+    ..lhs .kestrel gt et
 \opt:ord
 ..def \elem:bndd ..bndd .some .top elem:bndd none \opt:bndd
 # `type Every a = Down (Maybe (Down a))`
@@ -429,8 +456,10 @@
 ..def .fix opt:bndd \nat:bndd # zero, fix succ
 ..def opt:ftor \nat:ftor
 ..def opt:aptv \nat:aptv
-..def opt:altv \nat:altv
 ..def opt:mnad \nat:mnad
+..def opt:altv \nat:altv
+..def opt:fldb \nat:fldb
+..def opt:tvsb \nat:tvsb
 ..def \rhs \lhs ...cata natf:ftor ..vireo succ lhs rhs \add
 ..def \rhs \lhs ...cata natf:ftor ..vireo .add lhs zero rhs \mul
 ..def \rhs \lhs ...cata natf:ftor ..vireo .mul lhs .succ zero rhs \exp
@@ -442,10 +471,11 @@
 ..def ..mnid add:sgrp zero \add:mnid
 ..def ..mnid mul:sgrp .succ zero \mul:mnid
 
-..def \ok:eq \err:eq .eq
-  \rhs \lhs ..rhs
-    ..lhs .cardinal .equal ok:eq \err \ok false
-    ..lhs \ok \err false .cardinal .equal err:eq
+..def \ok:eq \err:eq .ok:eq \okequal .err:eq \errequal
+  .eq
+    \rhs \lhs ..rhs
+      ..lhs .cardinal okequal \err \ok false
+      ..lhs \ok \err false .cardinal errequal
 \res:eq
 ..def \ok:ord \err:ord .ok:ord \ok:eq \okcompare .err:ord \err:eq \errcompare
   ..ord
@@ -476,7 +506,7 @@
 ..def \ok:aptv ...tvsb
   resb:ftor
   resb:fldb
-  \resarg ..resarg
+  \resaptv ..resaptv
     ..fmap .aptv:ftor ok:aptv ok
     ..bluebird .pure ok:aptv err
 \resb:tvsb
@@ -533,8 +563,8 @@
 ..def \err:aptv ...tvsb
   flipb:ftor
   flipb:fldb
-  \resarg ...fmap .aptv:ftor err:aptv flip
-    ..sequence .resb:tvsb err:aptv .flip resarg
+  \resaptv ...fmap .aptv:ftor err:aptv flip
+    ..sequence .resb:tvsb err:aptv .flip resaptv
 \flipb:tvsb
 
 # type Dbl a = Either a a
@@ -572,7 +602,7 @@
 ..def \elem:aptv ...tvsb
   dbl:ftor
   dbl:fldb
-  \dblarg ..dblarg
+  \dblaptv ..dblaptv
     ..fmap .aptv:ftor elem:aptv ok
     ..fmap .aptv:ftor elem:aptv err
 \dbl:tvsb
@@ -665,11 +695,11 @@
 ..def \snd:aptv ...tvsb
   paira:ftor
   paira:fldb
-  \pairarg .pairarg ..bluebird .fmap .aptv:ftor snd:aptv pair
+  \pairaptv .pairaptv ..bluebird .fmap .aptv:ftor snd:aptv pair
 \paira:tvsb
 ..def \pair ..bluebird pair cardinal \swap
 
-# type Swap a b = (b, a)
+# type Swap a b = Pair b a
 #
 # the ordering obtained by swapping elements of the pair ordering
 ..def \snd:eq \fst:eq .eq
@@ -720,11 +750,11 @@
 ..def \fst:aptv ...tvsb
   swapa:ftor
   swapa:fldb
-  \pairarg ...fmap .aptv:ftor fst:aptv swap
-    ..sequence .paira:tvsb fst:aptv .swap pairarg
+  \pairaptv ...fmap .aptv:ftor fst:aptv swap
+    ..sequence .paira:tvsb fst:aptv .swap pairaptv
 \swapa:tvsb
 
-# type Sqr a = (a, a)
+# type Sqr a = Pair a a
 ..def .warbler pair:eq \sqr:eq
 ..def .warbler pair:ord \sqr:ord
 ..def .warbler pair:bndd \sqr:bndd
@@ -751,8 +781,125 @@
 ..def \elem:aptv ...tvsb
   sqr:ftor
   sqr:fldb
-  \sqrarg .sqrarg ..lifta2 elem:aptv pair
+  \sqraptv .sqraptv ..lifta2 elem:aptv pair
 \sqr:tvsb
+..def \outer:ftor ..dstv
+  sqr:ftor
+  .unzip outer:ftor
+\sqr:dstv
+
+# type Stream a = Fix (Pair a)
+..def paira:ftor \streamf:ftor
+..def ..bluebird fix pair:eq \stream:eq
+..def ..bluebird fix pair:ord \stream:ord
+..def ..bluebird fix pair:bndd \stream:bndd
+..def ..bluebird fix pair:sgrp \stream:sgrp
+..def ..bluebird fix pair:mnid \stream:mnid
+..def .ftor
+  \func ..cata streamf:ftor ..fmap swapa:ftor func
+\stream:ftor
+..def ...aptv
+  stream:ftor
+  \arg .fix .pair arg
+  \streamfunc \streamarg ...ana streamf:ftor
+    # almost a `swapa:aptv`, but `pair` the constructor does not induce a monoid
+    \pair .pair \streamfunc \streamarg
+      .streamfunc \fstfunc \sndfunc .streamarg \fstarg \sndarg
+        ..pair .fstfunc fstarg ..pair sndfunc sndarg
+    ..pair streamfunc streamarg
+\stream:aptv
+..def ..mnad
+  stream:aptv
+  \streamarg \func ...ana streamf:ftor
+    # take the diagonal, same idea as `arr8:mnad`
+    .thrush \fststream \sndstream
+      ..pair .fst fststream ...fmap streamf:ftor snd sndstream
+    ...fmap stream:ftor func streamarg
+\stream:mnad
+..def .fldb
+  ..cata streamf:ftor cons
+\stream:fldb
+..def \elem:aptv ...tvsb
+  stream:ftor
+  stream:fldb
+  ..cata streamf:ftor ..lifta2 elem:aptv pair
+\stream:tvsb
+..def \elem:ftor ..dstv
+  stream:ftor
+  ..ana \seed ...psi pair ..cardinal .fmap elem:ftor seed fst snd
+\stream:dstv
+..def \func ..ana streamf:ftor
+  \seed ..pair seed .func seed
+\iterate
+..def \list
+  ...ana streamf:ftor ..vireo pair ..list pair $err list
+\cycle
+..def \pred ..cata streamf:ftor .thrush
+  \fst \acc ...pred fst fst acc
+\sfind
+..def \pred ..cata streamf:ftor .thrush
+  \fst \acc ...pred fst zero .succ acc
+\sfindindex
+..def \pred ..cata streamf:ftor .thrush
+  \fst \acc ....pred head .pair zero id ...fmap stream:ftor succ acc
+\sfindindices
+..def \item \item:eq .sfind ..equal item:eq item \selem
+..def \item \item:eq .sfindindex ..equal item:eq item \selemindex
+..def \item \item:eq .sfindindices ..equal item:eq item \selemindices
+# sinits :: Stream a -> Stream (List a)
+# sinits1 :: Stream a -> Stream (List a)
+# stails :: Stream a -> Stream (Stream a)
+# stails1 :: Stream a -> Stream (Stream a)
+..def ..cata streamf:ftor .thrush
+  \fst \acc ..pair nil ...fmap stream:ftor .cons fst acc
+\sinits
+..def ..cata streamf:ftor .thrush
+  \fst \acc ...fmap stream:ftor .cons fst ..pair nil acc
+\sinits1
+..def ..ana streamf:ftor .thrush
+  \fst \snd ..pair ..pair fst snd snd
+\stails
+..def ..ana streamf:ftor .thrush
+  \fst \snd ..pair ..pair fst snd snd
+\stails1
+..def \pred ..cata streamf:ftor .thrush
+  \fst \acc ....pred fst .pair fst id acc
+\sfilter
+..def \pred ..cata streamf:ftor .thrush
+  \fst \acc ...fmap ...pred fst swapa:ftor paira:ftor .pair fst acc
+\spartition
+..def \elem:eq ..cata streamf:ftor .thrush
+  \fst \acc .acc \fstacc \sndacc
+    .....equal elem:eq fst ..fstacc kestrel $err
+      ..pair ..cons fst fstacc sndacc
+      ..pair ..cons fst nil acc
+\sgroup
+# takeWhile :: (a -> Bool) -> Stream a -> List a
+# dropWhile :: (a -> Bool) -> Stream a -> Stream a
+# span :: (a -> Bool) -> Stream a -> Pair (List a) (Stream a)
+# take :: Nat -> Stream a -> List a
+# splitAt :: Nat -> Stream a -> Pair (List a) (Stream a)
+# drop :: Nat -> Stream a -> Stream a
+# (!?) :: Nat -> Stream a -> Maybe a
+..def \pred ..cata streamf:ftor .thrush
+  \fst \acc ...pred fst ..cons fst acc nil
+\stakewhile
+..def \pred ..para streamf:ftor .thrush
+  \fst .thrush \snd \acc ...pred fst acc ..pair fst snd
+\sdropwhile
+..def \pred ..para streamf:ftor .thrush
+  \fst .thrush \snd \acc ...pred fst
+    .acc \take \drop ..pair ..cons fst take drop
+    ..pair nil ..pair fst snd
+\sspan
+..def ..cata natf:ftor ..finch .kestrel nil
+  \acc .thrush \fst \snd ..cons fst .acc snd
+\stake
+..def ..cata natf:ftor ..finch .pair nil
+  \acc .thrush \fst \snd ...fmap swapa:ftor .cons fst .acc snd
+\ssplitat
+..def ..cata natf:ftor ..vireo .queerbird snd id \sdrop
+..def ..cata natf:ftor ..vireo .queerbird snd fst \sat
 
 # the "base" functor for `list`, with the property `Fix (ListF a) = List a`.
 # `data ListF a b = Cons a b | Nil deriving Functor`
@@ -762,25 +909,23 @@
 ..def \elem:mnid .elem:mnid \sgrp \mempty .sgrp \sappend
   ..cata listf:ftor ..vireo sappend mempty
 \fold
-# no need for `Monoid [a]`, it'd be isomorphic to `Alternative f =>
-# Monoid (Alt f a)` for `f ~ []`
+# no need for `Monoid (List a)`, it'd be isomorphic to `Alternative f =>
+# Monoid (Alt f a)` for `f ~ List`
 ..def .ftor
-  \func ..cata listf:ftor ..vireo ..bluebird cons func nil
+  \func ..cata listf:ftor ..finch nil ..bluebird cons func
 \list:ftor
 ..def ...aptv
   list:ftor
   \arg ..cons arg nil
-  \listfunc \listarg ...cata listf:ftor ..vireo
+  \listfunc \listarg ...cata listf:ftor ..finch nil
     # avoiding `fmap` for efficiency. notice the init is `acc` instead of `nil`
-    \func \acc ...cata listf:ftor ..vireo ..bluebird cons func acc listarg
-    nil
+    \func \acc ...cata listf:ftor ..finch acc ..bluebird cons func listarg
     listfunc
 \list:aptv
 ..def ..mnad
   list:aptv
-  \listarg \func ...cata listf:ftor ..vireo
+  \listarg \func ...cata listf:ftor ..finch nil
     \arg \acc ...cata listf:ftor ..vireo cons acc .func arg
-    nil
     listarg
 \list:mnad
 ..def ...altv
@@ -826,71 +971,95 @@
 # `Nil` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .list:ord .down:ord elem:ord \short:ord
 ..def \elem:bndd .down:bndd .list:bndd .down:bndd elem:bndd \short:bndd
-..def ..cata listf:ftor ..vireo .kestrel succ zero \len
-..def ..cata listf:ftor ..vireo \head \acc .some ..acc id head none \last
-..def ..cata listf:ftor ..vireo \head \acc .some ..acc .cons head nil none \init
+..def ..cata listf:ftor ..finch zero .kestrel succ \len
+..def ..cata listf:ftor ..finch none \head \acc .some ..acc id head \last
+..def ..cata listf:ftor ..finch none \head \acc .some ..acc .cons head nil \init
 # rev list = appEndo (getDual (foldMap (Dual . Endo . cons) list)) nil
 ..def \list ...fold .dual:mnid endo:mnid ...fmap list:ftor cons list nil \rev
-..def .fold .alt:mnid list:altv \concat
-..def \item \item:eq ..bluebird
-  .fold or:mnid
-  ..fmap list:ftor ..equal item:eq item
-\elem
+..def \elem ..ana natf:ftor ..vireo .cons elem nil \replicate
+# cons the element onto the sorted list and `insert` will scooch it over
+..def \elem:ord ..apo listf:ftor ..finch nil
+  \head \tail ..tail
+    \headtail \tailtail
+      ...isgt ...compare elem:ord headtail head
+        ..cons headtail .ok ..cons head tailtail
+        ..cons head .err tail
+    ..cons head .err tail
+\insert
+..def ..cata listf:ftor insert \inssort
 ..def \pred ..bluebird
   .fold .alt:mnid opt:altv
   ..fmap list:ftor \elem ...pred elem .some elem none
 \find
-..def \pred ..cata listf:ftor ..vireo
+..def \pred ..cata listf:ftor ..finch none
+  \head \acc ...pred head .some zero ...fmap opt:ftor succ acc
+\findindex
+..def \pred ..cata listf:ftor ..finch nil
+  \head \acc ....pred head .cons zero id ...fmap list:ftor succ acc
+\findindices
+..def \item \item:eq .find ..equal item:eq item \elem
+..def \item \item:eq .findindex ..equal item:eq item \elemindex
+..def \item \item:eq .findindices ..equal item:eq item \elemindices
+..def ..cata listf:ftor ..finch ..cons nil nil
+  \head \acc ..cons nil ...fmap list:ftor .cons head acc
+\inits
+..def ..cata listf:ftor ..finch nil
+  \head \acc ...fmap list:ftor .cons head ..cons nil acc
+\inits1
+..def ..ana listf:ftor ..finch ..cons nil nil
+  \head \tail ..cons ..cons head tail tail
+\tails
+..def ..ana listf:ftor ..finch nil
+  \head \tail ..cons ..cons head tail tail
+\tails1
+..def \pred ..cata listf:ftor ..finch nil
   \head \acc ....pred head .cons head id acc
-  nil
 \filter
-..def \pred ..cata listf:ftor ..vireo
+..def \pred ..cata listf:ftor ..finch ..pair nil nil
   \head \acc ...fmap ...pred head swapa:ftor paira:ftor .cons head acc
-  ..pair nil nil
 \partition
-..def \pred ..cata listf:ftor ..vireo
+..def \elem:eq ..cata listf:ftor ..finch nil
+  \head \acc ..acc
+    \headacc \tailacc
+      .....equal elem:eq head ..headacc kestrel $err
+        ..cons ..cons head headacc tailacc
+        ..cons ..cons head nil acc
+    ..cons ..cons head nil acc
+\group
+# takeWhile :: (a -> Bool) -> List a -> List a
+# dropWhile :: (a -> Bool) -> List a -> List a
+# span :: (a -> Bool) -> List a -> Pair (List a) (List a)
+# take :: Nat -> List a -> Maybe (List a)
+# splitAt :: Nat -> List a -> Maybe (Pair (List a) (List a))
+# drop :: Nat -> List a -> Maybe (List a)
+# (!?) :: Nat -> List a -> Maybe a
+..def \pred ..cata listf:ftor ..finch nil
   \head \acc ...pred head ..cons head acc nil
-  nil
 \takewhile
-..def \pred ..para listf:ftor ..vireo
+..def \pred ..para listf:ftor ..finch nil
   \head .thrush \tail \acc ...pred head acc ..cons head tail
-  nil
 \dropwhile
-..def \pred ..para listf:ftor ..vireo
+..def \pred ..para listf:ftor ..finch ..pair nil nil
   \head .thrush \tail \acc ...pred head
-    .acc \fst \snd ..pair ..cons head fst snd
+    .acc \take \drop ..pair ..cons head take drop
     ..pair nil ..cons head tail
-  ..pair nil nil
 \span
+..def ..cata natf:ftor ..finch ..bluebird some .kestrel nil
+  \acc ..finch none \head \tail ...fmap opt:ftor .cons head .acc tail
+\take
+..def ..cata natf:ftor ..finch ..bluebird some .pair nil
+  \acc ..finch none
+    \head \tail ...fmap opt:ftor ..fmap swapa:ftor .cons head .acc tail
+\splitat
 # TODO implement `cataM` https://youtu.be/Zw9KeP3OzpU?t=4039
 # TODO rewrite these using `cataM`
 ..def ..cata natf:ftor ..vireo ..kleisli opt:mnad tail some \drop
 ..def ..cata natf:ftor ..vireo ..kleisli opt:mnad tail head \at
-# TODO implement `take`
-..def $err \take
-# \f \list ..list \head \tail .some ..cons head .f tail none
-..def ..starling cons ..ana listf:ftor ..vireo
-  \head \tail ..cons tail tail
-  nil
-\tails
-# TODO implement `inits`
-..def \elem ..ana natf:ftor ..vireo .cons elem nil \replicate
 ..def \width \list
-  ...bind list:mnad list ..bluebird .tolist opt:tvsb .take width
+  ...bind list:mnad list ..bluebird .tolist opt:fldb .take width
 \windows
-# cons the element onto the sorted list and `insert` will scooch it over
-..def \elem:ord ..apo listf:ftor ..vireo
-  \head \tail ..tail
-    \tailhead \tailtail
-      ...isgt ...compare elem:ord tailhead head
-        ..cons tailhead .ok ..cons head tailtail
-        ..cons head .err tail
-    ..cons head .err tail
-  nil
-\insert
-..def ..cata listf:ftor insert \inssort
 
-# `type DList a = [a] -> [a]`
+# `type DList a = List a -> List a`
 # difference lists. a difference list is a function which, when given a tail,
 # prepends the list it represents to that tail. concatenation of difference
 # lists is function composition, which is constant time. `tolist` and `todlist`
@@ -904,13 +1073,13 @@
 # Monoid (Alt f a)` and to `Monoid (Endo (f a))` for `f ~ DList`
 ..def .ftor
   \func \dlistarg
-    ...cata listf:ftor ..vireo ..bluebird dcons func dnil .dlistarg nil
+    ...cata listf:ftor ..finch dnil ..bluebird dcons func .dlistarg nil
 \dlist:ftor
 ..def ...aptv
   dlist:ftor
   \arg .dcons arg # aka \arg .bluebird .cons arg
   \dlistfunc \dlistarg ...cata listf:ftor
-    ..vireo .dove ..cardinal .fmap dlist:ftor dlistarg dnil
+    ..finch dnil .dove ..cardinal .fmap dlist:ftor dlistarg
     .dlistfunc nil
 \dlist:aptv
 ..def ..mnad
@@ -923,10 +1092,10 @@
 ..def \elem:aptv ...tvsb
   dlist:ftor
   dlist:fldb
-  \dlistarg ...cata listf:ftor ..vireo
+  \dlistaptv ...cata listf:ftor ..vireo
       ..lifta2 elem:aptv dcons
       ..pure elem:aptv dnil
-    .dlistarg nil
+    .dlistaptv nil
 \dlist:tvsb
 ..def \elem:eq .eq
   \rhs \lhs ...equal .list:eq elem:eq .rhs nil .lhs nil
@@ -987,8 +1156,8 @@
 \cofree:ftor
 
 ..def .ftor
-  \func \arg8
-    .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  \func \arr8arg
+    .arr8arg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ........arr8
         .func a0
         .func a1
@@ -1002,9 +1171,9 @@
 ..def ...aptv
   arr8:ftor
   \arg ........arr8 arg arg arg arg arg arg arg arg
-  \func8 \arg8
-    .func8 \f0 \f1 \f2 \f3 \f4 \f5 \f6 \f7
-      .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  \arr8func \arr8arg
+    .arr8func \f0 \f1 \f2 \f3 \f4 \f5 \f6 \f7
+      .arr8arg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
         ........arr8
           .f0 a0
           .f1 a1
@@ -1017,8 +1186,8 @@
 \arr8:aptv
 ..def ..mnad
   arr8:aptv
-  \arg8 \func
-    .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  \arr8arg \func
+    .arr8arg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ........arr8
         .arr8.0 .func a0
         .arr8.1 .func a1
@@ -1030,8 +1199,8 @@
         .arr8.7 .func a7
 \arr8:mnad
 ..def .fldb
-  \arg8
-    .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  \arr8arg
+    .arr8arg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ..cons a0
       ..cons a1
       ..cons a2
@@ -1045,8 +1214,8 @@
 ..def \elem:aptv ...tvsb
   arr8:ftor
   arr8:fldb
-  \arg8
-    .arg8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  \arr8aptv
+    .arr8aptv \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ..def .cardinal .apply elem:aptv \capply
       ..capply a7
       ..capply a6
@@ -1058,6 +1227,19 @@
       ..capply a0
       ..pure elem:aptv arr8
 \arr8:tvsb
+..def \outer:ftor .outer:ftor \outerfmap
+  ..dstv
+    arr8:ftor
+    \ftorarr8 ........arr8
+      ..outerfmap arr8.0 ftorarr8
+      ..outerfmap arr8.1 ftorarr8
+      ..outerfmap arr8.2 ftorarr8
+      ..outerfmap arr8.3 ftorarr8
+      ..outerfmap arr8.4 ftorarr8
+      ..outerfmap arr8.5 ftorarr8
+      ..outerfmap arr8.6 ftorarr8
+      ..outerfmap arr8.7 ftorarr8
+\arr8:dstv
 ..def \func \zero \arr8
   .arr8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     ..func
@@ -1077,7 +1259,7 @@
           a5
         a6
       a7
-\arr8.foldl # TODO get rid of
+\arr8.foldl
 ..def \func \zero \arr8
   .arr8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     ..func a0
@@ -1089,7 +1271,7 @@
                 ..func a6
                   ..func a7
                     zero
-\arr8.foldr # TODO get rid of
+\arr8.foldr
 ..def \elem:eq .elem:eq \elemequal
   .eq
     \rhs \lhs ..fold and:mnid ..tolist arr8:fldb
@@ -1108,6 +1290,9 @@
 \arr8:bndd
 
 # type U8 = Arr8 Bool = (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+..def .arr8:eq bool:eq \u8:eq
+..def .arr8:ord bool:ord \u8:ord
+..def .arr8:bndd bool:bndd \u8:bndd
 ..def ........arr8 false false false false false false false false \nul
 ..def ........arr8 true  false false false false false false false \soh
 ..def ........arr8 false true  false false false false false false \stx
@@ -1384,6 +1569,98 @@
 ..def :cr  \:\f
 ..def :esc \:\r
 ..def :sp  \: # eg .puts .:  nil
+# do case analysis on each bit, looking any bit at most once. `..and`, `..or`,
+# `..and .not` and `..or .not` are special casees of case analysis where one
+# branch short-circuits, so we allow those too
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..a6
+    ..a4 # isalpha
+      ..or .not a3 ..and .not a2 ..or .not a1 .not a0
+      ..or a3 ..or a2 ..or a1 a0
+    ..and a5 ..and a4 ..or .not a3 ..and .not a2 .not a1 # isdigit
+\isalnum
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..and a6 ..a4
+    ..or .not a3 ..and .not a2 ..or .not a1 .not a0
+    ..or a3 ..or a2 ..or a1 a0
+\isalpha
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..and .not a6 ..and .not a4 ..and .not a2 ..and .not a1 ..a5
+    ..and .not a3 .not a0
+    ..and a3 a0
+\isblank
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..a6
+    ..and a5 ..and a4 ..and a3 ..and a2 ..and a1 a0
+    ..and .not a5 ..and .not a4 ..and .not a3
+      ..and .not a2 ..and .not a1 .not a0 # !isprint
+\iscntrl
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..and .not a6
+    ..and a5 ..and a4 ..or .not a3 ..and .not a2 .not a1
+\isdigit
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..a6
+    ..or .not a5 ..or .not a4 ..or .not a3
+      ..or .not a2 ..or .not a1 .not a0 # isprint
+    ..and a5 ..or a4 ..or a3 ..or a2 ..or a1 a0
+\isgraph
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..and a6 ..and a5 ..a4
+    # isalpha
+    ..or .not a3 ..and .not a2 ..or .not a1 .not a0
+    ..or a3 ..or a2 ..or a1 a0
+\islower
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..a6
+    ..or .not a5 ..or .not a4 ..or .not a3
+      ..or .not a2 ..or .not a1 .not a0
+    a5
+\isprint
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..a6
+    ..a4
+      ..and a3 ..a5
+        ..or a2 ..and a1 a0
+        ..a2
+          ..and a1 a0
+          ..or .not a1 .not a0
+      ..and .not a3 ..and .not a2 ..and .not a1 .not a0
+    ..and a5 ..a4
+      ..and a3 ..or a2 a1
+      ..or a3 ..or a2 ..or a1 a0
+\ispunct
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..and .not a6 ..and .not a4 ..a5
+    ..and .not a3 ..and .not a2 ..and .not a1 .not a0
+    ..and a3 ..a2
+      .not a1
+      ..or a1 a0
+\isspace
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..and a6 ..and .not a5 ..a4
+    # isalpha
+    ..or .not a3 ..and .not a2 ..or .not a1 .not a0
+    ..or a3 ..or a2 ..or a1 a0
+\isupper
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a7 ..a6
+    ..and .not a4 ..and .not a3 ..a2
+      ..or .not a1 .not a0
+      ..or a1 a0
+    ..and a5 ..and a4 ..or .not a3 ..and .not a2 .not a1 # isdigit
+\isxdigit
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  .not a7
+\isascii
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ........arr8 a0 a1 true  a3 a4 a5 a6 a7
+\mklower
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ........arr8 a0 a1 false a3 a4 a5 a6 a7
+\mkupper
+..def \chr ...isupper chr .mklower chr chr \tolower
+..def \chr ...islower chr .mkupper chr chr \toupper
 ..def \c \rhs \lhs
   ...arr8.foldl
     .thrush \c \arr8 .thrush \rhs \lhs
@@ -1428,9 +1705,6 @@
 ..def ..bluebird snd .u8.decb true \u8.dec
 ..def .sgrp u8.add \u8.add:sgrp
 ..def ..mnid u8.add:sgrp '\0' \u8.add:mnid
-..def .arr8:eq bool:eq \u8:eq
-..def .arr8:ord bool:ord \u8:ord
-..def .arr8:bndd bool:bndd \u8:bndd
 
 # an `IO a` is a function that takes a continuation and returns "$" functions
 # wrapping the application of the continuation to a value of type `a`.
@@ -1458,7 +1732,7 @@
 # similarly, functions like `$exit` expect no continuation, so we make wrappers
 # of type `IO Void` that throw away the continuation.
 ..def \cont $exit \exit
-# ..def \cont $err \err # shadows `err` the data constructor
+..def \cont $err \#err # would shadow `err` the data constructor
 ..def $get \get
 ..def \bit \cont ..$put bit .cont unit \put
 ..def \term \cont ..$dump term .cont unit \dump
@@ -1483,20 +1757,21 @@
     ..pure arr8:aptv get
 \getc
 ..def .fix \gets
-  ...bind io:mnad getc ..vireo
-    \chr ...fmap io:ftor .cons chr gets
+  ...bind io:mnad getc ..finch
     ..pure io:aptv nil
+    \chr ...fmap io:ftor .cons chr gets
 \gets
 ..def .fix \getln
-  ...bind io:mnad getc ..vireo
+  ...bind io:mnad getc ..finch
+    ..pure io:aptv nil
     \chr ...fmap io:ftor .cons chr
       .....equal u8:eq '\n' chr
         ..pure io:aptv nil
         getln
-    ..pure io:aptv nil
 \getln
 
-# type Parser a = String -> Maybe (a, String)
+# type String = List U8
+# type Parser a = String -> Maybe (Pair a String)
 ..def .ftor
   \func \parserarg
     \inp ...fmap opt:ftor

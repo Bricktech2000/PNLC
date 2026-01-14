@@ -2,6 +2,6 @@
 # inc:../prelude.pnlc
 
 .main .fix \main
-  ...bind io:mnad get ..vireo
-    \chr ...bindk io:mnad .put chr main
+  ...bind io:mnad get ..finch
     ..pure io:aptv unit
+    \bit ...bindk io:mnad .put bit main

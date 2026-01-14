@@ -2,8 +2,8 @@
 # inc:../prelude.pnlc
 
 .main
-  ...bind io:mnad getc ..vireo
+  ...bind io:mnad getc ..finch
+    .putc '0'
     \chr .....equal u8:eq '1' chr
       .fix ..bindk io:mnad .putc '1'
       .putc '0'
-    .putc '0'

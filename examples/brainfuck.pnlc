@@ -1,9 +1,7 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-# data Tape = Tape (Stream U8) U8 (Stream U8) -- where:
-# type Stream a = Fix (Pair a) -- where:
-# data Fix f = Fix (f (Fix f))
+# data Tape = Tape (Stream U8) U8 (Stream U8)
 ..def \left \head \right \tape ...tape left head right \tape
 ..def \tape .tape \left \head \right left \left
 ..def \tape .tape \left \head \right head \head
@@ -14,10 +12,8 @@
     ...tape left .func head right
 \tape:ftor
 # an infinite tape of zeroes
-..def ...tape
-  .fix .pair '\0'
-  '\0'
-  .fix .pair '\0'
+..def
+  ...tape ..pure stream:aptv '\0' '\0' ..pure stream:aptv '\0'
 \0tape
 ..def \tape .tape \left \head \right \tape .right \fst \snd
   ...tape ..pair head left fst snd
@@ -30,11 +26,11 @@
 # the Brainfuck program from its input. that is, '!' ends a program string and
 # and begins its execution
 ..def .fix \getbang
-  ...bind io:mnad getc ..vireo
+  ...bind io:mnad getc ..finch
+    ..pure io:aptv nil
     \chr .....equal u8:eq '!' chr
       ..pure io:aptv nil
       ...fmap io:ftor .cons chr getbang
-    ..pure io:aptv nil
 \getbang
 
 # bfp :: Parser (Tape -> IO Tape)

@@ -1,17 +1,21 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
+# given some character, is it in [a-mA-M]?
+# ..def ..bluebird ...clamped u8:ord 'a' 'm' mklower \a-m
+# ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+#   ..and .not a7 ..and a6 ..and .not a4 ..a3
+#     ..or .not a2 .not a1
+#     ..or a2 ..or a1 a0
+# \a-m
+
+# given a character in [a-zA-Z], is it in [a-mA-M]?
+# ..def \chr .isle ...compare u8:ord 'm' .mklower chr \a-m
+..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..and .not a4 ..or .not a3 ..or .not a2 .not a1
+\a-m
+
 .main .fix \main
-  ...bind io:mnad getc ..vireo
-    \chr
-      # same implementation as Atto-8
-      ..def '\r' \13u8 ..def sub \26u8
-      ..def ..u8.sub 'a' ....lifta2 arr8:aptv or .' ' chr \idx
-      ...bindk io:mnad
-        ...islt ...compare u8:ord 13u8 idx
-          .putc ..u8.add 13u8 chr
-          ...islt ...compare u8:ord 26u8 idx
-            .putc ..u8.sub 13u8 chr
-            .putc chr
-        main
-    ..pure io:aptv unit
+  ...bind io:mnad getc ..finch ..pure io:aptv unit \chr
+    .\chr ...bindk io:mnad .putc chr main
+    ...not .isalpha chr chr .....a-m chr u8.add u8.sub '\r' chr

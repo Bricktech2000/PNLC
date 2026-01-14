@@ -14,8 +14,8 @@ PNLC is λ‑calculus in prefix notation plus normal-order semantics plus contin
 
 | Top-Level Term      | Effect                                                                                                                              |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `$exit`             | Terminate execution.                                                                                                                |
-| `$err …`            | Ignore any arguments, error out, terminate execution.                                                                               |
+| `$exit`             | Terminate the program normally.                                                                                                     |
+| `$err …`            | Ignore any arguments, crash the program.                                                                                            |
 | `.$get cont`        | Read one bit from `stdin`, invoke `cont` with it. `\s \n n` means EOF, `\s \n .s \t \f t` means one, `\s \n .s \t \f f` means zero. |
 | `..$put bit cont`   | Write `bit` to `stdout`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
 | `..$dump term cont` | Reduce `term` to weak head normal form, dump it to `stderr`, invoke `cont` without arguments.                                       |
