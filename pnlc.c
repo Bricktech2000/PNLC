@@ -228,6 +228,8 @@ void bs_put(struct bs *bs, bool bit) {
   bs->c |= bit << bs->n++;
   if (bs->n == CHAR_BIT)
     bs->n = 0, fputc(bs->c, bs->fp), bs->c = 0;
+  // uncomment to disable buffering of user program output
+  // fflush(bs->fp);
 }
 
 char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,

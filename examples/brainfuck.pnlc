@@ -2,25 +2,35 @@
 # inc:../prelude.pnlc
 
 # data Tape = Tape (Stream U8) U8 (Stream U8)
-..def \left \head \right \tape ...tape left head right \tape
-..def \tape .tape \left \head \right left \left
-..def \tape .tape \left \head \right head \head
-..def \tape .tape \left \head \right right \right
-# apply `func` to the `head`
-..def .ftor
-  \func \tape .tape \left \head \right \tape
+..def \left \head \right ...veery left head right \tape
+..def .thrush \left \head \right left \left
+..def .thrush \left \head \right head \head
+..def .thrush \left \head \right right \right
+..def .ftor \func \tape
+  .tape \left \head \right \tape
     ...tape left .func head right
-\tape:ftor
-# an infinite tape of zeroes
+\tape:ftor # apply `func` to the `head`
 ..def
   ...tape ..pure stream:aptv '\0' '\0' ..pure stream:aptv '\0'
-\0tape
-..def \tape .tape \left \head \right \tape .right \fst \snd
+\0tape # an infinite tape of zeroes
+..def .thrush \left \head \right .right \fst \snd
   ...tape ..pair head left fst snd
 \tape.shl
-..def \tape .tape \left \head \right \tape .left \fst \snd
+..def .thrush \left \head \right .left \fst \snd
   ...tape snd fst ..pair head right
 \tape.shr
+..def .dbg
+  \tape .tape \left \head \right
+    .\radius ...becard
+      ..fold .dual:mnid endo:mnid
+        ...fmap list:ftor ...cardinalstar dove .debug u8.hex:dbg :sp
+        ..stake radius left
+      ..debug .brack:dbg u8.hex:dbg head
+      ..fold endo:mnid
+        ...fmap list:ftor ..blackbird :sp .debug u8.hex:dbg
+        ..stake radius right
+    .succ .succ .succ .succ .succ .succ .succ .succ zero
+\tape:dbg
 
 # read characters from stdin until a '!'. we use the character '!' to separate
 # the Brainfuck program from its input. that is, '!' ends a program string and
@@ -38,35 +48,41 @@
 # Brainfuck program strings corresponds to `liftA2 (>=>)`, that is, penetration
 # of parsers with Kleisli composition
 ..def .fix \bfp
- ..def ...fmapk parser:ftor
+  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv tape.shl
     .chrp '>'
   \'>'p
- ..def ...fmapk parser:ftor
+  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv tape.shr
     .chrp '<'
   \'<'p
- ..def ...fmapk parser:ftor
+  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv ..fmap tape:ftor u8.inc
     .chrp '+'
   \'+'p
- ..def ...fmapk parser:ftor
+  ..def ...fmapk parser:ftor
     ..bluebird .pure io:aptv ..fmap tape:ftor u8.dec
     .chrp '-'
   \'-'p
- ..def ...fmapk parser:ftor
+  ..def ...fmapk parser:ftor
     \tape ...fmapk io:ftor
       tape
       .putc .head tape
     .chrp '.'
   \'.'p
- ..def ...fmapk parser:ftor
+  ..def ...fmapk parser:ftor
     \tape ...fmap io:ftor
       \optchr ...fmapk tape:ftor ..optchr id '\0' tape
       getc
     .chrp ','
   \','p
- ..def ...fmap parser:ftor
+  ..def ...fmapk parser:ftor
+    \tape ...fmapk io:ftor
+      tape
+      .puts ...debug tape:dbg tape .:\n nil
+    .chrp '#'
+  \'#'p
+  ..def ...fmap parser:ftor
     \bf .fix \rec \tape
       ......equal u8:eq '\0' .head tape
         .pure io:aptv
@@ -74,14 +90,15 @@
       tape
     ....between parser:aptv .chrp '[' .chrp ']' bfp
   \[&]p
- ..def ...fmapk parser:ftor
+  ..def ...fmapk parser:ftor
     .pure io:aptv
     .satp ...phi and ..unequal u8:eq '[' ..unequal u8:eq ']'
   \![]p
 
- ..def
+  ..def
     ...alt parser:altv ![]p
     ...alt parser:altv [&]p
+    ...alt parser:altv '#'p # comment out to disable
     ...alt parser:altv ','p
     ...alt parser:altv '.'p
     ...alt parser:altv '-'p

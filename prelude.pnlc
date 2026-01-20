@@ -12,6 +12,7 @@
 ..def \f .f f \mockingbird
 ..def \f \x ..f x x \warbler
 ..def \f \x \y ..f y x \cardinal
+..def \f \x \y \z ...f x z y \cardinalstar
 ..def \g \f \x .f .g x \queerbird
 ..def \f \x \g .f .g x \quixoticbird
 ..def \x \f \g .f .g x \quizzicalbird
@@ -248,7 +249,7 @@
 ..def ........arr8 true  true  true  true  true  true  true  false \del
 ..def nul \'\0'
 ..def bel \'\a'
-..def bs  \'\a'
+..def bs  \'\b'
 ..def ht  \'\t'
 ..def lf  \'\n'
 ..def vt  \'\v'
@@ -386,13 +387,13 @@
 ..def .cons del \:del
 ..def :nul \:\0
 ..def :bel \:\a
-..def :bs  \:\a
+..def :bs  \:\b
 ..def :ht  \:\t
 ..def :lf  \:\n
 ..def :vt  \:\v
 ..def :ff  \:\f
-..def :cr  \:\f
-..def :esc \:\r
+..def :cr  \:\r
+..def :esc \:\e
 ..def :sp  \: # eg .puts .:  nil
 
  # typeclass definitions
@@ -424,6 +425,27 @@
   .isge ...compare ord lo val
   .isle ...compare ord hi val
 \clamped
+
+# a minimalistic programmer-facing debug representation. there is no requirement
+# for the output to be unambiguous.
+# debug :: (Dbg a) => a -> Dlist U8
+..def \debug .thrush debug \dbg
+..def .thrush \debug debug \debug
+# the debug debugging, prints out a `DList U8` as itself
+..def .dbg id \debug:dbg
+# the character debugging, prints out a `U8` as itself
+..def .dbg cons \chr:dbg
+# places a debugging within a left and right `Dlist U8`
+..def \left \right \inner:dbg .inner:dbg \innerdebug
+  .dbg \inner ...becard left .innerdebug inner right
+\within:dbg
+..def ..within:dbg :( :) \paren:dbg
+..def ..within:dbg :[ :] \brack:dbg
+..def ..within:dbg :{ :} \brace:dbg
+..def ..within:dbg :< :> \angle:dbg
+..def ..within:dbg :" :" \quote:dbg
+..def ..within:dbg :' :' \acute:dbg
+..def ..within:dbg :` :` \grave:dbg
 
 ..def \top \bot ..vireo top bot \bndd
 ..def .thrush \top \bot top \top
@@ -467,6 +489,8 @@
 ..def \aptv \left \right \inner
   ...seqr aptv left ...seql aptv inner right
 \between
+..def \aptv ..vireo id .kestrel ..pure aptv unit \when
+..def \aptv ..vireo .kestrel ..pure aptv unit id \unless
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` by lifting the monoid pointwise
 ..def \aptv \inner:sgrp .inner:sgrp \innersappend
   .sgrp ..lifta2 aptv innersappend
@@ -491,6 +515,7 @@
 ..def .thrush \aptv \empty \alt aptv \altv:aptv
 ..def .thrush \aptv \empty \alt empty \empty
 ..def .thrush \aptv \empty \alt alt \alt
+..def \altv ..vireo ..pure .altv:aptv altv nil .empty altv \guard
 ..def \many1 \altv \val
   ...alt altv ..pure .altv:aptv altv nil ..many1 altv val
 \many
@@ -517,7 +542,7 @@
 \option
 # the monoid induced by `alt`
 ..def \altv .sgrp .alt altv \alt:sgrp
-..def \altv ..mnid alt:sgrp .empty altv \alt:mnid
+..def \altv ..mnid .alt:sgrp altv .empty altv \alt:mnid
 # no need for `asum`, it'd be equivalent to `.fold .alt:mnid something:altn`
 
 # "The Foldable class represents data structures that can be reduced to a
@@ -606,8 +631,10 @@
 ..def .ftor bluebird \env:ftor
 ..def ...aptv env:ftor kestrel starling \env:aptv # liftA2 = phi
 ..def ..mnad env:aptv .cardinal violet \env:mnad # join = warbler
-..def \outer:ftor .outer:ftor \outerfmap
-  ..dstv env:ftor \ftorenv \env ..outerfmap .thrush env ftorenv
+..def ..dstv
+  env:ftor
+  \outer:ftor .outer:ftor \outerfmap
+    \ftorenv \env ..outerfmap .thrush env ftorenv
 \env:dstv
 
 ..def .eq \rhs \lhs true \unit:eq
@@ -616,6 +643,8 @@
 ..def ..ord void:eq \rhs \lhs void \void:ord
 ..def ..bndd unit unit \unit:bndd
 ..def ..bndd void void \void:bndd
+..def .dbg \unit id \unit:dbg
+..def .dbg \void $err \void:dbg
 ..def .sgrp \rhs \lhs unit \unit:sgrp
 ..def .sgrp \rhs \lhs void \void:sgrp
 ..def ..mnid unit:sgrp unit \unit:mnid
@@ -633,6 +662,7 @@
     ..lhs gt et
 \bool:ord
 ..def ..bndd true false \bool:bndd
+..def .dbg \bool ..bool :1 :0 \bool:dbg
 # these are duplicates of `..min:mnid bool:ord bool:bndd` and `..max:mnid
 # bool:ord bool:bndd`, but they're common enough to warrant special cases
 ..def .sgrp and \and:sgrp
@@ -656,6 +686,7 @@
     ...lhs lt lt et
 \cmp:ord
 ..def ..bndd gt lt \cmp:bndd
+..def .dbg \cmp ...cmp :< := :> \cmp:dbg
 ..def .sgrp \rhs \lhs ...lhs lhs rhs lhs \cmp:sgrp
 ..def ..mnid cmp:sgrp et \cmp:mnid
 # the reverse ordering, obtained by swapping arguments to `compare`
@@ -689,10 +720,10 @@
 ..def .fldb
   \optarg ...optarg cons id nil
 \opt:fldb
-..def \elem:aptv ...tvsb
+..def ...tvsb
   opt:ftor
   opt:fldb
-  \optaptv ..optaptv
+  \elem:aptv \optaptv ..optaptv
     ..fmap .aptv:ftor elem:aptv some
     ..pure elem:aptv none
 \opt:tvsb
@@ -720,6 +751,9 @@
     ..lhs .kestrel gt et
 \opt:ord
 ..def \elem:bndd ..bndd .some .top elem:bndd none \opt:bndd
+..def \inner:dbg .dbg
+  \opt ..opt ..blackbird :S .debug inner:dbg :N
+\opt:dbg
 # `type Every a = Down (Maybe (Down a))`
 # the ordering where `Nothing` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .opt:ord .down:ord elem:ord \every:ord
@@ -733,6 +767,7 @@
 ..def .fix opt:eq \nat:eq
 ..def .fix opt:ord \nat:ord
 ..def .fix opt:bndd \nat:bndd # zero, fix succ
+..def .fix opt:dbg \nat:dbg
 ..def opt:ftor \nat:ftor
 ..def opt:aptv \nat:aptv
 ..def opt:mnad \nat:mnad
@@ -764,6 +799,9 @@
       ..lhs \ok \err gt .cardinal errcompare
 \res:ord
 ..def \ok:bndd \err:bndd ..bndd .ok .top ok:bndd .err .bot err:bndd \res:bndd
+..def \ok:dbg \err:dbg .ok:dbg \okdebug .err:dbg \errdebug
+  .dbg \res ..res ..blackbird :O okdebug ..blackbird :E errdebug
+\res:dbg
 ..def .sgrp \rhs \lhs ..lhs ok rhs \res:sgrp
 ..def .ftor
   \okfunc \resarg
@@ -782,10 +820,10 @@
 ..def .fldb
   \resarg ...resarg cons id .kestrel nil
 \resb:fldb
-..def \ok:aptv ...tvsb
+..def ...tvsb
   resb:ftor
   resb:fldb
-  \resaptv ..resaptv
+  \ok:aptv \resaptv ..resaptv
     ..fmap .aptv:ftor ok:aptv ok
     ..bluebird .pure ok:aptv err
 \resb:tvsb
@@ -813,6 +851,9 @@
 ..def \err:bndd \ok:bndd
   ..res:bndd err:bndd ok:bndd
 \flip:bndd
+..def \err:dbg \ok:dbg
+  \res ..debug ..res:dbg err:dbg ok:dbg .flip res
+\flip:dbg
 # the monad obtained by flipping elements of the either monad
 ..def .ftor
   \errfunc \resarg .flip
@@ -839,17 +880,18 @@
 ..def .fldb
   \resarg ..tolist resb:fldb .flip resarg
 \flipb:fldb
-..def \err:aptv ...tvsb
+..def ...tvsb
   flipb:ftor
   flipb:fldb
-  \resaptv ...fmap .aptv:ftor err:aptv flip
-    ..sequence .resb:tvsb err:aptv .flip resaptv
+  \err:aptv \resaptv ...fmap .aptv:ftor err:aptv flip
+    ...sequence resb:tvsb err:aptv .flip resaptv
 \flipb:tvsb
 
 # type Dbl a = Either a a
 ..def .warbler res:eq \dbl:eq
 ..def .warbler res:ord \dbl:ord
 ..def .warbler res:bndd \dbl:bndd
+..def .warbler res:dbg \dbl:dbg
 # no need for `Monoid a => Monoid (Dbl a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Dbl`
 ..def .ftor
@@ -878,10 +920,10 @@
 ..def .fldb
   \dblarg ..cons ..dblarg id id nil
 \dbl:fldb
-..def \elem:aptv ...tvsb
+..def ...tvsb
   dbl:ftor
   dbl:fldb
-  \dblaptv ..dblaptv
+  \elem:aptv \dblaptv ..dblaptv
     ..fmap .aptv:ftor elem:aptv ok
     ..fmap .aptv:ftor elem:aptv err
 \dbl:tvsb
@@ -916,65 +958,70 @@
 #         and:mnid means 'monoid induced by `and`'
 #   - terse typeclass names because manual resolution
 
-..def \fst:eq \snd:eq .fst:eq \fstequal .snd:eq \sndequal
-    .eq
-      \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
-        ...sappend and:sgrp # and
-          ..sndequal rhssnd lhssnd
-          ..fstequal rhsfst lhsfst
+# these typeclass instances need to be lazy in the element typeclass instance so
+# we can take their fixed points to define the equivalent instances for `stream`
+..def \fst:eq \snd:eq
+  .eq
+    \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
+      ...sappend and:sgrp # and
+        ...equal snd:eq rhssnd lhssnd
+        ...equal fst:eq rhsfst lhsfst
 \pair:eq
 ..def \fst:ord \snd:ord
-  .fst:ord \fst:eq \fstcompare .snd:ord \snd:eq \sndcompare
-    ..ord
-      ..pair:eq fst:eq snd:eq
-      \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
-        ...sappend cmp:sgrp
-          ..sndcompare rhssnd lhssnd
-          ..fstcompare rhsfst lhsfst
+  ..ord
+    ..pair:eq .ord:eq fst:ord .ord:eq snd:ord
+    \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
+      ...sappend cmp:sgrp
+        ...compare snd:ord rhssnd lhssnd
+        ...compare fst:ord rhsfst lhsfst
 \pair:ord
-..def \fst:bndd \snd:bndd .fst:bndd \fsttop \fstbot .snd:bndd \sndtop \sndbot
-    ..bndd
-      ..pair fsttop sndtop
-      ..pair fstbot sndbot
+..def \fst:bndd \snd:bndd
+  ..bndd
+    ..pair .top fst:bndd .top snd:bndd
+    ..pair .bot fst:bndd .bot snd:bndd
 \pair:bndd
-..def \fst:sgrp \snd:sgrp .fst:sgrp \fstsappend .snd:sgrp \sndsappend
-    .sgrp
-      \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
-        ..pair
-          ..fstsappend rhsfst lhsfst
-          ..sndsappend rhssnd lhssnd
+..def \fst:dbg \snd:dbg
+  .dbg
+    \pair .pair \fst \snd
+      ...becard ..debug fst:dbg fst :, ..debug snd:dbg snd
+\pair:dbg
+..def \fst:sgrp \snd:sgrp
+  .sgrp
+    \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
+      ..pair
+        ...sappend fst:sgrp rhsfst lhsfst
+        ...sappend fst:sgrp rhssnd lhssnd
 \pair:sgrp
 ..def \fst:mnid \snd:mnid
-  .fst:mnid \fst:sgrp \fstmempty .snd:mnid \snd:sgrp \sndmempty
-    ..mnid
-      ..pair:sgrp fst:sgrp snd:sgrp
-      ..pair fstmempty sndmempty
+  ..mnid
+    ..pair:sgrp .mnid:sgrp fst:mnid .mnid:sgrp snd:mnid
+    ..pair .mempty fst:mnid .mempty snd:mnid
 \pair:mnid
 ..def .ftor \sndfunc \pairarg
   .pairarg \fstarg \sndarg
     ..pair fstarg .sndfunc sndarg
 \paira:ftor
 ..def \fst:mnid .fst:mnid \fst:sgrp \fstmempty .fst:sgrp \fstsappend
-    ...aptv
-      paira:ftor
-      \sndarg ..pair fstmempty sndarg
-      \pairfunc \pairarg .pairfunc \fstfunc \sndfunc .pairarg \fstarg \sndarg
-        ..pair ..fstsappend fstarg fstfunc .sndfunc sndarg
+  ...aptv
+    paira:ftor
+    \sndarg ..pair fstmempty sndarg
+    \pairfunc \pairarg .pairfunc \fstfunc \sndfunc .pairarg \fstarg \sndarg
+      ..pair ..fstsappend fstarg fstfunc .sndfunc sndarg
 \paira:aptv
 ..def \fst:mnid .fst:mnid \fst:sgrp \fstmempty .fst:sgrp \fstsappend
-    ..mnad
-      .paira:aptv fst:mnid
-      \pairarg \sndfunc .pairarg \fstarg \sndarg
-        ..sndfunc sndarg \fstret \sndret
-          ..pair ..fstsappend fstret fstarg sndret
+  ..mnad
+    .paira:aptv fst:mnid
+    \pairarg \sndfunc .pairarg \fstarg \sndarg
+      ..sndfunc sndarg \fstret \sndret
+        ..pair ..fstsappend fstret fstarg sndret
 \paira:mnad
 ..def .fldb
   \pairarg .pairarg \fst \snd ..cons snd nil
 \paira:fldb
-..def \snd:aptv ...tvsb
+..def ...tvsb
   paira:ftor
   paira:fldb
-  \pairaptv .pairaptv ..bluebird .fmap .aptv:ftor snd:aptv pair
+  \snd:aptv \pairaptv .pairaptv ..bluebird .fmap .aptv:ftor snd:aptv pair
 \paira:tvsb
 ..def \pair ..bluebird pair cardinal \swap
 
@@ -1000,6 +1047,10 @@
 ..def \snd:bndd \fst:bndd
   ..pair:bndd snd:bndd fst:bndd
 \swap:bndd
+# the debugging obtained by swapping elements of the pair debugging
+..def \snd:dbg \fst:dbg .dbg
+  \pair ..debug ..pair:dbg snd:dbg fst:dbg .swap pair
+\swap:dbg
 # the monad obtained by swapping elements of the pair monad
 ..def .ftor
   \fstfunc \pairarg .swap
@@ -1026,17 +1077,18 @@
 ..def .fldb
   \pairarg ..tolist paira:fldb .swap pairarg
 \swapa:fldb
-..def \fst:aptv ...tvsb
+..def ...tvsb
   swapa:ftor
   swapa:fldb
-  \pairaptv ...fmap .aptv:ftor fst:aptv swap
-    ..sequence .paira:tvsb fst:aptv .swap pairaptv
+  \fst:aptv \pairaptv ...fmap .aptv:ftor fst:aptv swap
+    ...sequence paira:tvsb fst:aptv .swap pairaptv
 \swapa:tvsb
 
 # type Sqr a = Pair a a
 ..def .warbler pair:eq \sqr:eq
 ..def .warbler pair:ord \sqr:ord
 ..def .warbler pair:bndd \sqr:bndd
+..def .warbler pair:dbg \sqr:dbg
 # no need for `Monoid a => Monoid (Sqr a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Sqr`
 ..def .ftor
@@ -1057,14 +1109,14 @@
 ..def .fldb
   \sqrarg .sqrarg \fst \snd ..cons fst ..cons snd nil
 \sqr:fldb
-..def \elem:aptv ...tvsb
+..def ...tvsb
   sqr:ftor
   sqr:fldb
-  \sqraptv .sqraptv ..lifta2 elem:aptv pair
+  \elem:aptv \sqraptv .sqraptv ..lifta2 elem:aptv pair
 \sqr:tvsb
-..def \outer:ftor ..dstv
+..def ..dstv
   sqr:ftor
-  .unzip outer:ftor
+  unzip
 \sqr:dstv
 
 # type Stream a = Fix (Pair a)
@@ -1072,6 +1124,7 @@
 ..def ..bluebird fix pair:eq \stream:eq
 ..def ..bluebird fix pair:ord \stream:ord
 ..def ..bluebird fix pair:bndd \stream:bndd
+..def ..bluebird fix pair:dbg \stream:dbg
 ..def ..bluebird fix pair:sgrp \stream:sgrp
 ..def ..bluebird fix pair:mnid \stream:mnid
 ..def .ftor
@@ -1096,16 +1149,17 @@
     ...fmap stream:ftor func streamarg
 \stream:mnad
 ..def .fldb
-  ..cata streamf:ftor cons
+  ..cata streamf:ftor .thrush cons
 \stream:fldb
-..def \elem:aptv ...tvsb
+..def ...tvsb
   stream:ftor
   stream:fldb
-  ..cata streamf:ftor ..lifta2 elem:aptv pair
+  \elem:aptv ..cata streamf:ftor ..lifta2 elem:aptv pair
 \stream:tvsb
-..def \elem:ftor ..dstv
+..def ..dstv
   stream:ftor
-  ..ana \seed ...psi pair ..cardinal .fmap elem:ftor seed fst snd
+  \outer:ftor .outer:ftor \outerfmap ..ana streamf:ftor
+    \seed ....psi pair ..cardinal outerfmap seed fst snd
 \stream:dstv
 ..def \func ..ana streamf:ftor
   \seed ..pair seed .func seed
@@ -1144,6 +1198,9 @@
 ..def \pred ..cata streamf:ftor .thrush
   \fst \acc ....pred fst .pair fst id acc
 \sfilter
+..def \aptv \predm ..cata streamf:ftor .thrush
+  \fst \acc ....lifta2 aptv ..vireo .pair fst id .predm fst acc
+\sfilterm
 ..def \pred ..cata streamf:ftor .thrush
   \fst \acc ...fmap ...pred fst swapa:ftor paira:ftor .pair fst acc
 \spartition
@@ -1160,6 +1217,7 @@
 # splitAt :: Nat -> Stream a -> Pair (List a) (Stream a)
 # drop :: Nat -> Stream a -> Stream a
 # (!?) :: Nat -> Stream a -> Maybe a
+# windows :: Nat -> Stream a -> Stream (List a)
 ..def \pred ..cata streamf:ftor .thrush
   \fst \acc ...pred fst ..cons fst acc nil
 \stakewhile
@@ -1179,6 +1237,10 @@
 \ssplitat
 ..def ..cata natf:ftor ..vireo .queerbird snd id \sdrop
 ..def ..cata natf:ftor ..vireo .queerbird snd fst \sat
+..def \width \stream
+  ...fmap stream:ftor .stake width .stails stream
+\swindows
+..def ..iterate succ zero \iota
 
 # the "base" functor for `list`, with the property `Fix (ListF a) = List a`.
 # `data ListF a b = Cons a b | Nil deriving Functor`
@@ -1216,35 +1278,38 @@
 ..def .fldb
   \listarg listarg
 \list:fldb
-..def \elem:aptv ...tvsb
+..def ...tvsb
   list:ftor
   list:fldb
-  ..cata listf:ftor ..vireo
+  \elem:aptv ..cata listf:ftor ..vireo
     ..lifta2 elem:aptv cons
     ..pure elem:aptv nil
 \list:tvsb
 ..def \elem:eq .elem:eq \elemequal
   .eq
     .fix \listequal \rhs \lhs
-      ..def \lhshead \lhstail \rhshead \rhstail
+      .\conscons ..rhs
+        ..lhs conscons .kestrel false
+        ..lhs .kestrel false true
+      \lhshead \lhstail \rhshead \rhstail
         ....elemequal rhshead lhshead
           ..listequal rhstail lhstail false
-      \conscons ..rhs
-      ..lhs conscons .kestrel false
-      ..lhs .kestrel false true
 \list:eq
 ..def \elem:ord .elem:ord \elem:eq \elemcompare
   ..ord
     .list:eq elem:eq
     .fix \listcompare \rhs \lhs
-      ..def \lhshead \lhstail \rhshead \rhstail
+      .\conscons ..rhs
+        ..lhs conscons .kestrel lt
+        ..lhs .kestrel gt et
+      \lhshead \lhstail \rhshead \rhstail
         .....elemcompare rhshead lhshead
           lt ..listcompare rhstail lhstail gt
-      \conscons ..rhs
-      ..lhs conscons .kestrel lt
-      ..lhs .kestrel gt et
 \list:ord
 ..def \elem:bndd ..bndd .fix .cons .top elem:bndd nil \list:bndd
+..def \elem:dbg .elem:dbg \elemdebug .dbg
+  ..cata listf:ftor ..finch :N \head \tail ...becard .elemdebug head :: tail
+\list:dbg
 # `type Short a = Down (List (Down a))`
 # the ordering where shorter lists compare greater than longer lists and where
 # `Nil` is the top element instead of the bottom element
@@ -1294,6 +1359,9 @@
 ..def \pred ..cata listf:ftor ..finch nil
   \head \acc ....pred head .cons head id acc
 \filter
+..def \aptv \predm ..cata listf:ftor ..finch ..pure aptv nil
+  \head \acc ....lifta2 aptv ..vireo .cons head id .predm head acc
+\filterm
 ..def \pred ..cata listf:ftor ..finch ..pair nil nil
   \head \acc ...fmap ...pred head swapa:ftor paira:ftor .cons head acc
 \partition
@@ -1312,6 +1380,7 @@
 # splitAt :: Nat -> List a -> Maybe (Pair (List a) (List a))
 # drop :: Nat -> List a -> Maybe (List a)
 # (!?) :: Nat -> List a -> Maybe a
+# windows :: Nat -> List a -> List (List a)
 ..def \pred ..cata listf:ftor ..finch nil
   \head \acc ...pred head ..cons head acc nil
 \takewhile
@@ -1335,7 +1404,7 @@
 ..def ..cata natf:ftor ..vireo ..kleisli opt:mnad tail some \drop
 ..def ..cata natf:ftor ..vireo ..kleisli opt:mnad tail head \at
 ..def \width \list
-  ...bind list:mnad list ..bluebird .tolist opt:fldb .take width
+  ...bind list:mnad .tails list ..bluebird .tolist opt:fldb .take width
 \windows
 
 # `type DList a = List a -> List a`
@@ -1368,10 +1437,11 @@
 \dlist:mnad
 ..def ...altv dlist:aptv dnil bluebird \dlist:altv
 ..def .fldb .thrush nil \dlist:fldb
-..def \elem:aptv ...tvsb
+..def ...tvsb
   dlist:ftor
   dlist:fldb
-  \dlistaptv ...cata listf:ftor ..vireo
+  \elem:aptv \dlistaptv
+    ...cata listf:ftor ..vireo
       ..lifta2 elem:aptv dcons
       ..pure elem:aptv dnil
     .dlistaptv nil
@@ -1392,47 +1462,176 @@
 
 # the "base" functor for `free`, with the property `Fix (FreeF f a) = Free f a`.
 # `data FreeF f a r = Roll (f r) | Return a deriving Functor`
-..def \roll:ftor .roll:ftor \rollfmap
+..def \term:ftor .term:ftor \termfmap
   .ftor
     \func \freefarg ..freefarg
-      ..bluebird roll .rollfmap func
+      ..bluebird roll .termfmap func
       return
 \freef:ftor
-..def \roll:ftor .roll:ftor \rollfmap
-  .ftor
-    .fix \freefmap \func \freearg ..freearg
-      ..bluebird roll .rollfmap .freefmap func
-      ..bluebird return func
+# `term:eq1` is a function that takes an `elem:eq` (an equality for the element
+# type) and returns a `term:eq` (an equality for the collection). `term:ord1`
+# works the same.
+..def \term:eq1 \var:eq .fix \free:eq .var:eq \varequal
+  .eq
+    \rhs \lhs ..rhs
+      ..lhs .equal .term:eq1 free:eq .kestrel false
+      ..lhs .kestrel false varequal
+\free:eq
+..def \term:ord1 \var:ord .fix \free:ord .var:ord \var:eq \varcompare
+  ..ord
+    ..free:eq ..bluebird ord:eq term:ord1 var:eq
+    \rhs \lhs ..rhs
+      ..lhs .compare .term:ord1 free:ord .kestrel lt
+      ..lhs .kestrel gt varcompare
+\free:ord
+..def \term:ftor \term:dbg1 \var:dbg
+  ..term:dbg1 debug:dbg \termdebug .var:dbg \vardebug
+    .dbg
+      ..cata .freef:ftor term:ftor ..vireo
+        ..blackbird :@ termdebug
+        ..blackbird :$ vardebug
+\free:dbg
+..def \term:ftor .ftor
+  \func ..cata .freef:ftor term:ftor ..vireo roll
+    ..bluebird return func
 \free:ftor
-..def \roll:ftor .roll:ftor \rollfmap
-  ...aptv
-    free:ftor
-    \arg .return arg
-    .fix \freeapply \freefunc \freearg ..freefunc
-      ..bluebird roll .rollfmap ..cardinal freeapply freearg
+..def \term:ftor ...aptv
+  free:ftor
+  \arg .return arg
+  \freefunc \freearg
+    ...cata .freef:ftor term:ftor ..vireo roll
       ..cardinal .fmap free:ftor freearg
+    freefunc
 \free:aptv
-..def \roll:ftor .roll:ftor \rollfmap
-  ..mnad
-    free:aptv
-    .fix \freebind \freearg \func ..freearg
-      ..bluebird roll .rollfmap ..cardinal freebind func
+..def \term:ftor ..mnad
+  free:aptv
+  \freearg \func
+    ...cata .freef:ftor term:ftor ..vireo roll
       func
+    freearg
 \free:mnad
+# instance Foldable f => Foldable (Free f)
+..def \term:fldb .term:fldb \termtolist
+  .fldb
+    # using `fix` instead of `cata` to save us requiring `term:ftor`
+    .fix \freetolist \freearg ..freearg
+      ..bluebird ..bind list:ftor freetolist termtolist
+      .pure list:aptv
+\free:fldb
+# instance Traversable f => Traversable (Free f)
+# sequence :: Applicative p => Free f (p a) -> p (Free f a)
+..def \term:tvsb .term:tvsb \term:ftor \term:fldb \termsequence
+  ...tvsb
+    .free:ftor term:ftor
+    .free:fldb term:fldb
+    \elem:aptv ..cata .freef:ftor term:ftor ..vireo
+      ..bluebird ..fmap .aptv:ftor elem:aptv roll .termsequence elem:aptv
+      ..fmap .aptv:ftor elem:aptv return
+\free:tvsb
+# liftF :: Functor f => f a -> Free f a
+# retract :: Monad f => Free f a -> f a
+# hoistFree :: Functor f => (forall a. f a -> g a) -> Free f b -> Free g b
+..def \term:ftor .term:ftor \termfmap
+  ..bluebird roll .termfmap pure
+\liftf
+..def \term:mnad
+  # in the `Roll` case we receive an `f r` where `r` is the carrier type, and
+  # the carrier type itself is an `f a`, so we call `join :: f (f a) -> f a`
+  ..cata .freef:ftor .aptv:ftor .mnad:aptv term:mnad ..vireo
+    .join term:mnad
+    .pure .mnad:aptv term:mnad
+\retract
+..def \term:ftor \func
+  ..cata .freef:ftor term:ftor ..vireo
+    ..bluebird roll func
+    return
+\hoistfree
+# no need for `foldFree`, it'd be equivalent to `.cata freef:ftor`.
+# no need for `unfoldFree`, it'd be equivalent to `.ana freef:ftor`.
+# no need for `iter` and `iterA`, they'd be trivial wrappers over the above
 
-# the "base" functor for `cofree`, with the property `Fix (CofreeF f a) = Cofree
-# f a`. `data CofreeF f a r = Cofree (f r) a deriving Functor`
+# the "base" functor for `cofree`, with the property `Fix (CofreeF f a) =
+# Cofree f a`. `data CofreeF f a r = Cofree (f r) a deriving Functor`
 ..def \trace:ftor .trace:ftor \tracefmap
   .ftor
     \func \cofreefarg
       .cofreefarg ..bluebird cofree .tracefmap func
 \cofreef:ftor
-..def \trace:ftor .trace:ftor \tracefmap
-  .ftor
-    .fix \cofreefmap \func \cofreefarg .cofreefarg \trace \ann ..cofree
-      ..tracefmap .cofreefmap func trace
-      .func ann
+..def \trace:eq1 \ann:eq .fix \cofree:eq
+  .eq
+    \rhs \lhs .rhs \rhstrace \rhsann .lhs \lhstrace \lhsann
+      ...sappend and:sgrp # and
+        ...equal ann:eq rhsann lhsann
+        ...equal .trace:eq1 cofree:eq rhstrace lhstrace
+\cofree:eq
+..def \trace:ord1 \ann:ord .fix \cofree:ord
+  ..ord
+    ..cofree:eq ..bluebird ord:eq trace:ord1 .ord:eq ann:ord
+    \rhs \lhs .rhs \rhstrace \rhsann .lhs \lhstrace \lhsann
+      ...sappend cmp:sgrp
+        ...compare ann:ord rhsann lhsann
+        ...compare .trace:ord1 cofree:ord rhstrace lhstrace
+\cofree:ord
+..def \trace:ftor \trace:dbg1 \ann:dbg
+  ..trace:dbg1 debug:dbg \tracedebug .ann:dbg \anndebug
+    .dbg
+      ..cata .cofreef:ftor trace:ftor .thrush
+        \trace \ann ...becard .tracedebug trace :@ .anndebug ann
+\cofree:dbg
+..def \trace:ftor .ftor
+  \func ..cata .cofreef:ftor trace:ftor .thrush
+    \trace \ann ..cofree trace .func ann
 \cofree:ftor
+..def \trace:altv
+  ..def .aptv:ftor .altv:aptv trace \trace:ftor
+  ...aptv
+    .cofree:ftor trace:ftor
+    \arg ..cofree .empty .altv:aptv trace:altv arg
+    \cofreefunc \cofreearg
+      ...cata .cofreef:ftor trace:ftor .thrush
+        \trace \ann ....fmap .cofree:ftor trace:ftor ann cofreearg
+          ..bluebird cofree ..alt trace:altv trace
+      cofreefunc
+\cofree:aptv
+..def \trace:altv
+  ..def .aptv:ftor .altv:aptv trace \trace:ftor
+  ..mnad
+    .cofree:aptv .altv:aptv trace:altv
+    \cofreearg \func
+      ...cata .cofreef:ftor trace:ftor .thrush
+        \trace \ann ..func ann
+          ..bluebird cofree ..alt trace:altv trace
+      cofreearg
+\cofree:mnad
+# instance Foldable f => Foldable (Cofree f)
+..def \trace:fldb .trace:fldb \tracetolist
+  .fldb
+    # using `fix` instead of `cata` to save us requiring `trace:ftor`
+    .fix \cofreetolist \cofreearg .cofreearg
+      \trace \ann ..cons ann
+        ...bind list:ftor cofreetolist .tracetolist trace
+\cofree:fldb
+# instance Traversable f => Traversable (Cofree f)
+# sequence :: Applicative p => Cofree f (p a) -> p (Cofree f a)
+..def \trace:tvsb .trace:tvsb \trace:ftor \trace:fldb \tracesequence
+  ...tvsb
+    .cofree:ftor trace:ftor
+    .cofree:fldb trace:fldb
+    \elem:aptv ..cata .cofreef:ftor trace:ftor .thrush
+      \trace \ann ...fmap .aptv:ftor elem:aptv
+        ..cardinal cofree ann
+        ..tracesequence elem:aptv trace
+\cofree:tvsb
+# instance Distributive f => Distributive (Cofree f)
+# distribute :: Functor g => g (Cofree f a) -> Cofree f (g a)
+..def \trace:dstv .trace:dstv \trace:ftor \tracedistribute
+  ..dstv
+    .cofree:ftor trace:ftor
+    \outer:ftor .outer:ftor \outerfmap
+      ..ana .cofreef:ftor trace:ftor \seed ..cofree
+        ..tracedistribute outer:ftor ..outerfmap trace seed
+        ..outerfmap ann seed
+\cofree:dstv
 
 ..def .ftor
   \func \arr8arg
@@ -1490,10 +1689,10 @@
       ..cons a7
       nil
 \arr8:fldb
-..def \elem:aptv ...tvsb
+..def ...tvsb
   arr8:ftor
   arr8:fldb
-  \arr8aptv
+  \elem:aptv \arr8aptv
     .arr8aptv \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ..def .cardinal .apply elem:aptv \capply
       ..capply a7
@@ -1506,9 +1705,9 @@
       ..capply a0
       ..pure elem:aptv arr8
 \arr8:tvsb
-..def \outer:ftor .outer:ftor \outerfmap
-  ..dstv
-    arr8:ftor
+..def ..dstv
+  arr8:ftor
+  \outer:ftor .outer:ftor \outerfmap
     \ftorarr8 ........arr8
       ..outerfmap arr8.0 ftorarr8
       ..outerfmap arr8.1 ftorarr8
@@ -1567,10 +1766,25 @@
     ..pure arr8:aptv elemtop
     ..pure arr8:aptv elembot
 \arr8:bndd
+..def \elem:dbg .elem:dbg \elemdebug
+  .dbg
+    \arr8 ..fold .dual:mnid endo:mnid ..tolist arr8:fldb
+      ...fmap arr8:ftor elemdebug arr8
+\arr8:dbg
 
 ..def .arr8:eq bool:eq \u8:eq
 ..def .arr8:ord bool:ord \u8:ord
 ..def .arr8:bndd bool:bndd \u8:bndd
+..def .arr8:dbg bool:dbg \u8:dbg
+..def .dbg
+  \u8 .u8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    .\nibble ..bluebird
+      ....nibble a7 a6 a5 a4
+      ....nibble a3 a2 a1 a0
+    \n3 \n2 \n1 \n0 ..n3
+      ..n2 ..n1 ..n0 :f :e ..n0 :d :c ..n1 ..n0 :b :a ..n0 :9 :8
+      ..n2 ..n1 ..n0 :7 :6 ..n0 :5 :4 ..n1 ..n0 :3 :2 ..n0 :1 :0
+\u8.hex:dbg
 # do case analysis on each bit, looking any bit at most once. `..and`, `..or`,
 # `..and .not` and `..or .not` are special casees of case analysis where one
 # branch short-circuits, so we allow those too
@@ -1670,7 +1884,7 @@
         ..or ..and c ..xor rhs lhs ..and rhs lhs
         .arr8 ..xor c ..xor rhs lhs
     ..pair c arr8
-    # ..sequence .sqr:tvsb arr8:aptv ..pair rhs lhs # works too
+    # ...sequence sqr:tvsb arr8:aptv ..pair rhs lhs # works too
     ....lifta2 arr8:aptv pair rhs lhs
 \u8.addc
 ..def \b \rhs \lhs
@@ -1680,7 +1894,7 @@
         ..or ..and b ..xor rhs .not lhs ..and rhs .not lhs
         .arr8 ..xor b ..xor rhs lhs
     ..pair b arr8
-    # ..sequence .sqr:tvsb arr8:aptv ..pair rhs lhs # works too
+    # ...sequence sqr:tvsb arr8:aptv ..pair rhs lhs # works too
     ....lifta2 arr8:aptv pair rhs lhs
 \u8.subb
 ..def \c \arg
@@ -1746,16 +1960,19 @@
 ..def \term ..$dump term term \$hook
 ..def \cont .$hook .cont unit \hook
 ..def ..bluebird
-  .sequence .arr8:tvsb io:aptv
+  ..sequence arr8:tvsb io:aptv
   ..fmap arr8:ftor put
 \putc
 ..def ..bluebird
-  .sequence .list:tvsb io:aptv
+  ..sequence list:tvsb io:aptv
   ..fmap list:ftor putc
 \puts
+..def \arg:dbg \arg
+  .puts ...debug arg:dbg arg nil
+\putd
 ..def ...fmap io:ftor
-  .sequence .arr8:tvsb opt:aptv
-  ..sequence .arr8:tvsb io:aptv
+  ..sequence arr8:tvsb opt:aptv
+  ...sequence arr8:tvsb io:aptv
     ..pure arr8:aptv get
 \getc
 ..def .fix \gets
@@ -1817,7 +2034,7 @@
   .satp ..equal u8:eq chr
 \chrp
 ..def \str
-  ..sequence .list:tvsb parser:aptv
+  ...sequence list:tvsb parser:aptv
   ...fmap list:ftor chrp str
 \strp
 ..def
