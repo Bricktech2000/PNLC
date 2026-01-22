@@ -35,5 +35,6 @@ bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/pnlc.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/beaver.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/truth-machine.bf - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+bin/pnlc prelude.pnlc examples/quine.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/bit-cat.pnlc
 ```

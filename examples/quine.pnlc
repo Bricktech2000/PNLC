@@ -1,0 +1,25 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# constructive quine. this program is not quite a quine, but its output is a
+# quine. that's because the code's formatting is omitted from the data buffer
+# and the data buffer's wrapping is not implemented in the code. to generate
+# the data buffer, use this macro:
+# yapgPjvipJ:s/./.:\0 /g|nohAnilgww
+
+.\data .main
+  .\datastr ...bindk io:mnad .puts data .puts datastr
+  ...cata listf:ftor ..vireo
+    \head \tail .:  .:. .:: ..cons head tail
+    .:  .:n .:i .:l .:\n nil
+  data
+
+.:. .:\ .:d .:a .:t .:a .:  .:. .:m .:a .:i .:n .:  .:. .:\ .:d .:a .:t .:a .:s
+.:t .:r .:  .:. .:. .:. .:b .:i .:n .:d .:k .:  .:i .:o .:: .:m .:n .:a .:d .:
+.:. .:p .:u .:t .:s .:  .:d .:a .:t .:a .:  .:. .:p .:u .:t .:s .:  .:d .:a .:t
+.:a .:s .:t .:r .:  .:. .:. .:. .:c .:a .:t .:a .:  .:l .:i .:s .:t .:f .:: .:f
+.:t .:o .:r .:  .:. .:. .:v .:i .:r .:e .:o .:  .:\ .:h .:e .:a .:d .:  .:\ .:t
+.:a .:i .:l .:  .:. .:: .:  .:  .:. .:: .:. .:  .:. .:: .:: .:  .:. .:. .:c .:o
+.:n .:s .:  .:h .:e .:a .:d .:  .:t .:a .:i .:l .:  .:. .:: .:  .:  .:. .:: .:n
+.:  .:. .:: .:i .:  .:. .:: .:l .:  .:. .:: .:\ .:n .:  .:n .:i .:l .:  .:d .:a
+.:t .:a nil
