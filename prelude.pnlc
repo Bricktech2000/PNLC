@@ -1,6 +1,13 @@
 # vim:tw=80:ft=pnlc:
 .\p .p \x \f .f x \def
 
+# this file is organized into a few sections separated by form feeds. sum and
+# product types are encoded using the Scott encoding. for operators we generally
+# take `\rhs \lhs` so partial appication is useful. typeclasses are product type
+# constructors and typeclass instances are product types. we keep their names
+# short, at most four characters, because resolution is done manually; when you
+# see a colon in an identifier, think typeclass instance.
+
 ..def \x x \id
 ..def \x \y x \kestrel
 ..def \x \y y \kite
@@ -396,7 +403,7 @@
 ..def :esc \:\e
 ..def :sp  \: # eg .puts .:  nil
 
- # typeclass definitions
+ # typeclass definitions and utility instances
 
 ..def \equal .thrush equal \eq
 ..def .thrush \equal equal \equal
@@ -426,13 +433,17 @@
   .isle ...compare ord hi val
 \clamped
 
+..def \top \bot ..vireo top bot \bndd
+..def .thrush \top \bot top \top
+..def .thrush \top \bot bot \bot
+
 # a minimalistic programmer-facing debug representation. there is no requirement
 # for the output to be unambiguous.
 # debug :: (Dbg a) => a -> Dlist U8
 ..def \debug .thrush debug \dbg
 ..def .thrush \debug debug \debug
-# the debug debugging, prints out a `DList U8` as itself
-..def .dbg id \debug:dbg
+# the debugged debugging, prints out a `DList U8` as itself
+..def .dbg id \dbgged:dbg
 # the character debugging, prints out a `U8` as itself
 ..def .dbg cons \chr:dbg
 # places a debugging within a left and right `Dlist U8`
@@ -447,14 +458,31 @@
 ..def ..within:dbg :' :' \acute:dbg
 ..def ..within:dbg :` :` \grave:dbg
 
-..def \top \bot ..vireo top bot \bndd
-..def .thrush \top \bot top \top
-..def .thrush \top \bot bot \bot
+# sequencing of evaluation order. forcing a call to `force` forces the first
+# argument then evaluates to the second argument. partially applying `force`
+# effectively gives you a "forcing" identity function: a function which returns
+# its argument but which also forces some other unrelated computation. `force`
+# on a unit type is the identity function. `force` on a void type is void.
+# `force` on a sum type forces component types by case analysis. `force` on a
+# product type forces component types then composes the results together. for
+# example, forcing `nil` is the identity function and forcing a `cons` cell is
+# the composition of forcing the head and recursively forcing the tail.
+# force :: a -> b -> b
+..def \force .thrush force \seq
+..def .thrush \force force \force
+# the forced sequencing, forces a forcing identity function as itself
+..def .seq id \forced:seq
+# the lazy sequencing, doesn't actually force the argument. for example, `.force
+# .list:seq lazy:seq` forces the shape of a list but doesn't force its elements
+..def .seq .kestrel id \lazy:seq
 
 ..def \sappend .thrush sappend \sgrp
 ..def .thrush \sappend sappend \sappend
 # dual semigroup, the semigroup obtained by swapping arguments to `sappend`
 ..def \inner:sgrp .inner:sgrp \sappend .sgrp .cardinal sappend \dual:sgrp
+# the left-zero and right-zero semigroups over the carrier set
+..def .sgrp kite \first:sgrp
+..def .sgrp kestrel \last:sgrp
 # can't use `cata` here because the `natf` endofunctor isn't defined yet
 ..def \sgrp \elem .fix \stimes \count
   ..count ..bluebird ..sappend sgrp elem stimes elem
@@ -465,6 +493,9 @@
 ..def .thrush \sgrp \mempty mempty \mempty
 # dual monoid, the monoid obtained by swapping arguments to `sappend`
 ..def \inner:mnid .inner:mnid \sgrp .mnid .dual:sgrp sgrp \dual:mnid
+# the monoid of endomorphisms under composition
+..def .sgrp bluebird \endo:sgrp
+..def ..mnid endo:sgrp id \endo:mnid
 ..def \mnid \elem \count .mnid \sgrp \mempty
   ..count ..stimes sgrp elem mempty
 \mtimes
@@ -473,6 +504,10 @@
 ..def .thrush \fmap fmap \fmap
 ..def \ftor ..bluebird .fmap ftor kestrel \fmapk
 ..def \ftor ...phi pair ..fmap ftor fst ..fmap ftor snd \unzip
+# the const functor, whose `fmap` is a no-op. it is also the "base" functor for
+# `solo`, with the property `Fix (Const a) = Solo a`.
+# `data Const a b = Const a deriving Functor`
+..def .ftor kestrel \const:ftor
 
 ..def \ftor \pure \apply ...veery ftor pure apply \aptv
 ..def .thrush \ftor \pure \apply ftor \aptv:ftor
@@ -510,6 +545,10 @@
 # the monoid of Kleisli endomorphisms under Kleisli composition
 ..def \mnad .sgrp .kleisli mnad \kendo:sgrp
 ..def \mnad ..mnid .kendo:sgrp mnad .pure .mnad:aptv mnad \kendo:mnid
+# the identity monad
+..def .ftor id \ident:ftor
+..def ...aptv ident:ftor id id \ident:aptv
+..def ..mnad ident:aptv .cardinal id \ident:mnad
 
 ..def \aptv \empty \alt ...veery aptv empty alt \altv
 ..def .thrush \aptv \empty \alt aptv \altv:aptv
@@ -536,8 +575,7 @@
     ...sepby1 altv sep elem
 \sepby
 ..def \altv \val
-  ...alt altv
-    ..pure .altv:aptv altv none
+  ...alt altv ..pure .altv:aptv altv none
     ...fmap .aptv:ftor .altv:aptv altv some val
 \option
 # the monoid induced by `alt`
@@ -554,6 +592,8 @@
 # like paramorphisms
 ..def \tolist .thrush tolist \fldb
 ..def .thrush \tolist tolist \tolist
+# the singleton foldable, folds to a singleton list of itself
+..def .fldb \arg ..cons arg nil \single:fldb
 
 ..def \ftor \fldb \sequence ...veery ftor fldb sequence \tvsb
 ..def .thrush \ftor \fldb \sequence ftor \tvsb:ftor
@@ -566,7 +606,7 @@
 ..def .thrush \ftor \distribute ftor \dstv:ftor
 ..def .thrush \ftor \distribute distribute \distribute
 
- # utility functions and typeclass instances
+ # typeclass instances and utility functions
 
 # catamorphisms, anamorphisms, hylomorphisms, paramorphisms, apomorphisms,
 # histomorphisms and futumorphisms.
@@ -574,8 +614,8 @@
 # cata :: Functor f => (f a -> a) -> Fix f -> a
 # ana :: Functor f => (a -> f a) -> a -> Fix f
 # hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
-# para :: Functor f => (f (Pair (Fix a) a) -> a) -> Fix f -> a
-# apo :: Functor f => (a -> f (Either (Fix a) a)) -> a -> Fix f
+# para :: Functor f => (f (Pair (Fix f) a) -> a) -> Fix f -> a
+# apo :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
 # histo :: Functor f => (f (Cofree f a) -> a) -> Fix f -> a
 # futu :: Functor f => (a -> f (Free f a)) -> a -> Fix f
 # `..fmap ftor cata` doesn't depend on `init`, so when it gets unrolled during
@@ -606,27 +646,11 @@
   ..fix \rec ..fmap ftor ..kite seed ..vireo rec futu .cvcoalg seed
 \futu
 
-# the left-zero and right-zero semigroups over the carrier set
-..def .sgrp kite \first:sgrp
-..def .sgrp kestrel \last:sgrp
-# the monoid of endomorphisms under composition
-..def .sgrp bluebird \endo:sgrp
-..def ..mnid endo:sgrp id \endo:mnid
 # `Monoid b => Monoid (a -> b)` by combining return values
 ..def \inner:sgrp .inner:sgrp \innersappend
   .sgrp \rhs \lhs \arg ..innersappend .rhs arg .lhs arg
 \env:sgrp
 ..def \inner:mnid .inner:mnid ..bluebird mnid env:sgrp \env:mnid
-# the singleton foldable, folds to a singleton list of itself
-..def .fldb \arg ..cons arg nil \single:fldb
-# the const functor, whose `fmap` is a no-op. it is also the "base" functor for
-# `solo`, with the property `Fix (Const a) = Solo a`.
-# `data Const a b = Const a deriving Functor`
-..def .ftor kestrel \const:ftor
-# the identity monad
-..def .ftor id \ident:ftor
-..def ...aptv ident:ftor id id \ident:aptv
-..def ..mnad ident:aptv .cardinal id \ident:mnad
 # the environment monad, models computations that depend on a shared environment
 ..def .ftor bluebird \env:ftor
 ..def ...aptv env:ftor kestrel starling \env:aptv # liftA2 = phi
@@ -645,6 +669,8 @@
 ..def ..bndd void void \void:bndd
 ..def .dbg \unit id \unit:dbg
 ..def .dbg \void $err \void:dbg
+..def .seq \unit id \unit:seq
+..def .seq \void $err \void:seq
 ..def .sgrp \rhs \lhs unit \unit:sgrp
 ..def .sgrp \rhs \lhs void \void:sgrp
 ..def ..mnid unit:sgrp unit \unit:mnid
@@ -663,6 +689,7 @@
 \bool:ord
 ..def ..bndd true false \bool:bndd
 ..def .dbg \bool ..bool :1 :0 \bool:dbg
+..def .seq \bool ..bool id id \bool:seq
 # these are duplicates of `..min:mnid bool:ord bool:bndd` and `..max:mnid
 # bool:ord bool:bndd`, but they're common enough to warrant special cases
 ..def .sgrp and \and:sgrp
@@ -687,6 +714,7 @@
 \cmp:ord
 ..def ..bndd gt lt \cmp:bndd
 ..def .dbg \cmp ...cmp :< := :> \cmp:dbg
+..def .seq \cmp ...cmp id id id \cmp:seq
 ..def .sgrp \rhs \lhs ...lhs lhs rhs lhs \cmp:sgrp
 ..def ..mnid cmp:sgrp et \cmp:mnid
 # the reverse ordering, obtained by swapping arguments to `compare`
@@ -754,6 +782,7 @@
 ..def \inner:dbg .dbg
   \opt ..opt ..blackbird :S .debug inner:dbg :N
 \opt:dbg
+..def \elem:seq \opt ..opt .force elem:seq id \opt:seq
 # `type Every a = Down (Maybe (Down a))`
 # the ordering where `Nothing` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .opt:ord .down:ord elem:ord \every:ord
@@ -768,6 +797,7 @@
 ..def .fix opt:ord \nat:ord
 ..def .fix opt:bndd \nat:bndd # zero, fix succ
 ..def .fix opt:dbg \nat:dbg
+..def .fix opt:seq \nat:seq
 ..def opt:ftor \nat:ftor
 ..def opt:aptv \nat:aptv
 ..def opt:mnad \nat:mnad
@@ -802,6 +832,9 @@
 ..def \ok:dbg \err:dbg .ok:dbg \okdebug .err:dbg \errdebug
   .dbg \res ..res ..blackbird :O okdebug ..blackbird :E errdebug
 \res:dbg
+..def \ok:seq \err:seq .ok:seq \okforce .err:seq \errforce
+  .seq \res ..res okforce errforce
+\res:seq
 ..def .sgrp \rhs \lhs ..lhs ok rhs \res:sgrp
 ..def .ftor
   \okfunc \resarg
@@ -851,9 +884,14 @@
 ..def \err:bndd \ok:bndd
   ..res:bndd err:bndd ok:bndd
 \flip:bndd
+# the debugging obtained by flipping elements of the either debugging
 ..def \err:dbg \ok:dbg
   \res ..debug ..res:dbg err:dbg ok:dbg .flip res
 \flip:dbg
+# the sequencing obtained by flipping elements of the either sequencing
+..def \err:seq \ok:seq
+  \res ..force ..res:seq err:seq ok:seq .flip res
+\flip:seq
 # the monad obtained by flipping elements of the either monad
 ..def .ftor
   \errfunc \resarg .flip
@@ -892,6 +930,7 @@
 ..def .warbler res:ord \dbl:ord
 ..def .warbler res:bndd \dbl:bndd
 ..def .warbler res:dbg \dbl:dbg
+..def .warbler res:seq \dbl:seq
 # no need for `Monoid a => Monoid (Dbl a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Dbl`
 ..def .ftor
@@ -930,34 +969,6 @@
 ..def \dbl ..pair ..phi dbl kestrel ..dbl id id \dbl.dual
 ..def .thrush \fst \snd ...fst ok err snd \pairbool.dual
 
-# XXX doc wrappers? currently:
-#   - ap
-#   - min
-#   - max
-#   - add
-#   - sqr
-#   - dbl
-#   - flip
-#   - swap
-#   - endo
-#   - kendo
-#   - dual
-#   - down
-#   - every
-#   - short
-#   - dshort
-#   - single
-#   - const
-#   - ident
-#   - env
-
-# TODO doc conventions:
-#   - \rhs \lhs, for partial application
-#   - meanings of :
-#     --> swap:mnid means 'monoid under swap' whereas
-#         and:mnid means 'monoid induced by `and`'
-#   - terse typeclass names because manual resolution
-
 # these typeclass instances need to be lazy in the element typeclass instance so
 # we can take their fixed points to define the equivalent instances for `stream`
 ..def \fst:eq \snd:eq
@@ -985,6 +996,11 @@
     \pair .pair \fst \snd
       ...becard ..debug fst:dbg fst :, ..debug snd:dbg snd
 \pair:dbg
+..def \fst:dbg \snd:dbg
+  .seq
+    \pair .pair \fst \snd
+      ..bluebird ..force fst:dbg fst ..force snd:dbg snd
+\pair:seq
 ..def \fst:sgrp \snd:sgrp
   .sgrp
     \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
@@ -1051,6 +1067,10 @@
 ..def \snd:dbg \fst:dbg .dbg
   \pair ..debug ..pair:dbg snd:dbg fst:dbg .swap pair
 \swap:dbg
+# the sequencing obtained by swapping elements of the pair sequencing
+..def \snd:seq \fst:seq .seq
+  \pair ..force ..pair:seq snd:seq fst:seq .swap pair
+\swap:seq
 # the monad obtained by swapping elements of the pair monad
 ..def .ftor
   \fstfunc \pairarg .swap
@@ -1089,6 +1109,7 @@
 ..def .warbler pair:ord \sqr:ord
 ..def .warbler pair:bndd \sqr:bndd
 ..def .warbler pair:dbg \sqr:dbg
+..def .warbler pair:seq \sqr:seq
 # no need for `Monoid a => Monoid (Sqr a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Sqr`
 ..def .ftor
@@ -1125,6 +1146,7 @@
 ..def ..bluebird fix pair:ord \stream:ord
 ..def ..bluebird fix pair:bndd \stream:bndd
 ..def ..bluebird fix pair:dbg \stream:dbg
+..def ..bluebird fix pair:seq \stream:seq # never terminates
 ..def ..bluebird fix pair:sgrp \stream:sgrp
 ..def ..bluebird fix pair:mnid \stream:mnid
 ..def .ftor
@@ -1176,9 +1198,12 @@
 ..def \pred ..cata streamf:ftor .thrush
   \fst \acc ....pred head .pair zero id ...fmap stream:ftor succ acc
 \sfindindices
-..def \item \item:eq .sfind ..equal item:eq item \selem
-..def \item \item:eq .sfindindex ..equal item:eq item \selemindex
-..def \item \item:eq .sfindindices ..equal item:eq item \selemindices
+..def \item:eq \item .sfind ..equal item:eq item \selem
+..def \item:eq \item .sfindindex ..equal item:eq item \selemindex
+..def \item:eq \item .sfindindices ..equal item:eq item \selemindices
+..def \key:eq \key
+  ..bluebird snd .sfind ..bluebird ..equal key:eq key fst
+\slookup
 # sinits :: Stream a -> Stream (List a)
 # sinits1 :: Stream a -> Stream (List a)
 # stails :: Stream a -> Stream (Stream a)
@@ -1310,6 +1335,9 @@
 ..def \elem:dbg .elem:dbg \elemdebug .dbg
   ..cata listf:ftor ..finch :N \head \tail ...becard .elemdebug head :: tail
 \list:dbg
+..def \elem:seq .elem:seq \elemforce .seq
+  ..cata listf:ftor ..finch id \head \tail ..bluebird .elemforce head tail
+\list:seq
 # `type Short a = Down (List (Down a))`
 # the ordering where shorter lists compare greater than longer lists and where
 # `Nil` is the top element instead of the bottom element
@@ -1341,9 +1369,12 @@
 ..def \pred ..cata listf:ftor ..finch nil
   \head \acc ....pred head .cons zero id ...fmap list:ftor succ acc
 \findindices
-..def \item \item:eq .find ..equal item:eq item \elem
-..def \item \item:eq .findindex ..equal item:eq item \elemindex
-..def \item \item:eq .findindices ..equal item:eq item \elemindices
+..def \item:eq \item .find ..equal item:eq item \elem
+..def \item:eq \item .findindex ..equal item:eq item \elemindex
+..def \item:eq \item .findindices ..equal item:eq item \elemindices
+..def \key:eq \key
+  ..bluebird ..fmap opt:ftor snd .find ..bluebird ..equal key:eq key fst
+\lookup
 ..def ..cata listf:ftor ..finch ..cons nil nil
   \head \acc ..cons nil ...fmap list:ftor .cons head acc
 \inits
@@ -1399,8 +1430,6 @@
   \acc ..finch none
     \head \tail ...fmap opt:ftor ..fmap swapa:ftor .cons head .acc tail
 \splitat
-# TODO implement `cataM` https://youtu.be/Zw9KeP3OzpU?t=4039
-# TODO rewrite these using `cataM`
 ..def ..cata natf:ftor ..vireo ..kleisli opt:mnad tail some \drop
 ..def ..cata natf:ftor ..vireo ..kleisli opt:mnad tail head \at
 ..def \width \list
@@ -1485,12 +1514,17 @@
       ..lhs .kestrel gt varcompare
 \free:ord
 ..def \term:ftor \term:dbg1 \var:dbg
-  ..term:dbg1 debug:dbg \termdebug .var:dbg \vardebug
+  ..term:dbg1 dbgged:dbg \termdebug .var:dbg \vardebug
     .dbg
       ..cata .freef:ftor term:ftor ..vireo
         ..blackbird :@ termdebug
         ..blackbird :$ vardebug
 \free:dbg
+..def \term:ftor \term:seq1 \var:seq
+  ..term:seq1 forced:seq \termforce .var:seq \varforce
+    .seq
+      ..cata .freef:ftor term:ftor ..vireo termforce varforce
+\free:seq
 ..def \term:ftor .ftor
   \func ..cata .freef:ftor term:ftor ..vireo roll
     ..bluebird return func
@@ -1573,11 +1607,17 @@
         ...compare .trace:ord1 cofree:ord rhstrace lhstrace
 \cofree:ord
 ..def \trace:ftor \trace:dbg1 \ann:dbg
-  ..trace:dbg1 debug:dbg \tracedebug .ann:dbg \anndebug
+  ..trace:dbg1 dbgged:dbg \tracedebug .ann:dbg \anndebug
     .dbg
       ..cata .cofreef:ftor trace:ftor .thrush
         \trace \ann ...becard .tracedebug trace :@ .anndebug ann
 \cofree:dbg
+..def \trace:ftor \trace:seq1 \ann:seq
+  ..trace:seq1 forced:seq \traceforce .ann:seq \annforce
+    .seq
+      ..cata .cofreef:ftor trace:ftor .thrush
+        \trace \ann ..bluebird .traceforce trace .annforce ann
+\cofree:seq
 ..def \trace:ftor .ftor
   \func ..cata .cofreef:ftor trace:ftor .thrush
     \trace \ann ..cofree trace .func ann
@@ -1771,11 +1811,17 @@
     \arr8 ..fold .dual:mnid endo:mnid ..tolist arr8:fldb
       ...fmap arr8:ftor elemdebug arr8
 \arr8:dbg
+..def \elem:seq .elem:seq \elemforce
+  .seq
+    \arr8 ..fold endo:mnid ..tolist arr8:fldb
+      ...fmap arr8:ftor elemforce arr8
+\arr8:seq
 
 ..def .arr8:eq bool:eq \u8:eq
 ..def .arr8:ord bool:ord \u8:ord
 ..def .arr8:bndd bool:bndd \u8:bndd
 ..def .arr8:dbg bool:dbg \u8:dbg
+..def .arr8:seq bool:seq \u8:seq
 ..def .dbg
   \u8 .u8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     .\nibble ..bluebird
@@ -1951,6 +1997,7 @@
 ..def \cont $err \#err # would shadow `err` the data constructor
 ..def $get \get
 ..def \bit \cont ..$put bit .cont unit \put
+..def \bit \cont ..$eput bit .cont unit \eput
 ..def \term \cont ..$dump term .cont unit \dump
 # we define a function `main` that takes an `IO ()` and invokes it with the
 # continuation `\unit $exit`, throwing away the `unit` and returninng `$exit`
@@ -1959,17 +2006,23 @@
 # a hook that dumps the top-level term just before its effect is executed
 ..def \term ..$dump term term \$hook
 ..def \cont .$hook .cont unit \hook
-..def ..bluebird
+..def \put ..bluebird
   ..sequence arr8:tvsb io:aptv
   ..fmap arr8:ftor put
 \putc
-..def ..bluebird
+..def \putc ..bluebird
   ..sequence list:tvsb io:aptv
   ..fmap list:ftor putc
 \puts
-..def \arg:dbg \arg
+..def \puts \arg:dbg \arg
   .puts ...debug arg:dbg arg nil
 \putd
+..def .putc eput  \eputc
+..def .puts eputc \eputs
+..def .putd eputs \eputd
+..def .putc put  \putc
+..def .puts putc \puts
+..def .putd puts \putd
 ..def ...fmap io:ftor
   ..sequence arr8:tvsb opt:aptv
   ...sequence arr8:tvsb io:aptv
@@ -2020,23 +2073,19 @@
   \parserrhs \parserlhs
     \inp ...alt opt:altv .parserrhs inp .parserlhs inp
 \parser:altv
-..def \pred \inp ..inp
-  \head \tail ...pred head
+..def \pred ..finch none
+  \head \tail ...not .pred head none
     .some ..pair head tail
-    none
-  none
 \satp
-..def \inp ..inp
+..def ..vireo
   \head \tail none
   .some ..pair unit nil
 \eofp
-..def \chr
-  .satp ..equal u8:eq chr
-\chrp
-..def \str
-  ...sequence list:tvsb parser:aptv
-  ...fmap list:ftor chrp str
+..def ..bluebird satp .bluebird not \unsatp
+..def ..bluebird satp .equal u8:eq \chrp
+..def ..bluebird satp .unequal u8:eq \nonchrp
+..def .satp .kestrel true \getp
+..def ..bluebird
+  ..sequence list:tvsb parser:aptv
+  ..fmap list:ftor chrp
 \strp
-..def
-  .satp .kestrel true
-\getp

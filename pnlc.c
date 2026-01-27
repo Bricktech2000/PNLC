@@ -9,9 +9,9 @@ enum { TYPE_APP, TYPE_LAM, TYPE_VAR };
 
 // "IO"s are opaque lambda-terms that are handled in special ways. when `term.
 // type < 0`, the term is an IO, and `~term.type` will be one of the following:
-enum { IO_EXIT, IO_ERR, IO_GET, IO_PUT, IO_DUMP };
+enum { IO_EXIT, IO_ERR, IO_GET, IO_PUT, IO_EPUT, IO_DUMP };
 // keep in sync with README.md, pnlc.vim and io\ hook.pnlc
-char *ios[] = {"$exit", "$err", "$get", "$put", "$dump", NULL};
+char *ios[] = {"$exit", "$err", "$get", "$put", "$eput", "$dump", NULL};
 
 // a `struct term` is a node in a directed acyclic graph. `refcount` is the
 // in-degree. `beta` is a borrow, and together with `visited` it forms a cache
@@ -233,7 +233,7 @@ void bs_put(struct bs *bs, bool bit) {
 }
 
 char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
-          long long *visited) {
+          struct bs *bs_err, long long *visited) {
   // takes ownership of `*term`. upon successful termination, returns `NULL` and
   // writes `NULL` into `*term`; otherwise, returns an error message and stores
   // the problematic term into `*term`
@@ -272,18 +272,22 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
       // clang-format on
       cont = APP(term_incref((*term)->rhs), arg);
     } break;
-    case IO_PUT: {
+    case IO_PUT:
+    case IO_EPUT: {
+      bool isput = ~head->type == IO_PUT;
       if (-head->visited != 2)
-        return "$put expects 2 arguments";
+        return isput ? "$put expects 2 arguments" : "$eput expects 2 arguments";
       // two sentinel lambda-terms with bogus `type` so they get treated like
       // IOs and with huge `refcount` so nobody attempts to free them
       struct term tru = {INT_MIN + 1, INT_MAX}, fals = {INT_MIN + 0, INT_MAX};
       struct term *bit = APP(APP(term_incref((*term)->lhs->rhs), &tru), &fals);
       if (~whnf(bit, visited)->type == IO_ERR)
-        return term_decref(bit), "hit $err in $put argument";
+        return term_decref(bit), isput ? "hit $err in $put argument"
+                                       : "hit $err in $eput argument";
       if (bit->type != tru.type && bit->type != fals.type)
-        return term_decref(bit), "$put argument is malformed";
-      bs_put(bs_out, bit->type == tru.type), term_decref(bit);
+        return term_decref(bit), isput ? "$put argument is malformed"
+                                       : "$eput argument is malformed";
+      bs_put(isput ? bs_out : bs_err, bit->type == tru.type), term_decref(bit);
       cont = term_incref((*term)->rhs);
     } break;
     default:
@@ -451,7 +455,8 @@ int main(int argc, char **argv) {
   }
 
   long long visited = 0;
-  if (error = run(&term, &(struct bs){stdin}, &(struct bs){stdout}, &visited)) {
+  struct bs bs_in = {stdin}, bs_out = {stdout}, bs_err = {stderr};
+  if (error = run(&term, &bs_in, &bs_out, &bs_err, &visited)) {
     // uncomment this to dump the top-level term on error
     // term_dump(term, ++visited), fputc('\n', stderr);
 

@@ -32,36 +32,57 @@
     .succ .succ .succ .succ .succ .succ .succ .succ zero
 \tape:dbg
 
-# read characters from stdin until a '!'. we use the character '!' to separate
-# the Brainfuck program from its input. that is, '!' ends a program string and
-# and begins its execution
-..def .fix \getbang
-  ...bind io:mnad getc ..finch
-    ..pure io:aptv nil
-    \chr .....equal u8:eq '!' chr
-      ..pure io:aptv nil
-      ...fmap io:ftor .cons chr getbang
-\getbang
+# equivalent to the prelude implementations but unrolled for higher performance
+..def .eq
+  \rhs \lhs
+    .rhs \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
+    .lhs \l0 \l1 \l2 \l3 \l4 \l5 \l6 \l7
+      .not
+        ..or ..xor r0 l0
+        ..or ..xor r1 l1
+        ..or ..xor r2 l2
+        ..or ..xor r3 l3
+        ..or ..xor r4 l4
+        ..or ..xor r5 l5
+        ..or ..xor r6 l6
+        ..or ..xor r7 l7
+      false
+\u8:eq
+..def .seq
+  \u8 .u8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    \x
+      ...a0 id id
+      ...a1 id id
+      ...a2 id id
+      ...a3 id id
+      ...a4 id id
+      ...a5 id id
+      ...a6 id id
+      ...a7 id id
+    x
+\u8:seq
 
 # bfp :: Parser (Tape -> IO Tape)
 # all the component parsers also have this type. this way, juxtaposition of
 # Brainfuck program strings corresponds to `liftA2 (>=>)`, that is, penetration
 # of parsers with Kleisli composition
 ..def .fix \bfp
+  # force the head of the tape before incrementing or decrementing its value and
+  # before moving to another cell to avoid drowning in unfinished computations
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv tape.shl
+    ..bluebird .pure io:aptv ...phi .force u8:seq head tape.shl
     .chrp '>'
   \'>'p
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv tape.shr
+    ..bluebird .pure io:aptv ...phi .force u8:seq head tape.shr
     .chrp '<'
   \'<'p
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ..fmap tape:ftor u8.inc
+    ..bluebird .pure io:aptv ..fmap tape:ftor ..starling .force u8:seq u8.inc
     .chrp '+'
   \'+'p
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ..fmap tape:ftor u8.dec
+    ..bluebird .pure io:aptv ..fmap tape:ftor ..starling .force u8:seq u8.dec
     .chrp '-'
   \'-'p
   ..def ...fmapk parser:ftor
@@ -79,14 +100,16 @@
   ..def ...fmapk parser:ftor
     \tape ...fmapk io:ftor
       tape
-      .puts ...debug tape:dbg tape .:\n nil
+      .eputs ...debug tape:dbg tape .:\n nil
     .chrp '#'
   \'#'p
   ..def ...fmap parser:ftor
     \bf .fix \rec \tape
+      # without `..kite tape`, truth-machine.bf slows down over time because its
+      # lambda-term grows over time, and I'm not sure why
       ......equal u8:eq '\0' .head tape
         .pure io:aptv
-        ...kleisli io:mnad bf rec
+        ...kleisli io:mnad bf ..kite tape rec
       tape
     ....between parser:aptv .chrp '[' .chrp ']' bfp
   \[&]p
@@ -113,8 +136,19 @@
     ....lifta2 parser:aptv .kleisli io:mnad atomp bfp
 \bfp
 
+# read characters from stdin until a '!'. we use the character '!' to separate
+# the Brainfuck program from its input. that is, '!' ends a program string and
+# begins its execution
+..def .fix \getbang
+  ...bind io:mnad getc ..finch
+    ..pure io:aptv nil
+    \chr .....equal u8:eq '!' chr
+      ..pure io:aptv nil
+      ...fmap io:ftor .cons chr getbang
+\getbang
+
 .main
   ...bind io:mnad getbang \str
     ......seql parser:aptv bfp eofp str
       .thrush \prog \inp .prog 0tape
-      .puts .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
+      .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

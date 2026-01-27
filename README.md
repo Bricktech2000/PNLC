@@ -1,6 +1,6 @@
 # PNLC
 
-_A toy pure functional language_
+_A toy functional language_
 
 PNLC is λ‑calculus in prefix notation plus normal-order semantics plus continuation-based I/O plus a small prelude.
 
@@ -18,23 +18,44 @@ PNLC is λ‑calculus in prefix notation plus normal-order semantics plus contin
 | `$err …`            | Ignore any arguments, crash the program.                                                                                            |
 | `.$get cont`        | Read one bit from `stdin`, invoke `cont` with it. `\s \n n` means EOF, `\s \n .s \t \f t` means one, `\s \n .s \t \f f` means zero. |
 | `..$put bit cont`   | Write `bit` to `stdout`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
+| `..$eput bit cont`  | Write `bit` to `stderr`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
 | `..$dump term cont` | Reduce `term` to weak head normal form, dump it to `stderr`, invoke `cont` without arguments.                                       |
 
 To run some example programs:
 
 ```sh
 make bin/pnlc
+bin/pnlc examples/no-op.pnlc
 bin/pnlc examples/raw-cat.pnlc
 bin/pnlc prelude.pnlc examples/bit-cat.pnlc
 bin/pnlc prelude.pnlc examples/chr-cat.pnlc
-bin/pnlc prelude.pnlc examples/truth-machine.pnlc
 bin/pnlc prelude.pnlc examples/greeting.pnlc
+bin/pnlc prelude.pnlc examples/truth-machine.pnlc
 bin/pnlc prelude.pnlc examples/reverse.pnlc
 bin/pnlc prelude.pnlc examples/rot13.pnlc
-bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/pnlc.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/beaver.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/truth-machine.bf - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 bin/pnlc prelude.pnlc examples/quine.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/bit-cat.pnlc
+bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+```
+
+Some demos of the Brainfuck interpreter:
+
+```sh
+cat examples/bf/pnlc.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/bell.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/ascii.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/cat.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/reverse.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/beaver.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/clear.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/head.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/strip.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/truth-machine.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/bin2text.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/text2bf.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/fib.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/squares.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/thuemorse.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/sierpinski.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/siercarpet.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 ```
