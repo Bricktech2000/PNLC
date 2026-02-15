@@ -3,7 +3,7 @@
 # installs a hook onto the IO functions that dumps the top-level term just
 # before its effect is executed
 
-# keep in sync with README.md, pnlc.c and pnlc.vim
+# keep in sync with pnlc.c, examples/pnlc.pnlc, README.md and pnlc.vim
 .\p .p \term ..$dump term term \$hook
 .\p .p .$hook $exit \$exit
 .\p .p .$hook $err \$err

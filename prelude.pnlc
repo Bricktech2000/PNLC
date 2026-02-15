@@ -513,10 +513,10 @@
 ..def .thrush \ftor \pure \apply ftor \aptv:ftor
 ..def .thrush \ftor \pure \apply pure \pure
 ..def .thrush \ftor \pure \apply apply \apply
-..def \aptv \func \fst \snd
+..def \aptv \func \arg1 \arg2
   ...apply aptv
-    ...fmap .aptv:ftor aptv func fst
-    snd
+    ...fmap .aptv:ftor aptv func arg1
+    arg2
 \lifta2
 ..def \aptv ..lifta2 aptv thrush \rapply
 ..def \aptv ..lifta2 aptv kestrel \seql
@@ -540,15 +540,15 @@
 ..def .thrush \aptv \bind aptv \mnad:aptv
 ..def .thrush \aptv \bind bind \bind
 ..def \mnad \x \f ...bind mnad x .kestrel f \bindk
-..def \mnad ..bind mnad id \join
+..def \mnad ..cardinal .bind mnad id \join
 ..def \mnad \f \g \x ...bind mnad .f x g \kleisli
 # the monoid of Kleisli endomorphisms under Kleisli composition
 ..def \mnad .sgrp .kleisli mnad \kendo:sgrp
 ..def \mnad ..mnid .kendo:sgrp mnad .pure .mnad:aptv mnad \kendo:mnid
 # the identity monad
-..def .ftor id \ident:ftor
-..def ...aptv ident:ftor id id \ident:aptv
-..def ..mnad ident:aptv .cardinal id \ident:mnad
+..def .ftor id \id:ftor
+..def ...aptv id:ftor id id \id:aptv
+..def ..mnad id:aptv .cardinal id \id:mnad
 
 ..def \aptv \empty \alt ...veery aptv empty alt \altv
 ..def .thrush \aptv \empty \alt aptv \altv:aptv
@@ -782,7 +782,7 @@
 ..def \inner:dbg .dbg
   \opt ..opt ..blackbird :S .debug inner:dbg :N
 \opt:dbg
-..def \elem:seq \opt ..opt .force elem:seq id \opt:seq
+..def \elem:seq .seq \opt ..opt .force elem:seq id \opt:seq
 # `type Every a = Down (Maybe (Down a))`
 # the ordering where `Nothing` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .opt:ord .down:ord elem:ord \every:ord
@@ -1314,8 +1314,8 @@
   .eq
     .fix \listequal \rhs \lhs
       .\conscons ..rhs
-        ..lhs conscons .kestrel false
-        ..lhs .kestrel false true
+        ..lhs conscons \heat \tail false
+        ..lhs \head \tail false true
       \lhshead \lhstail \rhshead \rhstail
         ....elemequal rhshead lhshead
           ..listequal rhstail lhstail false
@@ -1325,8 +1325,8 @@
     .list:eq elem:eq
     .fix \listcompare \rhs \lhs
       .\conscons ..rhs
-        ..lhs conscons .kestrel lt
-        ..lhs .kestrel gt et
+        ..lhs conscons \head \tail lt
+        ..lhs \head \tail gt et
       \lhshead \lhstail \rhshead \rhstail
         .....elemcompare rhshead lhshead
           lt ..listcompare rhstail lhstail gt

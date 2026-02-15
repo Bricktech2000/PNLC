@@ -1,0 +1,173 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# keep in sync with ../pnlc.c
+
+# def:typ
+# data Typ = Exit | Err | Get | Put | Eput | Dump | Tru | Fals
+# keep in sync with pnlc.c, README.md, pnlc.vim and io\ hook.pnlc
+..def \exit \err \get \put \eput \dump \tru \fals exit \mkexit
+..def \exit \err \get \put \eput \dump \tru \fals err  \mkerr
+..def \exit \err \get \put \eput \dump \tru \fals get  \mkget
+..def \exit \err \get \put \eput \dump \tru \fals put  \mkput
+..def \exit \err \get \put \eput \dump \tru \fals eput \mkeput
+..def \exit \err \get \put \eput \dump \tru \fals dump \mkdump
+..def \exit \err \get \put \eput \dump \tru \fals tru  \mktru
+..def \exit \err \get \put \eput \dump \tru \fals fals \mkfals
+..def \typ ........typ true false false false false false false false \isexit
+..def \typ ........typ false true false false false false false false \iserr
+..def \typ ........typ false false true false false false false false \isget
+..def \typ ........typ false false false true false false false false \isput
+..def \typ ........typ false false false false true false false false \iseput
+..def \typ ........typ false false false false false true false false \isdump
+..def \typ ........typ false false false false false false true false \istru
+..def \typ ........typ false false false false false false false true \isfals
+..def .dbg \typ ........typ :X :E :G :P :R :D :T :F \typ:dbg
+..def .seq \typ ........typ id id id id id id id id \typ:seq
+..def
+  ..cons ..pair .:$ .:e .:x .:i .:t nil mkexit
+  ..cons ..pair .:$ .:e .:r .:r     nil mkerr
+  ..cons ..pair .:$ .:g .:e .:t     nil mkget
+  ..cons ..pair .:$ .:p .:u .:t     nil mkput
+  ..cons ..pair .:$ .:e .:p .:u .:t nil mkeput
+  ..cons ..pair .:$ .:d .:u .:m .:p nil mkdump
+  nil
+\ios
+
+# def:term
+# data Term = App Term Term | Lam Term | Var Nat | Io Typ
+..def \func \arg \app \lam \var \io ..app func arg \app
+..def \body \app \lam \var \io .lam body \lam
+..def \idx \app \lam \var \io .var idx \var
+..def \typ \app \lam \var \io .io typ \io
+..def \term ....term \func \arg .some func \body none \idx none \typ none \func
+..def \term ....term \func \arg .some arg  \body none \idx none \typ none \arg
+..def \term ....term \func \arg none \body .some body \idx none \typ none \body
+..def \term ....term \func \arg none \body none \idx .some idx  \typ none \idx
+..def \term ....term \func \arg none \body none \idx none \typ .some typ  \typ
+..def \term ....term cons \body nil \idx nil \typ nil \getapp # listf
+# the "base" functor for `term`, with the property `Fix TermF = Term`.
+# `data TermF a = App a a | Lam a | Var Nat | Io Typ deriving Functor`
+..def .ftor
+  \func \termfarg ....termfarg
+    ..psi app func
+    ..bluebird lam func
+    var
+    io
+\termf:ftor
+..def .dbg
+  ..cata termf:ftor \term ....term
+    .becard :.
+    .bluebird :\
+    .debug nat:dbg
+    .debug typ:dbg
+\term:dbg
+..def .seq
+  ..cata termf:ftor \term ....term
+    bluebird
+    id
+    .force nat:seq
+    .force typ:seq
+\term:seq
+
+# beta :: Term -> Nat -> Term -> Term
+..def \arg .fix \beta \lvl \term
+  ....term
+    ..psi app .beta lvl
+    ..bluebird lam .beta .succ lvl
+    \idx .....equal nat:eq lvl idx arg term
+    io
+\beta
+
+# whnf :: Term -> Term
+..def .fix \whnf \term ...force term:seq term
+  ...getapp term
+    \func \arg ..def .whnf func \func
+      ...body func
+        ..bluebird whnf ..beta arg zero
+        ..app func arg
+    term
+\whnf
+
+# run :: Term -> IO Bool
+..def .fix \run \term ..def .whnf term \term
+  ...getapp term \func \cont
+    ...getapp func \func \arg
+      ...typ func \type
+        ...isdump type
+          .\dump ...bindk io:mnad .eputs dump .run cont
+          ...debug term:dbg .whnf arg .:\n nil
+        ......phi or isput iseput type
+          ..def ...isput type put eput \put
+          ...typ .whnf ..app ..app arg .io mktru .io mkfals \type
+            ...istru  type ...bindk io:mnad .put true  .run cont
+            ...isfals type ...bindk io:mnad .put false .run cont
+            ..pure io:aptv false
+          ..pure io:aptv false
+        ..pure io:aptv false
+      ..pure io:aptv false
+    ...typ func \type
+      ...isget type
+        ...bind io:mnad get \optbit
+          .\arg .run ..app cont arg
+          .lam .lam ..optbit
+            \bit ..app .var .succ zero .lam .lam .var ...bit succ id zero
+            .var zero
+      ..pure io:aptv false
+    ..pure io:aptv false
+  ..pure io:aptv ...typ term isexit false
+\run
+
+# type Env = List String
+# wsp :: Parser String
+# varp :: Parser String
+# termp :: Env -> Parser Term
+..def ..many parser:altv .satp isspace \wsp
+..def ...cardinal .seql parser:aptv wsp
+  ..many1 parser:altv .satp ..bluebird not isspace
+\varp
+..def .fix \termp \env
+  ...alt parser:altv
+    ...bind parser:mnad varp \name
+      .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
+        .kestrel .empty parser:altv
+        .....elemindex .list:eq u8:eq name env
+          ..bluebird .pure parser:aptv var
+          .....lookup .list:eq u8:eq name ios
+            ..bluebird .pure parser:aptv io
+            .empty parser:altv
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '#'
+      ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
+        ...seqr parser:aptv .chrp '\n'
+          ...seqr parser:aptv wsp .termp env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '\'
+      ...seqr parser:aptv wsp
+        ...bind parser:mnad varp \name
+          ...fmap parser:ftor lam .termp ..cons name env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '.'
+      ...seqr parser:aptv wsp
+        ....lifta2 parser:aptv app .termp env .termp env
+  .empty parser:altv
+\termp
+
+# read characters from stdin until a '\0'. we use the character '\0' to end the
+# program string and begin its execution
+..def .fix \getnul
+  ...bind io:mnad getc ..finch
+    ..pure io:aptv nil
+    \chr .....equal u8:eq '\0' chr
+      ..pure io:aptv nil
+      ...fmap io:ftor .cons chr getnul
+\getnul
+
+.main
+  ...bind io:mnad getnul \str
+    .......between parser:aptv wsp eofp .termp nil str
+      # .thrush \term \inp ..pure io:aptv unit # parse only
+      .thrush \term \inp ...bind io:mnad .run term ..vireo # parse then run
+        ..pure io:aptv unit
+        .eputs .:r .:u .:n .:t .:i .:m .:e .:  .:e .:r .:r .:o .:r .:\n nil
+      .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

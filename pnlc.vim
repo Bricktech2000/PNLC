@@ -8,7 +8,7 @@ let &l:include = '\sinc:'
 
 syntax match pnlcLam '\\\_[[:space:]]*[^[:space:]]\+\_[[:space:]]\+'
 syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[^[:space:]]\+\_[[:space:]]\+'
-" keep in sync with pnlc.c, README.md and io\ hook.pnlc
+" keep in sync with pnlc.c, examples/pnlc.pnlc, README.md and io\ hook.pnlc
 syntax match pnlcIO '\_[[:space:].]\@<=\(\$exit\|\$err\|\$get\|\$put\|\$eput\|\$dump\)\_[[:space:]]\+'
 syntax match pnlcApp0 '
       \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
