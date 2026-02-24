@@ -119,21 +119,21 @@
   \![]p
 
   ..def
-    ...alt parser:altv ![]p
-    ...alt parser:altv [&]p
-    ...alt parser:altv '#'p # comment out to disable
-    ...alt parser:altv ','p
-    ...alt parser:altv '.'p
-    ...alt parser:altv '-'p
-    ...alt parser:altv '+'p
-    ...alt parser:altv '<'p
     ...alt parser:altv '>'p
+    ...alt parser:altv '<'p
+    ...alt parser:altv '+'p
+    ...alt parser:altv '-'p
+    ...alt parser:altv '.'p
+    ...alt parser:altv ','p
+    ...alt parser:altv '#'p # comment out to disable
+    ...alt parser:altv [&]p
+    ...alt parser:altv ![]p
     .empty parser:altv
   \atomp
   # bfp = liftA2 (>=>) atomp bfp <|> pure pure
   ...alt parser:altv
-    ..pure parser:aptv .pure io:aptv
     ....lifta2 parser:aptv .kleisli io:mnad atomp bfp
+    ..pure parser:aptv .pure io:aptv
 \bfp
 
 # read characters from stdin until a '!'. we use the character '!' to separate

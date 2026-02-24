@@ -128,6 +128,20 @@
 \varp
 ..def .fix \termp \env
   ...alt parser:altv
+    ...seqr parser:aptv .chrp '.'
+      ...seqr parser:aptv wsp
+        ....lifta2 parser:aptv app .termp env .termp env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '\'
+      ...seqr parser:aptv wsp
+        ...bind parser:mnad varp \name
+          ...fmap parser:ftor lam .termp ..cons name env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '#'
+      ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
+        ...seqr parser:aptv .chrp '\n'
+          ...seqr parser:aptv wsp .termp env
+  ...alt parser:altv
     ...bind parser:mnad varp \name
       .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
         .kestrel .empty parser:altv
@@ -136,20 +150,6 @@
           .....lookup .list:eq u8:eq name ios
             ..bluebird .pure parser:aptv io
             .empty parser:altv
-  ...alt parser:altv
-    ...seqr parser:aptv .chrp '#'
-      ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
-        ...seqr parser:aptv .chrp '\n'
-          ...seqr parser:aptv wsp .termp env
-  ...alt parser:altv
-    ...seqr parser:aptv .chrp '\'
-      ...seqr parser:aptv wsp
-        ...bind parser:mnad varp \name
-          ...fmap parser:ftor lam .termp ..cons name env
-  ...alt parser:altv
-    ...seqr parser:aptv .chrp '.'
-      ...seqr parser:aptv wsp
-        ....lifta2 parser:aptv app .termp env .termp env
   .empty parser:altv
 \termp
 
