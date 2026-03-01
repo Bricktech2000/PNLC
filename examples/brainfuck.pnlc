@@ -37,16 +37,15 @@
   \rhs \lhs
     .rhs \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
     .lhs \l0 \l1 \l2 \l3 \l4 \l5 \l6 \l7
-      .not
-        ..or ..xor r0 l0
-        ..or ..xor r1 l1
-        ..or ..xor r2 l2
-        ..or ..xor r3 l3
-        ..or ..xor r4 l4
-        ..or ..xor r5 l5
-        ..or ..xor r6 l6
-        ..or ..xor r7 l7
-      false
+      ..and ..bet r0 l0
+      ..and ..bet r1 l1
+      ..and ..bet r2 l2
+      ..and ..bet r3 l3
+      ..and ..bet r4 l4
+      ..and ..bet r5 l5
+      ..and ..bet r6 l6
+      ..and ..bet r7 l7
+      true
 \u8:eq
 ..def .seq
   \u8 .u8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7

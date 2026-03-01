@@ -52,21 +52,78 @@
 # def:bool
 ..def \true \false true \true
 ..def \true \false false \false
-..def ..vireo false true \not
-..def \lhs \rhs ..lhs rhs lhs \and
-..def \lhs \rhs ..lhs lhs rhs \or
-..def \lhs \rhs ...lhs not id rhs \xor
+..def .kestrel true  \mrk # mark
+..def .kestrel false \clr # clear
+..def ..vireo true false \buf # buffer
+..def ..vireo false true \not # invert
+# when updating diadic gates update the Monoid instances too
+..def ..vireo buf clr \and # minimum
+..def ..vireo mrk buf \or  # maximum
+..def ..vireo not clr \bgt # without
+..def ..vireo buf not \bet # xnor
+..def ..vireo clr buf \blt # -less
+..def ..vireo buf mrk \ble # implies
+..def ..vireo not buf \bne # xor
+..def ..vireo mrk not \bge # when
 
 # def:cmp
-..def \lt \et \gt lt \lt
-..def \lt \et \gt et \et
-..def \lt \et \gt gt \gt
-..def ...veery true false false \islt
+..def \gt \et \lt gt \gt
+..def \gt \et \lt et \et
+..def \gt \et \lt lt \lt
+..def ...veery true false false \isgt
 ..def ...veery false true false \iset
-..def ...veery false false true \isgt
-..def ...veery false true true \isge
+..def ...veery false false true \islt
+..def ...veery false true true \isle
 ..def ...veery true false true \isne
-..def ...veery true true false \isle
+..def ...veery true true false \isge
+..def ..vireo gt et \wolt # without lesser-than
+..def ..vireo gt lt \woet # without equal-to
+..def ..vireo et lt \wogt # without greater-than
+..def ..vireo et gt \woge # with only greater and equal
+..def ..vireo lt gt \wone # with only not equal
+..def ..vireo lt et \wole # with only lesser and equal
+..def .kestrel gt \tmrk # mark
+..def .kestrel et \trdc # redact
+..def .kestrel lt \tclr # clear
+..def ...veery gt et lt \tbuf # buffer
+..def ...veery gt gt lt \tptb # positive-threshold buffer
+..def ...veery gt lt lt \tntb # negative-threshold buffer
+..def ...veery lt et gt \tnot # invert
+..def ...veery lt gt gt \tpti # positive-threshold inverter
+..def ...veery lt lt gt \tnti # negative-threshold inverter
+..def ...veery gt et gt \tabs # absolute value
+..def ...veery lt et lt \tnbs # negative absolute value
+..def ...veery lt gt lt \tisz # is zero
+..def ...veery gt lt gt \tisn # is nonzero
+..def ...veery gt et et \tclu # clamp up
+..def ...veery et et lt \tcld # clamp down
+..def ...veery lt et et \tuci # up-clamped inverter
+..def ...veery et et gt \tdci # down-clamped inverter
+..def ...veery gt lt et \tppi # positive-pivot inverter
+..def ...veery et gt lt \tnpi # negative-pivot inverter
+..def ...veery lt gt et \tinc # increment
+..def ...veery et lt gt \tdec # decrement
+..def ...veery gt gt et \tins # increment and saturate
+..def ...veery et lt lt \tdes # decrement and saturate
+..def ...veery et gt et \tinr # increment and redact
+..def ...veery et lt et \tder # decrement and redact
+..def ...veery lt lt et \tnss # negative spaceship
+..def ...veery et gt gt \tpss # positive spaceship
+# when updating diadic gates update the Monoid instances too
+..def ...veery tbuf tcld tclr \tand  # minimum
+..def ...veery tmrk tclu tbuf \tor   # maximum
+..def ...veery tnbs tinr tnbs \tmean # mean
+..def ...veery tbuf tppi tpti \txmax # exclusive maximum
+..def ...veery tclu trdc tcld \tcons # consensus
+..def ...veery tins tbuf tdes \tgull # gullible
+..def ...veery tdes tbuf tins \tcord # converse order
+..def ...veery tpss tnot tnss \tord  # order
+..def ...veery tntb tisz tnti \teq   # equality
+..def ...veery tnot trdc tbuf \txor  # exclusive or
+..def ...veery tbuf trdc tnot \tmul  # multiplication
+..def ...veery tinc tbuf tdec \tsum  # addition
+..def ...veery tmrk tbuf tclr \telse # else, priority left
+..def ...veery tptb tbuf tntb \tnles # unless, priority right
 
 # def:opt
 ..def \opt \some \none .some opt \some
@@ -74,13 +131,6 @@
 ..def ..vireo .kestrel true false \issome
 ..def ..vireo .kestrel false true \isnone
 ..def ..vireo id $err \unwrap
-
-# def:nat
-..def \pred \succ \zero .succ pred \succ
-..def \succ \zero zero \zero
-..def ..vireo .kestrel true false \issucc
-..def ..vireo .kestrel false true \iszero
-..def ..vireo some none \pred
 
 ..def \fst \snd ..vireo fst snd \pair
 ..def .thrush \fst \snd fst \fst
@@ -117,147 +167,147 @@
 ..def .thrush \trace \ann trace \trace
 ..def .thrush \trace \ann ann \ann
 
-# type Arr8 a = (a, a, a, a, a, a, a, a)
-..def \0 \1 \2 \3 \4 \5 \6 \7 \arr8 ........arr8 0 1 2 3 4 5 6 7 \arr8
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 0 \arr8.0
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 1 \arr8.1
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 2 \arr8.2
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 3 \arr8.3
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 4 \arr8.4
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 5 \arr8.5
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 6 \arr8.6
-..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 7 \arr8.7
+# type Oct a = (a, a, a, a, a, a, a, a)
+..def \0 \1 \2 \3 \4 \5 \6 \7 \oct ........oct 0 1 2 3 4 5 6 7 \oct
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 0 \oct.0
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 1 \oct.1
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 2 \oct.2
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 3 \oct.3
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 4 \oct.4
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 5 \oct.5
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 6 \oct.6
+..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 7 \oct.7
 
 # def:u8
-# type U8 = Arr8 Bool = (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
-..def ........arr8 false false false false false false false false \nul
-..def ........arr8 true  false false false false false false false \soh
-..def ........arr8 false true  false false false false false false \stx
-..def ........arr8 true  true  false false false false false false \etx
-..def ........arr8 false false true  false false false false false \eot
-..def ........arr8 true  false true  false false false false false \enq
-..def ........arr8 false true  true  false false false false false \ack
-..def ........arr8 true  true  true  false false false false false \bel
-..def ........arr8 false false false true  false false false false \bs
-..def ........arr8 true  false false true  false false false false \ht
-..def ........arr8 false true  false true  false false false false \lf
-..def ........arr8 true  true  false true  false false false false \vt
-..def ........arr8 false false true  true  false false false false \ff
-..def ........arr8 true  false true  true  false false false false \cr
-..def ........arr8 false true  true  true  false false false false \so
-..def ........arr8 true  true  true  true  false false false false \si
-..def ........arr8 false false false false true  false false false \dle
-..def ........arr8 true  false false false true  false false false \dc1
-..def ........arr8 false true  false false true  false false false \dc2
-..def ........arr8 true  true  false false true  false false false \dc3
-..def ........arr8 false false true  false true  false false false \dc4
-..def ........arr8 true  false true  false true  false false false \nak
-..def ........arr8 false true  true  false true  false false false \syn
-..def ........arr8 true  true  true  false true  false false false \etb
-..def ........arr8 false false false true  true  false false false \can
-..def ........arr8 true  false false true  true  false false false \em
-..def ........arr8 false true  false true  true  false false false \sub
-..def ........arr8 true  true  false true  true  false false false \esc
-..def ........arr8 false false true  true  true  false false false \fs
-..def ........arr8 true  false true  true  true  false false false \gs
-..def ........arr8 false true  true  true  true  false false false \rs
-..def ........arr8 true  true  true  true  true  false false false \us
-..def ........arr8 false false false false false true  false false \sp
-..def ........arr8 true  false false false false true  false false \'!'
-..def ........arr8 false true  false false false true  false false \'"'
-..def ........arr8 true  true  false false false true  false false \'#'
-..def ........arr8 false false true  false false true  false false \'$'
-..def ........arr8 true  false true  false false true  false false \'%'
-..def ........arr8 false true  true  false false true  false false \'&'
-..def ........arr8 true  true  true  false false true  false false \'''
-..def ........arr8 false false false true  false true  false false \'('
-..def ........arr8 true  false false true  false true  false false \')'
-..def ........arr8 false true  false true  false true  false false \'*'
-..def ........arr8 true  true  false true  false true  false false \'+'
-..def ........arr8 false false true  true  false true  false false \','
-..def ........arr8 true  false true  true  false true  false false \'-'
-..def ........arr8 false true  true  true  false true  false false \'.'
-..def ........arr8 true  true  true  true  false true  false false \'/'
-..def ........arr8 false false false false true  true  false false \'0'
-..def ........arr8 true  false false false true  true  false false \'1'
-..def ........arr8 false true  false false true  true  false false \'2'
-..def ........arr8 true  true  false false true  true  false false \'3'
-..def ........arr8 false false true  false true  true  false false \'4'
-..def ........arr8 true  false true  false true  true  false false \'5'
-..def ........arr8 false true  true  false true  true  false false \'6'
-..def ........arr8 true  true  true  false true  true  false false \'7'
-..def ........arr8 false false false true  true  true  false false \'8'
-..def ........arr8 true  false false true  true  true  false false \'9'
-..def ........arr8 false true  false true  true  true  false false \':'
-..def ........arr8 true  true  false true  true  true  false false \';'
-..def ........arr8 false false true  true  true  true  false false \'<'
-..def ........arr8 true  false true  true  true  true  false false \'='
-..def ........arr8 false true  true  true  true  true  false false \'>'
-..def ........arr8 true  true  true  true  true  true  false false \'?'
-..def ........arr8 false false false false false false true  false \'@'
-..def ........arr8 true  false false false false false true  false \'A'
-..def ........arr8 false true  false false false false true  false \'B'
-..def ........arr8 true  true  false false false false true  false \'C'
-..def ........arr8 false false true  false false false true  false \'D'
-..def ........arr8 true  false true  false false false true  false \'E'
-..def ........arr8 false true  true  false false false true  false \'F'
-..def ........arr8 true  true  true  false false false true  false \'G'
-..def ........arr8 false false false true  false false true  false \'H'
-..def ........arr8 true  false false true  false false true  false \'I'
-..def ........arr8 false true  false true  false false true  false \'J'
-..def ........arr8 true  true  false true  false false true  false \'K'
-..def ........arr8 false false true  true  false false true  false \'L'
-..def ........arr8 true  false true  true  false false true  false \'M'
-..def ........arr8 false true  true  true  false false true  false \'N'
-..def ........arr8 true  true  true  true  false false true  false \'O'
-..def ........arr8 false false false false true  false true  false \'P'
-..def ........arr8 true  false false false true  false true  false \'Q'
-..def ........arr8 false true  false false true  false true  false \'R'
-..def ........arr8 true  true  false false true  false true  false \'S'
-..def ........arr8 false false true  false true  false true  false \'T'
-..def ........arr8 true  false true  false true  false true  false \'U'
-..def ........arr8 false true  true  false true  false true  false \'V'
-..def ........arr8 true  true  true  false true  false true  false \'W'
-..def ........arr8 false false false true  true  false true  false \'X'
-..def ........arr8 true  false false true  true  false true  false \'Y'
-..def ........arr8 false true  false true  true  false true  false \'Z'
-..def ........arr8 true  true  false true  true  false true  false \'['
-..def ........arr8 false false true  true  true  false true  false \'\'
-..def ........arr8 true  false true  true  true  false true  false \']'
-..def ........arr8 false true  true  true  true  false true  false \'^'
-..def ........arr8 true  true  true  true  true  false true  false \'_'
-..def ........arr8 false false false false false true  true  false \'`'
-..def ........arr8 true  false false false false true  true  false \'a'
-..def ........arr8 false true  false false false true  true  false \'b'
-..def ........arr8 true  true  false false false true  true  false \'c'
-..def ........arr8 false false true  false false true  true  false \'d'
-..def ........arr8 true  false true  false false true  true  false \'e'
-..def ........arr8 false true  true  false false true  true  false \'f'
-..def ........arr8 true  true  true  false false true  true  false \'g'
-..def ........arr8 false false false true  false true  true  false \'h'
-..def ........arr8 true  false false true  false true  true  false \'i'
-..def ........arr8 false true  false true  false true  true  false \'j'
-..def ........arr8 true  true  false true  false true  true  false \'k'
-..def ........arr8 false false true  true  false true  true  false \'l'
-..def ........arr8 true  false true  true  false true  true  false \'m'
-..def ........arr8 false true  true  true  false true  true  false \'n'
-..def ........arr8 true  true  true  true  false true  true  false \'o'
-..def ........arr8 false false false false true  true  true  false \'p'
-..def ........arr8 true  false false false true  true  true  false \'q'
-..def ........arr8 false true  false false true  true  true  false \'r'
-..def ........arr8 true  true  false false true  true  true  false \'s'
-..def ........arr8 false false true  false true  true  true  false \'t'
-..def ........arr8 true  false true  false true  true  true  false \'u'
-..def ........arr8 false true  true  false true  true  true  false \'v'
-..def ........arr8 true  true  true  false true  true  true  false \'w'
-..def ........arr8 false false false true  true  true  true  false \'x'
-..def ........arr8 true  false false true  true  true  true  false \'y'
-..def ........arr8 false true  false true  true  true  true  false \'z'
-..def ........arr8 true  true  false true  true  true  true  false \'{'
-..def ........arr8 false false true  true  true  true  true  false \'|'
-..def ........arr8 true  false true  true  true  true  true  false \'}'
-..def ........arr8 false true  true  true  true  true  true  false \'~'
-..def ........arr8 true  true  true  true  true  true  true  false \del
+# type U8 = Oct Bool
+..def ........oct false false false false false false false false \nul
+..def ........oct true  false false false false false false false \soh
+..def ........oct false true  false false false false false false \stx
+..def ........oct true  true  false false false false false false \etx
+..def ........oct false false true  false false false false false \eot
+..def ........oct true  false true  false false false false false \enq
+..def ........oct false true  true  false false false false false \ack
+..def ........oct true  true  true  false false false false false \bel
+..def ........oct false false false true  false false false false \bs
+..def ........oct true  false false true  false false false false \ht
+..def ........oct false true  false true  false false false false \lf
+..def ........oct true  true  false true  false false false false \vt
+..def ........oct false false true  true  false false false false \ff
+..def ........oct true  false true  true  false false false false \cr
+..def ........oct false true  true  true  false false false false \so
+..def ........oct true  true  true  true  false false false false \si
+..def ........oct false false false false true  false false false \dle
+..def ........oct true  false false false true  false false false \dc1
+..def ........oct false true  false false true  false false false \dc2
+..def ........oct true  true  false false true  false false false \dc3
+..def ........oct false false true  false true  false false false \dc4
+..def ........oct true  false true  false true  false false false \nak
+..def ........oct false true  true  false true  false false false \syn
+..def ........oct true  true  true  false true  false false false \etb
+..def ........oct false false false true  true  false false false \can
+..def ........oct true  false false true  true  false false false \em
+..def ........oct false true  false true  true  false false false \sub
+..def ........oct true  true  false true  true  false false false \esc
+..def ........oct false false true  true  true  false false false \fs
+..def ........oct true  false true  true  true  false false false \gs
+..def ........oct false true  true  true  true  false false false \rs
+..def ........oct true  true  true  true  true  false false false \us
+..def ........oct false false false false false true  false false \sp
+..def ........oct true  false false false false true  false false \'!'
+..def ........oct false true  false false false true  false false \'"'
+..def ........oct true  true  false false false true  false false \'#'
+..def ........oct false false true  false false true  false false \'$'
+..def ........oct true  false true  false false true  false false \'%'
+..def ........oct false true  true  false false true  false false \'&'
+..def ........oct true  true  true  false false true  false false \'''
+..def ........oct false false false true  false true  false false \'('
+..def ........oct true  false false true  false true  false false \')'
+..def ........oct false true  false true  false true  false false \'*'
+..def ........oct true  true  false true  false true  false false \'+'
+..def ........oct false false true  true  false true  false false \','
+..def ........oct true  false true  true  false true  false false \'-'
+..def ........oct false true  true  true  false true  false false \'.'
+..def ........oct true  true  true  true  false true  false false \'/'
+..def ........oct false false false false true  true  false false \'0'
+..def ........oct true  false false false true  true  false false \'1'
+..def ........oct false true  false false true  true  false false \'2'
+..def ........oct true  true  false false true  true  false false \'3'
+..def ........oct false false true  false true  true  false false \'4'
+..def ........oct true  false true  false true  true  false false \'5'
+..def ........oct false true  true  false true  true  false false \'6'
+..def ........oct true  true  true  false true  true  false false \'7'
+..def ........oct false false false true  true  true  false false \'8'
+..def ........oct true  false false true  true  true  false false \'9'
+..def ........oct false true  false true  true  true  false false \':'
+..def ........oct true  true  false true  true  true  false false \';'
+..def ........oct false false true  true  true  true  false false \'<'
+..def ........oct true  false true  true  true  true  false false \'='
+..def ........oct false true  true  true  true  true  false false \'>'
+..def ........oct true  true  true  true  true  true  false false \'?'
+..def ........oct false false false false false false true  false \'@'
+..def ........oct true  false false false false false true  false \'A'
+..def ........oct false true  false false false false true  false \'B'
+..def ........oct true  true  false false false false true  false \'C'
+..def ........oct false false true  false false false true  false \'D'
+..def ........oct true  false true  false false false true  false \'E'
+..def ........oct false true  true  false false false true  false \'F'
+..def ........oct true  true  true  false false false true  false \'G'
+..def ........oct false false false true  false false true  false \'H'
+..def ........oct true  false false true  false false true  false \'I'
+..def ........oct false true  false true  false false true  false \'J'
+..def ........oct true  true  false true  false false true  false \'K'
+..def ........oct false false true  true  false false true  false \'L'
+..def ........oct true  false true  true  false false true  false \'M'
+..def ........oct false true  true  true  false false true  false \'N'
+..def ........oct true  true  true  true  false false true  false \'O'
+..def ........oct false false false false true  false true  false \'P'
+..def ........oct true  false false false true  false true  false \'Q'
+..def ........oct false true  false false true  false true  false \'R'
+..def ........oct true  true  false false true  false true  false \'S'
+..def ........oct false false true  false true  false true  false \'T'
+..def ........oct true  false true  false true  false true  false \'U'
+..def ........oct false true  true  false true  false true  false \'V'
+..def ........oct true  true  true  false true  false true  false \'W'
+..def ........oct false false false true  true  false true  false \'X'
+..def ........oct true  false false true  true  false true  false \'Y'
+..def ........oct false true  false true  true  false true  false \'Z'
+..def ........oct true  true  false true  true  false true  false \'['
+..def ........oct false false true  true  true  false true  false \'\'
+..def ........oct true  false true  true  true  false true  false \']'
+..def ........oct false true  true  true  true  false true  false \'^'
+..def ........oct true  true  true  true  true  false true  false \'_'
+..def ........oct false false false false false true  true  false \'`'
+..def ........oct true  false false false false true  true  false \'a'
+..def ........oct false true  false false false true  true  false \'b'
+..def ........oct true  true  false false false true  true  false \'c'
+..def ........oct false false true  false false true  true  false \'d'
+..def ........oct true  false true  false false true  true  false \'e'
+..def ........oct false true  true  false false true  true  false \'f'
+..def ........oct true  true  true  false false true  true  false \'g'
+..def ........oct false false false true  false true  true  false \'h'
+..def ........oct true  false false true  false true  true  false \'i'
+..def ........oct false true  false true  false true  true  false \'j'
+..def ........oct true  true  false true  false true  true  false \'k'
+..def ........oct false false true  true  false true  true  false \'l'
+..def ........oct true  false true  true  false true  true  false \'m'
+..def ........oct false true  true  true  false true  true  false \'n'
+..def ........oct true  true  true  true  false true  true  false \'o'
+..def ........oct false false false false true  true  true  false \'p'
+..def ........oct true  false false false true  true  true  false \'q'
+..def ........oct false true  false false true  true  true  false \'r'
+..def ........oct true  true  false false true  true  true  false \'s'
+..def ........oct false false true  false true  true  true  false \'t'
+..def ........oct true  false true  false true  true  true  false \'u'
+..def ........oct false true  true  false true  true  true  false \'v'
+..def ........oct true  true  true  false true  true  true  false \'w'
+..def ........oct false false false true  true  true  true  false \'x'
+..def ........oct true  false false true  true  true  true  false \'y'
+..def ........oct false true  false true  true  true  true  false \'z'
+..def ........oct true  true  false true  true  true  true  false \'{'
+..def ........oct false false true  true  true  true  true  false \'|'
+..def ........oct true  false true  true  true  true  true  false \'}'
+..def ........oct false true  true  true  true  true  true  false \'~'
+..def ........oct true  true  true  true  true  true  true  false \del
 ..def nul \'\0'
 ..def bel \'\a'
 ..def bs  \'\b'
@@ -417,8 +467,8 @@
 ..def .thrush \eq \compare eq \ord:eq
 ..def .thrush \eq \compare compare \compare # \rhs \lhs
 # return the right-hand side when the arguments compare equal
-..def \ord \lhs \rhs ......compare ord rhs lhs lhs rhs rhs \min
-..def \ord \lhs \rhs ......compare ord rhs lhs rhs rhs lhs \max
+..def \ord \lhs \rhs ......compare ord rhs lhs rhs rhs lhs \min
+..def \ord \lhs \rhs ......compare ord rhs lhs lhs rhs rhs \max
 ..def \ord .thrush .min ord \min:sgrp
 ..def \ord .thrush .max ord \max:sgrp
 ..def \ord \bndd .bndd \top \bot
@@ -680,50 +730,47 @@
 ..def ..mnid unit:sgrp unit \unit:mnid
 ..def ..mnid void:sgrp void \void:mnid
 
-..def .eq
-  \rhs \lhs ..rhs
-    ..lhs true false
-    ..lhs false true
-\bool:eq
-..def ..ord
-  bool:eq
-  \rhs \lhs ..rhs
-    ..lhs et lt
-    ..lhs gt et
-\bool:ord
+..def .eq bet \bool:eq
+..def ..ord bool:eq ..psi tcord woet \bool:ord
 ..def ..bndd true false \bool:bndd
 ..def .dbg \bool ..bool :1 :0 \bool:dbg
 ..def .seq \bool ..bool id id \bool:seq
-# these are duplicates of `..min:mnid bool:ord bool:bndd` and `..max:mnid
-# bool:ord bool:bndd`, but they're common enough to warrant special cases
+# `and:mnid` and `or:mnid` work like `..min:mnid bool:ord bool:bndd` and
+# `..max:mnid bool:ord bool:bndd`
 ..def .sgrp and \and:sgrp
-..def .sgrp or \or:sgrp
-..def .sgrp xor \xor:sgrp
-..def ..mnid and:sgrp true \and:mnid
-..def ..mnid or:sgrp false \or:mnid
-..def ..mnid xor:sgrp false \xor:mnid
+..def .sgrp or  \or:sgrp
+..def .sgrp bne \bne:sgrp
+..def .sgrp bet \bet:sgrp
+..def ..mnid and:sgrp true  \and:mnid
+..def ..mnid or:sgrp  false \or:mnid
+..def ..mnid bne:sgrp false \bne:mnid
+..def ..mnid bet:sgrp false \bet:mnid
 
-..def .eq
-  \rhs \lhs ...rhs
-    ...lhs true false false
-    ...lhs false true false
-    ...lhs false false true
-\cmp:eq
-..def ..ord
-  cmp:eq
-  \rhs \lhs ...rhs
-    ...lhs et gt gt
-    ...lhs lt et gt
-    ...lhs lt lt et
-\cmp:ord
+..def .eq ..blackbird isgt teq \cmp:eq
+..def ..ord cmp:eq tcord \cmp:ord
 ..def ..bndd gt lt \cmp:bndd
-..def .dbg \cmp ...cmp :< := :> \cmp:dbg
+..def .dbg \cmp ...cmp :> := :< \cmp:dbg
 ..def .seq \cmp ...cmp id id id \cmp:seq
-..def .sgrp \lhs \rhs ...lhs lhs rhs lhs \cmp:sgrp
-..def ..mnid cmp:sgrp et \cmp:mnid
+# `tand:mnid` and `tor:mnid` work like `..min:mnid cmp:ord cmp:bndd` and
+# `..max:mnid cmp:ord cmp:bndd`
+..def .sgrp tand  \tand:sgrp
+..def .sgrp tor   \tor:sgrp
+..def .sgrp tcons \tcons:sgrp
+..def .sgrp txor  \txor:sgrp
+..def .sgrp tmul  \tmul:sgrp
+..def .sgrp tsum  \tsum:sgrp
+..def .sgrp telse \telse:sgrp
+..def .sgrp tnles \tnles:sgrp
+..def ..mnid tand:sgrp  gt \tand:mnid
+..def ..mnid tor:sgrp   lt \tor:mnid
+..def ..mnid txor:sgrp  lt \txor:mnid
+..def ..mnid tmul:sgrp  gt \tmul:mnid
+..def ..mnid tsum:sgrp  et \tsum:mnid
+..def ..mnid telse:sgrp et \telse:mnid
+..def ..mnid tnles:sgrp et \tnles:mnid
 # the reverse ordering, obtained by swapping arguments to `compare`
-..def \inner:ord .inner:ord \innereq \innercompare
-  ..ord innereq .cardinal innercompare
+..def \inner:ord .inner:ord \inner:eq \innercompare
+  ..ord inner:eq .cardinal innercompare
 \down:ord
 # the reverse bounding, obtained by swapping `top` and `bot`
 ..def \inner:bndd .inner:bndd \innertop \innerbot
@@ -792,6 +839,10 @@
 ..def \elem:ord .down:ord .opt:ord .down:ord elem:ord \every:ord
 ..def \elem:bndd .down:bndd .opt:bndd .down:bndd elem:bndd \every:bndd
 
+# def:nat
+# type Nat = Fix Maybe
+..def some \succ
+..def none \zero
 # the "base" functor for `nat`, with the property `Fix NatF = Nat`.
 # `data NatF a = Succ a | Zero deriving Functor`
 ..def .ftor
@@ -802,16 +853,17 @@
 ..def .fix opt:bndd \nat:bndd # zero, fix succ
 ..def .fix opt:dbg \nat:dbg # S = some = succ, N = none = naught
 ..def .fix opt:seq \nat:seq
-..def opt:ftor \nat:ftor
-..def opt:aptv \nat:aptv
-..def opt:mnad \nat:mnad
-..def opt:altv \nat:altv
-..def opt:fldb \nat:fldb
-..def opt:tvsb \nat:tvsb
 ..def \rhs \lhs ...cata natf:ftor ..vireo succ lhs rhs \add
 ..def \rhs \lhs ...cata natf:ftor ..vireo .add lhs zero rhs \mul
 ..def \rhs \lhs ...cata natf:ftor ..vireo .mul lhs .succ zero rhs \exp
 ..def \rhs \lhs ...cata natf:ftor ..vireo ..cardinal exp lhs .succ zero rhs \tet
+..def ..cata natf:ftor ..vireo \f ..vireo f zero id \satsub
+..def ..cata natf:ftor ..vireo \f ..vireo f zero succ \sub
+..def \rhs \lhs ...fix \rec \quot \rem
+  ....sub rhs rem .rec .succ quot ..pair quot rem
+zero lhs \divmod
+..def ..blackbird fst divmod \div
+..def ..blackbird snd divmod \mod
 ..def ..cata natf:ftor ..vireo not true \even
 ..def ..cata natf:ftor ..vireo not false \odd
 ..def .sgrp add \add:sgrp
@@ -889,11 +941,11 @@
   ..res:bndd err:bndd ok:bndd
 \flip:bndd
 # the debugging obtained by flipping elements of the either debugging
-..def \err:dbg \ok:dbg
+..def \err:dbg \ok:dbg .dbg
   \res ..debug ..res:dbg err:dbg ok:dbg .flip res
 \flip:dbg
 # the sequencing obtained by flipping elements of the either sequencing
-..def \err:seq \ok:seq
+..def \err:seq \ok:seq .seq
   \res ..force ..res:seq err:seq ok:seq .flip res
 \flip:seq
 # the monad obtained by flipping elements of the either monad
@@ -988,7 +1040,7 @@
 ..def \fst:eq \snd:eq
   .eq
     \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
-      ...sappend and:sgrp # and
+      ..and
         ...equal fst:eq rhsfst lhsfst
         ...equal snd:eq rhssnd lhssnd
 \pair:eq
@@ -996,7 +1048,7 @@
   ..ord
     ..pair:eq .ord:eq fst:ord .ord:eq snd:ord
     \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
-      ...sappend cmp:sgrp
+      ..telse
         ...compare fst:ord rhsfst lhsfst
         ...compare snd:ord rhssnd lhssnd
 \pair:ord
@@ -1191,7 +1243,6 @@
     \func \arg
       .fnbool.iso ...becard func fnbool.iso ..blackbird arg boolsappend
 \sqr:cmnd
-# XXX make an equivalent for Fn? would need an `Enum`
 ..def .fldb
   \sqrval .sqrval \fst \snd ..cons fst ..cons snd nil
 \sqr:fldb
@@ -1204,11 +1255,6 @@
   sqr:ftor
   unzip
 \sqr:dstv
-
-# # XXX make an `Enum`?
-# ..def \env:enum .fldb
-#   \fnaval ...fmap list:ftor fnaval .enumerate env:enum
-# \fna:fldb
 
 # type Fn a b = a -> b
 ..def \inner:sgrp .inner:sgrp \innersappend
@@ -1256,7 +1302,7 @@
 ..def ..mnad
   stream:aptv
   \streamarg \func ...ana streamf:ftor
-    # take the diagonal, same idea as `arr8:mnad`
+    # take the diagonal, same idea as `oct:mnad`
     .thrush \fststream \sndstream
       ..pair .fst fststream ...fmap streamf:ftor snd sndstream
     ...fmap stream:ftor func streamarg
@@ -1370,7 +1416,7 @@
 ..def .ftor
   \func \listfarg ..listfarg \head \tail ..cons head .func tail nil
 \listf:ftor
-..def \elem:mnid .elem:mnid \sgrp \mempty .sgrp \sappend
+..def \elem:mnid .elem:mnid \elem:sgrp \mempty .elem:sgrp \sappend
   ..cata listf:ftor ..vireo sappend mempty
 \fold
 # no need for `Monoid (List a)`, it'd be isomorphic to `Alternative f =>
@@ -1415,7 +1461,7 @@
         ..lhs conscons \head \tail false
         ..lhs \head \tail false true
       \lhshead \lhstail \rhshead \rhstail
-        ...sappend and:sgrp # and
+        ..and
           ..elemequal rhshead lhshead
           ..listequal rhstail lhstail
 \list:eq
@@ -1427,7 +1473,7 @@
         ..lhs conscons \head \tail lt
         ..lhs \head \tail gt et
       \lhshead \lhstail \rhshead \rhstail
-        ...sappend cmp:sgrp
+        ..telse
           ..elemcompare rhshead lhshead
           ..listcompare rhstail lhstail
 \list:ord
@@ -1693,7 +1739,7 @@
 ..def \trace:eq1 \ann:eq .fix \cofree:eq
   .eq
     \rhs \lhs .rhs \rhstrace \rhsann .lhs \lhstrace \lhsann
-      ...sappend and:sgrp # and
+      ..and
         ...equal ann:eq rhsann lhsann
         ...equal .trace:eq1 cofree:eq rhstrace lhstrace
 \cofree:eq
@@ -1701,7 +1747,7 @@
   ..ord
     ..cofree:eq ..bluebird ord:eq trace:ord1 .ord:eq ann:ord
     \rhs \lhs .rhs \rhstrace \rhsann .lhs \lhstrace \lhsann
-      ...sappend cmp:sgrp
+      ..telse
         ...compare ann:ord rhsann lhsann
         ...compare .trace:ord1 cofree:ord rhstrace lhstrace
 \cofree:ord
@@ -1779,9 +1825,9 @@
 \cofree:dstv
 
 ..def .ftor
-  \func \arr8arg
-    .arr8arg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-      ........arr8
+  \func \octarg
+    .octarg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+      ........oct
         .func a0
         .func a1
         .func a2
@@ -1790,14 +1836,14 @@
         .func a5
         .func a6
         .func a7
-\arr8:ftor
+\oct:ftor
 ..def ...aptv
-  arr8:ftor
-  \val ........arr8 val val val val val val val val
-  \arr8func \arr8arg
-    .arr8func \f0 \f1 \f2 \f3 \f4 \f5 \f6 \f7
-      .arr8arg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-        ........arr8
+  oct:ftor
+  \val ........oct val val val val val val val val
+  \octfunc \octarg
+    .octfunc \f0 \f1 \f2 \f3 \f4 \f5 \f6 \f7
+      .octarg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+        ........oct
           .f0 a0
           .f1 a1
           .f2 a2
@@ -1806,24 +1852,24 @@
           .f5 a5
           .f6 a6
           .f7 a7
-\arr8:aptv
+\oct:aptv
 ..def ..mnad
-  arr8:aptv
-  \arr8arg \func
-    .arr8arg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-      ........arr8
-        .arr8.0 .func a0
-        .arr8.1 .func a1
-        .arr8.2 .func a2
-        .arr8.3 .func a3
-        .arr8.4 .func a4
-        .arr8.5 .func a5
-        .arr8.6 .func a6
-        .arr8.7 .func a7
-\arr8:mnad
+  oct:aptv
+  \octarg \func
+    .octarg \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+      ........oct
+        .oct.0 .func a0
+        .oct.1 .func a1
+        .oct.2 .func a2
+        .oct.3 .func a3
+        .oct.4 .func a4
+        .oct.5 .func a5
+        .oct.6 .func a6
+        .oct.7 .func a7
+\oct:mnad
 ..def .fldb
-  \arr8val
-    .arr8val \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  \octval
+    .octval \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ..cons a0
       ..cons a1
       ..cons a2
@@ -1833,12 +1879,12 @@
       ..cons a6
       ..cons a7
       nil
-\arr8:fldb
+\oct:fldb
 ..def ...tvsb
-  arr8:ftor
-  arr8:fldb
-  \elem:aptv \arr8aptv
-    .arr8aptv \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  oct:ftor
+  oct:fldb
+  \elem:aptv \octaptv
+    .octaptv \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
       ..def .cardinal .apply elem:aptv \capply
       ..capply a7
       ..capply a6
@@ -1848,23 +1894,23 @@
       ..capply a2
       ..capply a1
       ..capply a0
-      ..pure elem:aptv arr8
-\arr8:tvsb
+      ..pure elem:aptv oct
+\oct:tvsb
 ..def ..dstv
-  arr8:ftor
+  oct:ftor
   \outer:ftor .outer:ftor \outerfmap
-    \ftorarr8 ........arr8
-      ..outerfmap arr8.0 ftorarr8
-      ..outerfmap arr8.1 ftorarr8
-      ..outerfmap arr8.2 ftorarr8
-      ..outerfmap arr8.3 ftorarr8
-      ..outerfmap arr8.4 ftorarr8
-      ..outerfmap arr8.5 ftorarr8
-      ..outerfmap arr8.6 ftorarr8
-      ..outerfmap arr8.7 ftorarr8
-\arr8:dstv
-..def \func \zero \arr8
-  .arr8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    \ftoroct ........oct
+      ..outerfmap oct.0 ftoroct
+      ..outerfmap oct.1 ftoroct
+      ..outerfmap oct.2 ftoroct
+      ..outerfmap oct.3 ftoroct
+      ..outerfmap oct.4 ftoroct
+      ..outerfmap oct.5 ftoroct
+      ..outerfmap oct.6 ftoroct
+      ..outerfmap oct.7 ftoroct
+\oct:dstv
+..def \func \zero \oct
+  .oct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     ..func
       ..func
         ..func
@@ -1882,9 +1928,9 @@
           a5
         a6
       a7
-\arr8.foldl
-..def \func \zero \arr8
-  .arr8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+\oct.foldl
+..def \func \zero \oct
+  .oct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     ..func a0
       ..func a1
         ..func a2
@@ -1894,39 +1940,39 @@
                 ..func a6
                   ..func a7
                     zero
-\arr8.foldr
+\oct.foldr
 ..def \elem:eq .elem:eq \elemequal
   .eq
-    \rhs \lhs ..fold and:mnid ..tolist arr8:fldb
-      ....lifta2 arr8:aptv elemequal rhs lhs
-\arr8:eq
+    \rhs \lhs ..fold and:mnid ..tolist oct:fldb
+      ....lifta2 oct:aptv elemequal rhs lhs
+\oct:eq
 ..def \elem:ord .elem:ord \elem:eq \elemcompare
   ..ord
-    .arr8:eq elem:eq
-    \rhs \lhs ..fold cmp:mnid ..tolist arr8:fldb
-      ....lifta2 arr8:aptv elemcompare rhs lhs
-\arr8:ord
+    .oct:eq elem:eq
+    \rhs \lhs ..fold tnles:mnid ..tolist oct:fldb
+      ....lifta2 oct:aptv elemcompare rhs lhs
+\oct:ord
 ..def \elem:bndd .elem:bndd \elemtop \elembot
   ..bndd
-    ..pure arr8:aptv elemtop
-    ..pure arr8:aptv elembot
-\arr8:bndd
+    ..pure oct:aptv elemtop
+    ..pure oct:aptv elembot
+\oct:bndd
 ..def \elem:dbg .elem:dbg \elemdebug
   .dbg
-    \arr8 ..fold .dual:mnid endo:mnid ..tolist arr8:fldb
-      ...fmap arr8:ftor elemdebug arr8
-\arr8:dbg
+    \oct ..fold .dual:mnid endo:mnid ..tolist oct:fldb
+      ...fmap oct:ftor elemdebug oct
+\oct:dbg
 ..def \elem:seq .elem:seq \elemforce
   .seq
-    \arr8 ..fold endo:mnid ..tolist arr8:fldb
-      ...fmap arr8:ftor elemforce arr8
-\arr8:seq
+    \oct ..fold endo:mnid ..tolist oct:fldb
+      ...fmap oct:ftor elemforce oct
+\oct:seq
 
-..def .arr8:eq bool:eq \u8:eq
-..def .arr8:ord bool:ord \u8:ord
-..def .arr8:bndd bool:bndd \u8:bndd
-..def .arr8:dbg bool:dbg \u8:dbg
-..def .arr8:seq bool:seq \u8:seq
+..def .oct:eq bool:eq \u8:eq
+..def .oct:ord bool:ord \u8:ord
+..def .oct:bndd bool:bndd \u8:bndd
+..def .oct:dbg bool:dbg \u8:dbg
+..def .oct:seq bool:seq \u8:seq
 ..def .dbg
   \u8 .u8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     .\nibble ..bluebird
@@ -1936,134 +1982,134 @@
       ..n2 ..n1 ..n0 :f :e ..n0 :d :c ..n1 ..n0 :b :a ..n0 :9 :8
       ..n2 ..n1 ..n0 :7 :6 ..n0 :5 :4 ..n1 ..n0 :3 :2 ..n0 :1 :0
 \u8.hex:dbg
-# do case analysis on each bit, looking any bit at most once. `..and`, `..or`,
-# `..and .not` and `..or .not` are special casees of case analysis where one
-# branch short-circuits, so we allow those too
+# do case analysis on each bit, looking any bit at most once. `and`, `or`, `blt`
+# and `ble` are special cases of case analysis where one branch short-circuits,
+# so we allow those too. memory aid:
+#     `.and aN` --- it is necessary that aN be true
+#     `.or  aN` --- it is sufficient that aN be true
+#     `.blt aN` --- it is necessary that aN be false
+#     `.ble aN` --- it is sufficient that aN be false
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..a6
+  ..blt a7 ..a6
     ..a4 # isalpha
-      ..or .not a3 ..and .not a2 ..or .not a1 .not a0
-      ..or a3 ..or a2 ..or a1 a0
-    ..and a5 ..and a4 ..or .not a3 ..and .not a2 .not a1 # isdigit
+      ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
+      ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
+    ..and a5 ..and a4 ..ble a3 ..blt a2 ..blt a1 true # isdigit
 \isalnum
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..and a6 ..a4
-    ..or .not a3 ..and .not a2 ..or .not a1 .not a0
-    ..or a3 ..or a2 ..or a1 a0
+  ..blt a7 ..and a6 ..a4
+    ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
+    ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
 \isalpha
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..and .not a6 ..and .not a4 ..and .not a2 ..and .not a1 ..a5
-    ..and .not a3 .not a0
-    ..and a3 a0
+  ..blt a7 ..blt a6 ..blt a4 ..blt a2 ..blt a1 ..a5
+    ..blt a3 ..blt a0 true
+    ..and a3 ..and a0 true
 \isblank
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..a6
-    ..and a5 ..and a4 ..and a3 ..and a2 ..and a1 a0
-    ..and .not a5 ..and .not a4 ..and .not a3
-      ..and .not a2 ..and .not a1 .not a0 # !isprint
+  ..blt a7 ..a6
+    ..and a5 ..and a4 ..and a3 ..and a2 ..and a1 ..and a0 true
+    ..blt a5 ..blt a4 ..blt a3 ..blt a2 ..blt a1 ..blt a0 true # !isprint
 \iscntrl
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..and .not a6
-    ..and a5 ..and a4 ..or .not a3 ..and .not a2 .not a1
+  ..blt a7 ..blt a6 ..and a5 ..and a4 ..ble a3 ..blt a2 ..blt a1 true
 \isdigit
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..a6
-    ..or .not a5 ..or .not a4 ..or .not a3
-      ..or .not a2 ..or .not a1 .not a0 # isprint
-    ..and a5 ..or a4 ..or a3 ..or a2 ..or a1 a0
+  ..blt a7 ..a6
+    ..ble a5 ..ble a4 ..ble a3 ..ble a2 ..ble a1 ..ble a0 false # isprint
+    ..and a5 ..or  a4 ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
 \isgraph
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..and a6 ..and a5 ..a4
+  ..blt a7 ..and a6 ..and a5 ..a4
     # isalpha
-    ..or .not a3 ..and .not a2 ..or .not a1 .not a0
-    ..or a3 ..or a2 ..or a1 a0
+    ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
+    ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
 \islower
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..a6
-    ..or .not a5 ..or .not a4 ..or .not a3
-      ..or .not a2 ..or .not a1 .not a0
-    a5
+  ..blt a7 ..a6
+    ..ble a5 ..ble a4 ..ble a3 ..ble a2 ..ble a1 ..ble a0 false
+    ..or  a5 false
 \isprint
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..a6
+  ..blt a7 ..a6
     ..a4
       ..and a3 ..a5
-        ..or a2 ..and a1 a0
+        ..or  a2 ..and a1 ..and a0 true
         ..a2
-          ..and a1 a0
-          ..or .not a1 .not a0
-      ..and .not a3 ..and .not a2 ..and .not a1 .not a0
+          ..and a1 ..and a0 true
+          ..ble a1 ..ble a0 false
+      ..blt a3 ..blt a2 ..blt a1 ..blt a0 true
     ..and a5 ..a4
-      ..and a3 ..or a2 a1
-      ..or a3 ..or a2 ..or a1 a0
+      ..and a3 ..or  a2 ..or  a1 false
+      ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
 \ispunct
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..and .not a6 ..and .not a4 ..a5
-    ..and .not a3 ..and .not a2 ..and .not a1 .not a0
+  ..blt a7 ..blt a6 ..blt a4 ..a5
+    ..blt a3 ..blt a2 ..blt a1 ..blt a0 true
     ..and a3 ..a2
-      .not a1
-      ..or a1 a0
+      ..blt a1 true
+      ..or  a1 ..or  a0 false
 \isspace
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..and a6 ..and .not a5 ..a4
+  ..blt a7 ..and a6 ..blt a5 ..a4
     # isalpha
-    ..or .not a3 ..and .not a2 ..or .not a1 .not a0
-    ..or a3 ..or a2 ..or a1 a0
+    ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
+    ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
 \isupper
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..and .not a7 ..a6
-    ..and .not a4 ..and .not a3 ..a2
-      ..or .not a1 .not a0
-      ..or a1 a0
-    ..and a5 ..and a4 ..or .not a3 ..and .not a2 .not a1 # isdigit
+  ..blt a7 ..a6
+    ..blt a4 ..blt a3 ..a2
+      ..ble a1 ..ble a0 false
+      ..or  a1 ..or  a0 false
+    ..and a5 ..and a4 ..ble a3 ..blt a2 ..blt a1 true # isdigit
 \isxdigit
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  .not a7
+  ..blt a7 true
 \isascii
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ........arr8 a0 a1 true  a3 a4 a5 a6 a7
+  ........oct a0 a1 a2 a3 a4 true  a6 a7
 \mklower
 ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ........arr8 a0 a1 false a3 a4 a5 a6 a7
+  ........oct a0 a1 a2 a3 a4 false a5 a7
 \mkupper
 ..def \chr ...isupper chr .mklower chr chr \tolower
 ..def \chr ...islower chr .mkupper chr chr \toupper
 ..def \c \rhs \lhs
-  ...arr8.foldl
-    .thrush \c \arr8 .thrush \rhs \lhs
+  ...oct.foldl
+    .thrush \c \oct .thrush \rhs \lhs
       ..pair
-        ..or ..and c ..xor rhs lhs ..and rhs lhs
-        .arr8 ..xor c ..xor rhs lhs
-    ..pair c arr8
-    # ...sequence sqr:tvsb arr8:aptv ..pair rhs lhs # works too
-    ....lifta2 arr8:aptv pair rhs lhs
+        ..or ..and c ..bne rhs lhs ..and rhs lhs
+        .oct ..bne c ..bne rhs lhs
+    ..pair c oct
+    # ...sequence sqr:tvsb oct:aptv ..pair rhs lhs # works too
+    ....lifta2 oct:aptv pair rhs lhs
 \u8.addc
 ..def \b \rhs \lhs
-  ...arr8.foldl
-    .thrush \b \arr8 .thrush \rhs \lhs
+  ...oct.foldl
+    .thrush \b \oct .thrush \rhs \lhs
       ..pair
-        ..or ..and b ..xor rhs .not lhs ..and rhs .not lhs
-        .arr8 ..xor b ..xor rhs lhs
-    ..pair b arr8
-    # ...sequence sqr:tvsb arr8:aptv ..pair rhs lhs # works too
-    ....lifta2 arr8:aptv pair rhs lhs
+        ..or ..and b ..bne rhs .not lhs ..and rhs .not lhs
+        .oct ..bne b ..bne rhs lhs
+    ..pair b oct
+    # ...sequence sqr:tvsb oct:aptv ..pair rhs lhs # works too
+    ....lifta2 oct:aptv pair rhs lhs
 \u8.subb
 ..def \c \arg
-  ...arr8.foldl
-    .thrush \c \arr8 \cur
+  ...oct.foldl
+    .thrush \c \oct \cur
       ..pair
         ..and c cur
-        .arr8 ..xor c cur
-    ..pair c arr8
+        .oct ..bne c cur
+    ..pair c oct
     arg
 \u8.incc
 ..def \b \arg
-  ...arr8.foldl
-    .thrush \b \arr8 \cur
+  ...oct.foldl
+    .thrush \b \oct \cur
       ..pair
         ..and b .not cur
-        .arr8 ..xor b cur
-    ..pair b arr8
+        .oct ..bne b cur
+    ..pair b oct
     arg
 \u8.decb
 ..def ..blackbird snd .u8.addc false \u8.add
@@ -2160,8 +2206,8 @@
 ..def \term ..$dump term term \$hook
 ..def \cont .$hook .cont unit \hook
 ..def \put ..bluebird
-  ..sequence arr8:tvsb io:aptv
-  ..fmap arr8:ftor put
+  ..sequence oct:tvsb io:aptv
+  ..fmap oct:ftor put
 \putc
 ..def \putc ..bluebird
   ..sequence list:tvsb io:aptv
@@ -2177,9 +2223,9 @@
 ..def .puts putc \puts
 ..def .putd puts \putd
 ..def ...fmap io:ftor
-  ..sequence arr8:tvsb opt:aptv
-  ...sequence arr8:tvsb io:aptv
-    ..pure arr8:aptv get
+  ..sequence oct:tvsb opt:aptv
+  ...sequence oct:tvsb io:aptv
+    ..pure oct:aptv get
 \getc
 ..def .fix \gets
   ...bind io:mnad getc ..finch
