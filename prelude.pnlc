@@ -1,16 +1,14 @@
 # vim:tw=80:ft=pnlc:
 .\p .p \x \f .f x \def
 
-# TODO doc this:
-#  1. strict in first argument and lazy in second argument; else
-#  2. make partial application useful
-
-# this file is organized into a few sections separated by form feeds. sum and
-# product types are encoded using the Scott encoding. for operators we generally
-# take `\rhs \lhs` so partial appication is useful. typeclasses are product type
-# constructors and typeclass instances are product types. we keep their names
-# short, at most four characters, because resolution is done manually; when you
-# see a colon in an identifier, think typeclass instance.
+# this file is organized into a few sections separated by form feeds. sum
+# types and product types are Scott encoded. typeclasses are product types and
+# typeclass instances inhabit those types. we keep their names short, at most
+# four characters, because resolution is done manually; when you see a colon
+# in an identifier, think typeclass instance. when defining binary operators,
+# we order the parameters so as to be maximally lazy in the second argument;
+# when an operator is strict in both arguments or can be made lazy in either
+# argument, we order the parameters so as to make partial application useful
 
 ..def \x x \id
 ..def \x \y x \kestrel
@@ -490,14 +488,20 @@
 
 # a minimalistic programmer-facing debug representation. there is no requirement
 # for the output to be unambiguous.
-# debug :: (Dbg a) => a -> Dlist U8
+# debug :: Dbg a => a -> Dlist U8
 ..def \debug .thrush debug \dbg
 ..def .thrush \debug debug \debug
 # the debugged debugging, prints out a `DList U8` as itself
 ..def .dbg id \dbgged:dbg
 # the character debugging, prints out a `U8` as itself
 ..def .dbg cons \chr:dbg
-# places a debugging within a left and right `Dlist U8`
+# places a debugging before, after or within `Dlist U8`s
+..def \right \inner:dbg .inner:dbg \innerdebug
+  .dbg \inner ..bluebird .innerdebug inner right
+\before:dbg
+..def \left \inner:dbg .inner:dbg \innerdebug
+  .dbg \inner ..bluebird left .innerdebug inner
+\after:dbg
 ..def \left \right \inner:dbg .inner:dbg \innerdebug
   .dbg \inner ...becard left .innerdebug inner right
 \within:dbg
@@ -841,6 +845,7 @@
 
 # def:nat
 # type Nat = Fix Maybe
+# a natural is an optional predecessor; when there isn't one, you've hit zero
 ..def some \succ
 ..def none \zero
 # the "base" functor for `nat`, with the property `Fix NatF = Nat`.
@@ -857,8 +862,9 @@
 ..def \rhs \lhs ...cata natf:ftor ..vireo .add lhs zero rhs \mul
 ..def \rhs \lhs ...cata natf:ftor ..vireo .mul lhs .succ zero rhs \exp
 ..def \rhs \lhs ...cata natf:ftor ..vireo ..cardinal exp lhs .succ zero rhs \tet
-..def ..cata natf:ftor ..vireo \f ..vireo f zero id \satsub
-..def ..cata natf:ftor ..vireo \f ..vireo f zero succ \sub
+..def .join opt:mnad \satpred
+..def ..cata natf:ftor ..vireo .cardinal .bind opt:mnad id \satsub
+..def ..cata natf:ftor ..vireo .cardinal .bind opt:mnad succ \sub
 ..def \rhs \lhs ...fix \rec \quot \rem
   ....sub rhs rem .rec .succ quot ..pair quot rem
 zero lhs \divmod
@@ -982,7 +988,6 @@ zero lhs \divmod
 \flipb:tvsb
 
 # type Dbl a = Either a a
-#
 # `a+a = 2*a` so `Dbl a ~= Pair Bool a`. the typeclass instances for `Dbl` are
 # given by the corresponding instances for `Pair Bool` under the isomorphism
 ..def \dbl ..pair ..psi dbl kestrel ..dbl id id \dbl.iso
@@ -1186,7 +1191,6 @@ zero lhs \divmod
 \swapa:tvsb
 
 # type Sqr a = Pair a a
-#
 # `a*a = a^2` so `Sqr a ~= Fn Bool a`. the typeclass instances for `Sqr` are
 # given by the corresponding instances for `Fn Bool` under the isomorphism.
 # note that while `sqr.iso` is the identity function, `fnbool.iso` is not.
@@ -1218,8 +1222,8 @@ zero lhs \divmod
     ..pair .fst .func fstarg .snd .func sndarg
 \sqr:mnad
 # the Comonad instance for `Fn a` requires a monoid on `a`, and `Sqr` is
-# isomorphic to `Fn Bool`, so the Comonad instance for `Sqr` must require a
-# monoid on `Bool`. we use the identity element to know whether `extract` is
+# isomorphic to `Fn Bool`, so the Comonad instance for `Sqr` ought to require
+# a monoid on `Bool`. we use the identity element to know whether `extract` is
 # a `fst` or a `snd` and we use the monoid operation to combine information
 # about whether contents ought to come from `fst` or from `snd`
 ..def \bool:mnid .bool:mnid \bool:sgrp \boolmempty .bool:sgrp \boolsappend
@@ -1239,7 +1243,7 @@ zero lhs \divmod
     #         .arg ..boolsappend false true
     #         .arg ..boolsappend false false
     # we compress the logic using `fnbool.iso` and end up with something eerily
-    # silimar to `.extend fna:cmnd`:
+    # similar to `.extend fna:cmnd`:
     \func \arg
       .fnbool.iso ...becard func fnbool.iso ..blackbird arg boolsappend
 \sqr:cmnd
@@ -1256,26 +1260,69 @@ zero lhs \divmod
   unzip
 \sqr:dstv
 
-# type Fn a b = a -> b
-..def \inner:sgrp .inner:sgrp \innersappend
-  .sgrp \lhs \rhs ...phi innersappend lhs rhs
-\fna:sgrp
-..def \inner:mnid .inner:mnid ..bluebird mnid fna:sgrp \fna:mnid
-# the environment monad, models computations that depend on a shared environment
-..def .ftor bluebird \fna:ftor
-..def ...aptv fna:ftor kestrel starling \fna:aptv # liftA2 = phi
-..def ..mnad fna:aptv .cardinal violet \fna:mnad # join = warbler
-..def \env:mnid .env:mnid \env:sgrp \envmempty .env:sgrp \envsappend
-  ...cmnd
-    fna:ftor
-    \fnaval .fnaval envmempty
-    \func \arg ..bluebird func ..blackbird arg envsappend
-\fna:cmnd
-..def ..dstv
-  fna:ftor
-  \outer:ftor .outer:ftor \outerfmap
-    \ftorfna \env ..outerfmap .thrush env ftorfna
-\fna:dstv
+# type Int = Sqr Nat
+..def ..pair zero zero \zzero
+..def \nat ..pair nat zero \pos
+..def \nat ..pair zero nat \neg
+..def ...veery pos .kestrel zzero neg \signed
+..def .fix \znorm \int ...int ..lifta2 opt:aptv pair znorm int \znorm
+..def .eq
+  ..psi .equal .sqr:eq nat:eq znorm
+\int:eq
+..def ..ord
+  int:eq
+  ..psi .compare ..pair:ord nat:ord .down:ord nat:ord znorm
+\int:ord
+..def ..pair:bndd nat:bndd .down:bndd nat:bndd \int:bndd
+..def .nat:dbg \natdebug .dbg
+  \int .int \pos \neg ...becard .natdebug pos :- .natdebug neg
+\int:dbg
+..def .sqr:seq nat:seq \int:seq
+..def \int ..znorm int .max nat:ord \abs
+..def ..bluebird pos abs \zabs
+..def ..bluebird neg abs \znbs
+..def ..compare int:ord zzero \sign
+..def \int ..signed .sign int .succ zero \signum
+..def swap \zneg
+..def ..fmap swapa:ftor succ \zsucc
+..def ..fmap paira:ftor succ \zpred
+..def ..lifta2 sqr:aptv add \zadd
+..def ..bluebird zadd zneg \zsub
+..def \rhs \lhs
+  .\mul ..pair ...mul rhs lhs add ...mul rhs .swap lhs add
+  ..lifta2 sqr:aptv mul
+\zmul
+# truncated division: round quotient toward zero and preserve
+# a/b*b + a%b = a and |a%b| < |b|.
+#      10 /  3 =  3     10 %  3 =  1
+#      10 / -3 = -3     10 % -3 =  1
+#     -10 /  3 = -3    -10 %  3 = -1
+#     -10 / -3 =  3    -10 % -3 = -1
+..def \rhs \lhs
+  ...divmod .abs rhs .abs lhs \quot \rem ..pair
+    ..signed ..tmul .sign lhs .sign rhs quot
+    ..signed .sign lhs rem
+\ztruncdivmod
+..def ..blackbird fst ztruncdivmod \ztruncdiv
+..def ..blackbird snd ztruncdivmod \ztruncmod
+# floored division: round quotient toward negative infinity and preserve
+# a/b*b + a%b = a and |a%b| < |b|.
+#      10 /  3 =  3     10 %  3 =  1
+#      10 / -3 = -4     10 % -3 = -2
+#     -10 /  3 = -4    -10 %  3 =  2
+#     -10 / -3 =  3    -10 % -3 = -1
+..def \rhs \lhs
+  ...ztruncdivmod rhs lhs \quot \rem
+    ...isgt ..tmul .sign rem .sign rhs
+      ..pair .zpred quot ..zadd rem rhs
+      ..pair quot rem
+\zfloordivmod
+..def ..blackbird fst zfloordivmod \zfloordiv
+..def ..blackbird snd zfloordivmod \zfloormod
+..def .sgrp zadd \zadd:sgrp
+..def .sgrp zmul \zmul:sgrp
+..def ..mnid zadd:sgrp zero \zadd:mnid
+..def ..mnid zmul:sgrp .succ zero \zmul:mnid
 
 # type Stream a = Fix (Pair a)
 ..def paira:ftor \streamf:ftor
@@ -1957,15 +2004,13 @@ zero lhs \divmod
     ..pure oct:aptv elemtop
     ..pure oct:aptv elembot
 \oct:bndd
-..def \elem:dbg .elem:dbg \elemdebug
-  .dbg
-    \oct ..fold .dual:mnid endo:mnid ..tolist oct:fldb
-      ...fmap oct:ftor elemdebug oct
+..def \elem:dbg .elem:dbg \elemdebug .dbg
+  \oct ..fold .dual:mnid endo:mnid ..tolist oct:fldb
+    ...fmap oct:ftor elemdebug oct
 \oct:dbg
-..def \elem:seq .elem:seq \elemforce
-  .seq
-    \oct ..fold endo:mnid ..tolist oct:fldb
-      ...fmap oct:ftor elemforce oct
+..def \elem:seq .elem:seq \elemforce .seq
+  \oct ..fold endo:mnid ..tolist oct:fldb
+    ...fmap oct:ftor elemforce oct
 \oct:seq
 
 ..def .oct:eq bool:eq \u8:eq
@@ -2118,6 +2163,27 @@ zero lhs \divmod
 ..def ..bluebird snd .u8.decb true \u8.dec
 ..def .sgrp u8.add \u8.add:sgrp
 ..def ..mnid u8.add:sgrp '\0' \u8.add:mnid
+
+# type Fn a b = a -> b
+..def \inner:sgrp .inner:sgrp \innersappend
+  .sgrp \lhs \rhs ...phi innersappend lhs rhs
+\fna:sgrp
+..def \inner:mnid .inner:mnid ..bluebird mnid fna:sgrp \fna:mnid
+# the environment monad, models computations that depend on a shared environment
+..def .ftor bluebird \fna:ftor
+..def ...aptv fna:ftor kestrel starling \fna:aptv # liftA2 = phi
+..def ..mnad fna:aptv .cardinal violet \fna:mnad # join = warbler
+..def \env:mnid .env:mnid \env:sgrp \envmempty .env:sgrp \envsappend
+  ...cmnd
+    fna:ftor
+    \fnaval .fnaval envmempty
+    \func \arg ..bluebird func ..blackbird arg envsappend
+\fna:cmnd
+..def ..dstv
+  fna:ftor
+  \outer:ftor .outer:ftor \outerfmap
+    \ftorfna \env ..outerfmap .thrush env ftorfna
+\fna:dstv
 
 # type String = List U8
 # type Parser a = String -> Maybe (Pair a String)
