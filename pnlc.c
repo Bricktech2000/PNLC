@@ -47,7 +47,7 @@ struct term {
 #define IO(TYP) term_alloc((struct term){~(TYP)})
 
 struct term *term_alloc(struct term fields) {
-  struct term *term = malloc(sizeof(*term));
+  struct term *term = malloc(sizeof *term);
   fields.type == TYPE_LAM ? BIND(fields.lhs) : 0;
   fields.refcount = 1;
   return *term = fields, term;
