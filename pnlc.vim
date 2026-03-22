@@ -4,15 +4,14 @@ setlocal indentexpr=-1 indentkeys=
 let &l:define = '\sdef:' . '\|^\(\S\+\s\+\)\{-}\\\ze\S\+\(\s\+\(#.*\)\?\)\?$'
 let &l:include = '\sinc:'
 
-" keep in sync with grammar.bnf and pnlc.c
+" keep in sync with pnlc.c, examples/pnlc.pnlc and grammar.bnf
 
 syntax match pnlcLam '\\\_[[:space:]]*[^[:space:]]\+\_[[:space:]]\+'
 syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[^[:space:]]\+\_[[:space:]]\+'
-" keep in sync with pnlc.c, examples/pnlc.pnlc, README.md and io\ hook.pnlc
 syntax match pnlcIO '\_[[:space:].]\@<=\(\$exit\|\$err\|\$get\|\$put\|\$eput\|\$dump\)\_[[:space:]]\+'
 syntax match pnlcApp0 '
       \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
-      \[.\#]\@![^[:space:]]\+
+      \[.\#]\@![^[:space:]]\+\_[[:space:]]\+
       \' contains=pnlcIgn,pnlcIO
 syntax match pnlcApp1 '
       \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*

@@ -1,0 +1,53 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# decode :: U8 -> Tape Bool -> Bool
+# decode a Wolfram code into a function that maps an infinite neighborhood of a
+# cell to the cell's next state
+..def \rule .rule \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
+  # extract a radius-one neighborhood `(left, head, right)` from the infinite
+  # neighborhood. interpret it as a 3-bit number and pick out the corresponding
+  # bit from `rule`
+  .thrush \head .thrush .thrush \left \#sndleft .thrush \right \#sndright
+    ..left ..head ..right r7 r6 ..right r5 r4 ..head ..right r3 r2 ..right r1 r0
+\decode
+
+..def .dbg \bool ..bool :@ :_ \cell:dbg
+
+..def
+  .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ
+  .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ
+zero \radius
+
+..def ..pair true ..pair   # head
+  ..pure stream:aptv false # left
+  ..pure stream:aptv false # right
+\single
+..def ..pair true ..pair
+  .cycle ...bind list:mnad .:P .:: .:K .:/ .:B .:8 .:V .:1 nil .tolist oct:fldb
+  .cycle ...bind list:mnad .:E .:? .:& .:* .:e .:( .:n .:, nil .tolist oct:fldb
+\random
+
+# no duplicates up to reflection and complement
+...vireo
+  # $1a random # rule 26
+  # $1e single # rule 30
+  # $39 single # rule 57
+  # $49 random # rule 73
+  # $59 single # rule 89
+  # $59 random # rule 89
+  # $5a single # rule 90
+  # $69 single # rule 105
+  # $69 random # rule 105
+  $6e single # rule 110
+  # $78 random # rule 120
+  # $81 random # rule 129
+  # $92 random # rule 146
+  # $96 random # rule 150
+  # $a6 random # rule 166
+\rule \config
+
+.main
+  ...cata streamf:ftor .thrush .bindk io:mnad # `sequence` accumulates junk
+    ...fmap stream:ftor .putd ..before:dbg :\n ..tape:dbg radius cell:dbg
+      ..iterate ..extend tape:cmnd .decode rule config

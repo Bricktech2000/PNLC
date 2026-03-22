@@ -5,7 +5,6 @@
 
 # def:typ
 # data Typ = Exit | Err | Get | Put | Eput | Dump | Tru | Fals
-# keep in sync with pnlc.c, README.md, pnlc.vim and io\ hook.pnlc
 ..def \exit \err \get \put \eput \dump \tru \fals exit \mkexit
 ..def \exit \err \get \put \eput \dump \tru \fals err  \mkerr
 ..def \exit \err \get \put \eput \dump \tru \fals get  \mkget
@@ -75,7 +74,7 @@
   ....term
     ..psi app .beta lvl
     ..bluebird lam .beta .succ lvl
-    \idx .....equal nat:eq lvl idx arg term
+    ..bluebird ..vireo arg term ..equal nat:eq lvl
     io
 \beta
 

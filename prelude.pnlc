@@ -178,282 +178,368 @@
 
 # def:u8
 # type U8 = Oct Bool
-..def ........oct false false false false false false false false \nul
-..def ........oct true  false false false false false false false \soh
-..def ........oct false true  false false false false false false \stx
-..def ........oct true  true  false false false false false false \etx
-..def ........oct false false true  false false false false false \eot
-..def ........oct true  false true  false false false false false \enq
-..def ........oct false true  true  false false false false false \ack
-..def ........oct true  true  true  false false false false false \bel
-..def ........oct false false false true  false false false false \bs
-..def ........oct true  false false true  false false false false \ht
-..def ........oct false true  false true  false false false false \lf
-..def ........oct true  true  false true  false false false false \vt
-..def ........oct false false true  true  false false false false \ff
-..def ........oct true  false true  true  false false false false \cr
-..def ........oct false true  true  true  false false false false \so
-..def ........oct true  true  true  true  false false false false \si
-..def ........oct false false false false true  false false false \dle
-..def ........oct true  false false false true  false false false \dc1
-..def ........oct false true  false false true  false false false \dc2
-..def ........oct true  true  false false true  false false false \dc3
-..def ........oct false false true  false true  false false false \dc4
-..def ........oct true  false true  false true  false false false \nak
-..def ........oct false true  true  false true  false false false \syn
-..def ........oct true  true  true  false true  false false false \etb
-..def ........oct false false false true  true  false false false \can
-..def ........oct true  false false true  true  false false false \em
-..def ........oct false true  false true  true  false false false \sub
-..def ........oct true  true  false true  true  false false false \esc
-..def ........oct false false true  true  true  false false false \fs
-..def ........oct true  false true  true  true  false false false \gs
-..def ........oct false true  true  true  true  false false false \rs
-..def ........oct true  true  true  true  true  false false false \us
-..def ........oct false false false false false true  false false \sp
-..def ........oct true  false false false false true  false false \'!'
-..def ........oct false true  false false false true  false false \'"'
-..def ........oct true  true  false false false true  false false \'#'
-..def ........oct false false true  false false true  false false \'$'
-..def ........oct true  false true  false false true  false false \'%'
-..def ........oct false true  true  false false true  false false \'&'
-..def ........oct true  true  true  false false true  false false \'''
-..def ........oct false false false true  false true  false false \'('
-..def ........oct true  false false true  false true  false false \')'
-..def ........oct false true  false true  false true  false false \'*'
-..def ........oct true  true  false true  false true  false false \'+'
-..def ........oct false false true  true  false true  false false \','
-..def ........oct true  false true  true  false true  false false \'-'
-..def ........oct false true  true  true  false true  false false \'.'
-..def ........oct true  true  true  true  false true  false false \'/'
-..def ........oct false false false false true  true  false false \'0'
-..def ........oct true  false false false true  true  false false \'1'
-..def ........oct false true  false false true  true  false false \'2'
-..def ........oct true  true  false false true  true  false false \'3'
-..def ........oct false false true  false true  true  false false \'4'
-..def ........oct true  false true  false true  true  false false \'5'
-..def ........oct false true  true  false true  true  false false \'6'
-..def ........oct true  true  true  false true  true  false false \'7'
-..def ........oct false false false true  true  true  false false \'8'
-..def ........oct true  false false true  true  true  false false \'9'
-..def ........oct false true  false true  true  true  false false \':'
-..def ........oct true  true  false true  true  true  false false \';'
-..def ........oct false false true  true  true  true  false false \'<'
-..def ........oct true  false true  true  true  true  false false \'='
-..def ........oct false true  true  true  true  true  false false \'>'
-..def ........oct true  true  true  true  true  true  false false \'?'
-..def ........oct false false false false false false true  false \'@'
-..def ........oct true  false false false false false true  false \'A'
-..def ........oct false true  false false false false true  false \'B'
-..def ........oct true  true  false false false false true  false \'C'
-..def ........oct false false true  false false false true  false \'D'
-..def ........oct true  false true  false false false true  false \'E'
-..def ........oct false true  true  false false false true  false \'F'
-..def ........oct true  true  true  false false false true  false \'G'
-..def ........oct false false false true  false false true  false \'H'
-..def ........oct true  false false true  false false true  false \'I'
-..def ........oct false true  false true  false false true  false \'J'
-..def ........oct true  true  false true  false false true  false \'K'
-..def ........oct false false true  true  false false true  false \'L'
-..def ........oct true  false true  true  false false true  false \'M'
-..def ........oct false true  true  true  false false true  false \'N'
-..def ........oct true  true  true  true  false false true  false \'O'
-..def ........oct false false false false true  false true  false \'P'
-..def ........oct true  false false false true  false true  false \'Q'
-..def ........oct false true  false false true  false true  false \'R'
-..def ........oct true  true  false false true  false true  false \'S'
-..def ........oct false false true  false true  false true  false \'T'
-..def ........oct true  false true  false true  false true  false \'U'
-..def ........oct false true  true  false true  false true  false \'V'
-..def ........oct true  true  true  false true  false true  false \'W'
-..def ........oct false false false true  true  false true  false \'X'
-..def ........oct true  false false true  true  false true  false \'Y'
-..def ........oct false true  false true  true  false true  false \'Z'
-..def ........oct true  true  false true  true  false true  false \'['
-..def ........oct false false true  true  true  false true  false \'\'
-..def ........oct true  false true  true  true  false true  false \']'
-..def ........oct false true  true  true  true  false true  false \'^'
-..def ........oct true  true  true  true  true  false true  false \'_'
-..def ........oct false false false false false true  true  false \'`'
-..def ........oct true  false false false false true  true  false \'a'
-..def ........oct false true  false false false true  true  false \'b'
-..def ........oct true  true  false false false true  true  false \'c'
-..def ........oct false false true  false false true  true  false \'d'
-..def ........oct true  false true  false false true  true  false \'e'
-..def ........oct false true  true  false false true  true  false \'f'
-..def ........oct true  true  true  false false true  true  false \'g'
-..def ........oct false false false true  false true  true  false \'h'
-..def ........oct true  false false true  false true  true  false \'i'
-..def ........oct false true  false true  false true  true  false \'j'
-..def ........oct true  true  false true  false true  true  false \'k'
-..def ........oct false false true  true  false true  true  false \'l'
-..def ........oct true  false true  true  false true  true  false \'m'
-..def ........oct false true  true  true  false true  true  false \'n'
-..def ........oct true  true  true  true  false true  true  false \'o'
-..def ........oct false false false false true  true  true  false \'p'
-..def ........oct true  false false false true  true  true  false \'q'
-..def ........oct false true  false false true  true  true  false \'r'
-..def ........oct true  true  false false true  true  true  false \'s'
-..def ........oct false false true  false true  true  true  false \'t'
-..def ........oct true  false true  false true  true  true  false \'u'
-..def ........oct false true  true  false true  true  true  false \'v'
-..def ........oct true  true  true  false true  true  true  false \'w'
-..def ........oct false false false true  true  true  true  false \'x'
-..def ........oct true  false false true  true  true  true  false \'y'
-..def ........oct false true  false true  true  true  true  false \'z'
-..def ........oct true  true  false true  true  true  true  false \'{'
-..def ........oct false false true  true  true  true  true  false \'|'
-..def ........oct true  false true  true  true  true  true  false \'}'
-..def ........oct false true  true  true  true  true  true  false \'~'
-..def ........oct true  true  true  true  true  true  true  false \del
-..def nul \'\0'
-..def bel \'\a'
-..def bs  \'\b'
-..def ht  \'\t'
-..def lf  \'\n'
-..def vt  \'\v'
-..def ff  \'\f'
-..def cr  \'\r'
-..def esc \'\e'
-..def \' sp  \' # eg .putc .' '
-..def .cons nul \:nul
-..def .cons soh \:soh
-..def .cons stx \:stx
-..def .cons etx \:etx
-..def .cons eot \:eot
-..def .cons enq \:enq
-..def .cons ack \:ack
-..def .cons bel \:bel
-..def .cons bs  \:bs
-..def .cons ht  \:ht
-..def .cons lf  \:lf
-..def .cons vt  \:vt
-..def .cons ff  \:ff
-..def .cons cr  \:cr
-..def .cons so  \:so
-..def .cons si  \:si
-..def .cons dle \:dle
-..def .cons dc1 \:dc1
-..def .cons dc2 \:dc2
-..def .cons dc3 \:dc3
-..def .cons dc4 \:dc4
-..def .cons nak \:nak
-..def .cons syn \:syn
-..def .cons etb \:etb
-..def .cons can \:can
-..def .cons em  \:em
-..def .cons sub \:sub
-..def .cons esc \:esc
-..def .cons fs  \:fs
-..def .cons gs  \:gs
-..def .cons rs  \:rs
-..def .cons us  \:us
-..def .cons sp  \:sp
-..def .cons '!' \:!
-..def .cons '"' \:"
-..def .cons '#' \:#
-..def .cons '$' \:$
-..def .cons '%' \:%
-..def .cons '&' \:&
-..def .cons ''' \:'
-..def .cons '(' \:(
-..def .cons ')' \:)
-..def .cons '*' \:*
-..def .cons '+' \:+
-..def .cons ',' \:,
-..def .cons '-' \:-
-..def .cons '.' \:.
-..def .cons '/' \:/
-..def .cons '0' \:0
-..def .cons '1' \:1
-..def .cons '2' \:2
-..def .cons '3' \:3
-..def .cons '4' \:4
-..def .cons '5' \:5
-..def .cons '6' \:6
-..def .cons '7' \:7
-..def .cons '8' \:8
-..def .cons '9' \:9
-..def .cons ':' \::
-..def .cons ';' \:;
-..def .cons '<' \:<
-..def .cons '=' \:=
-..def .cons '>' \:>
-..def .cons '?' \:?
-..def .cons '@' \:@
-..def .cons 'A' \:A
-..def .cons 'B' \:B
-..def .cons 'C' \:C
-..def .cons 'D' \:D
-..def .cons 'E' \:E
-..def .cons 'F' \:F
-..def .cons 'G' \:G
-..def .cons 'H' \:H
-..def .cons 'I' \:I
-..def .cons 'J' \:J
-..def .cons 'K' \:K
-..def .cons 'L' \:L
-..def .cons 'M' \:M
-..def .cons 'N' \:N
-..def .cons 'O' \:O
-..def .cons 'P' \:P
-..def .cons 'Q' \:Q
-..def .cons 'R' \:R
-..def .cons 'S' \:S
-..def .cons 'T' \:T
-..def .cons 'U' \:U
-..def .cons 'V' \:V
-..def .cons 'W' \:W
-..def .cons 'X' \:X
-..def .cons 'Y' \:Y
-..def .cons 'Z' \:Z
-..def .cons '[' \:[
-..def .cons '\' \:\
-..def .cons ']' \:]
-..def .cons '^' \:^
-..def .cons '_' \:_
-..def .cons '`' \:`
-..def .cons 'a' \:a
-..def .cons 'b' \:b
-..def .cons 'c' \:c
-..def .cons 'd' \:d
-..def .cons 'e' \:e
-..def .cons 'f' \:f
-..def .cons 'g' \:g
-..def .cons 'h' \:h
-..def .cons 'i' \:i
-..def .cons 'j' \:j
-..def .cons 'k' \:k
-..def .cons 'l' \:l
-..def .cons 'm' \:m
-..def .cons 'n' \:n
-..def .cons 'o' \:o
-..def .cons 'p' \:p
-..def .cons 'q' \:q
-..def .cons 'r' \:r
-..def .cons 's' \:s
-..def .cons 't' \:t
-..def .cons 'u' \:u
-..def .cons 'v' \:v
-..def .cons 'w' \:w
-..def .cons 'x' \:x
-..def .cons 'y' \:y
-..def .cons 'z' \:z
-..def .cons '{' \:{
-..def .cons '|' \:|
-..def .cons '}' \:}
-..def .cons '~' \:~
-..def .cons del \:del
-..def :nul \:\0
-..def :bel \:\a
-..def :bs  \:\b
-..def :ht  \:\t
-..def :lf  \:\n
-..def :vt  \:\v
-..def :ff  \:\f
-..def :cr  \:\r
-..def :esc \:\e
-..def :sp  \: # eg .puts .:  nil
+..def ........oct false false false false false false false false \$00
+..def ........oct true  false false false false false false false \$01
+..def ........oct false true  false false false false false false \$02
+..def ........oct true  true  false false false false false false \$03
+..def ........oct false false true  false false false false false \$04
+..def ........oct true  false true  false false false false false \$05
+..def ........oct false true  true  false false false false false \$06
+..def ........oct true  true  true  false false false false false \$07
+..def ........oct false false false true  false false false false \$08
+..def ........oct true  false false true  false false false false \$09
+..def ........oct false true  false true  false false false false \$0a
+..def ........oct true  true  false true  false false false false \$0b
+..def ........oct false false true  true  false false false false \$0c
+..def ........oct true  false true  true  false false false false \$0d
+..def ........oct false true  true  true  false false false false \$0e
+..def ........oct true  true  true  true  false false false false \$0f
+..def ........oct false false false false true  false false false \$10
+..def ........oct true  false false false true  false false false \$11
+..def ........oct false true  false false true  false false false \$12
+..def ........oct true  true  false false true  false false false \$13
+..def ........oct false false true  false true  false false false \$14
+..def ........oct true  false true  false true  false false false \$15
+..def ........oct false true  true  false true  false false false \$16
+..def ........oct true  true  true  false true  false false false \$17
+..def ........oct false false false true  true  false false false \$18
+..def ........oct true  false false true  true  false false false \$19
+..def ........oct false true  false true  true  false false false \$1a
+..def ........oct true  true  false true  true  false false false \$1b
+..def ........oct false false true  true  true  false false false \$1c
+..def ........oct true  false true  true  true  false false false \$1d
+..def ........oct false true  true  true  true  false false false \$1e
+..def ........oct true  true  true  true  true  false false false \$1f
+..def ........oct false false false false false true  false false \$20
+..def ........oct true  false false false false true  false false \$21
+..def ........oct false true  false false false true  false false \$22
+..def ........oct true  true  false false false true  false false \$23
+..def ........oct false false true  false false true  false false \$24
+..def ........oct true  false true  false false true  false false \$25
+..def ........oct false true  true  false false true  false false \$26
+..def ........oct true  true  true  false false true  false false \$27
+..def ........oct false false false true  false true  false false \$28
+..def ........oct true  false false true  false true  false false \$29
+..def ........oct false true  false true  false true  false false \$2a
+..def ........oct true  true  false true  false true  false false \$2b
+..def ........oct false false true  true  false true  false false \$2c
+..def ........oct true  false true  true  false true  false false \$2d
+..def ........oct false true  true  true  false true  false false \$2e
+..def ........oct true  true  true  true  false true  false false \$2f
+..def ........oct false false false false true  true  false false \$30
+..def ........oct true  false false false true  true  false false \$31
+..def ........oct false true  false false true  true  false false \$32
+..def ........oct true  true  false false true  true  false false \$33
+..def ........oct false false true  false true  true  false false \$34
+..def ........oct true  false true  false true  true  false false \$35
+..def ........oct false true  true  false true  true  false false \$36
+..def ........oct true  true  true  false true  true  false false \$37
+..def ........oct false false false true  true  true  false false \$38
+..def ........oct true  false false true  true  true  false false \$39
+..def ........oct false true  false true  true  true  false false \$3a
+..def ........oct true  true  false true  true  true  false false \$3b
+..def ........oct false false true  true  true  true  false false \$3c
+..def ........oct true  false true  true  true  true  false false \$3d
+..def ........oct false true  true  true  true  true  false false \$3e
+..def ........oct true  true  true  true  true  true  false false \$3f
+..def ........oct false false false false false false true  false \$40
+..def ........oct true  false false false false false true  false \$41
+..def ........oct false true  false false false false true  false \$42
+..def ........oct true  true  false false false false true  false \$43
+..def ........oct false false true  false false false true  false \$44
+..def ........oct true  false true  false false false true  false \$45
+..def ........oct false true  true  false false false true  false \$46
+..def ........oct true  true  true  false false false true  false \$47
+..def ........oct false false false true  false false true  false \$48
+..def ........oct true  false false true  false false true  false \$49
+..def ........oct false true  false true  false false true  false \$4a
+..def ........oct true  true  false true  false false true  false \$4b
+..def ........oct false false true  true  false false true  false \$4c
+..def ........oct true  false true  true  false false true  false \$4d
+..def ........oct false true  true  true  false false true  false \$4e
+..def ........oct true  true  true  true  false false true  false \$4f
+..def ........oct false false false false true  false true  false \$50
+..def ........oct true  false false false true  false true  false \$51
+..def ........oct false true  false false true  false true  false \$52
+..def ........oct true  true  false false true  false true  false \$53
+..def ........oct false false true  false true  false true  false \$54
+..def ........oct true  false true  false true  false true  false \$55
+..def ........oct false true  true  false true  false true  false \$56
+..def ........oct true  true  true  false true  false true  false \$57
+..def ........oct false false false true  true  false true  false \$58
+..def ........oct true  false false true  true  false true  false \$59
+..def ........oct false true  false true  true  false true  false \$5a
+..def ........oct true  true  false true  true  false true  false \$5b
+..def ........oct false false true  true  true  false true  false \$5c
+..def ........oct true  false true  true  true  false true  false \$5d
+..def ........oct false true  true  true  true  false true  false \$5e
+..def ........oct true  true  true  true  true  false true  false \$5f
+..def ........oct false false false false false true  true  false \$60
+..def ........oct true  false false false false true  true  false \$61
+..def ........oct false true  false false false true  true  false \$62
+..def ........oct true  true  false false false true  true  false \$63
+..def ........oct false false true  false false true  true  false \$64
+..def ........oct true  false true  false false true  true  false \$65
+..def ........oct false true  true  false false true  true  false \$66
+..def ........oct true  true  true  false false true  true  false \$67
+..def ........oct false false false true  false true  true  false \$68
+..def ........oct true  false false true  false true  true  false \$69
+..def ........oct false true  false true  false true  true  false \$6a
+..def ........oct true  true  false true  false true  true  false \$6b
+..def ........oct false false true  true  false true  true  false \$6c
+..def ........oct true  false true  true  false true  true  false \$6d
+..def ........oct false true  true  true  false true  true  false \$6e
+..def ........oct true  true  true  true  false true  true  false \$6f
+..def ........oct false false false false true  true  true  false \$70
+..def ........oct true  false false false true  true  true  false \$71
+..def ........oct false true  false false true  true  true  false \$72
+..def ........oct true  true  false false true  true  true  false \$73
+..def ........oct false false true  false true  true  true  false \$74
+..def ........oct true  false true  false true  true  true  false \$75
+..def ........oct false true  true  false true  true  true  false \$76
+..def ........oct true  true  true  false true  true  true  false \$77
+..def ........oct false false false true  true  true  true  false \$78
+..def ........oct true  false false true  true  true  true  false \$79
+..def ........oct false true  false true  true  true  true  false \$7a
+..def ........oct true  true  false true  true  true  true  false \$7b
+..def ........oct false false true  true  true  true  true  false \$7c
+..def ........oct true  false true  true  true  true  true  false \$7d
+..def ........oct false true  true  true  true  true  true  false \$7e
+..def ........oct true  true  true  true  true  true  true  false \$7f
+..def ........oct false false false false false false false true  \$80
+..def ........oct true  false false false false false false true  \$81
+..def ........oct false true  false false false false false true  \$82
+..def ........oct true  true  false false false false false true  \$83
+..def ........oct false false true  false false false false true  \$84
+..def ........oct true  false true  false false false false true  \$85
+..def ........oct false true  true  false false false false true  \$86
+..def ........oct true  true  true  false false false false true  \$87
+..def ........oct false false false true  false false false true  \$88
+..def ........oct true  false false true  false false false true  \$89
+..def ........oct false true  false true  false false false true  \$8a
+..def ........oct true  true  false true  false false false true  \$8b
+..def ........oct false false true  true  false false false true  \$8c
+..def ........oct true  false true  true  false false false true  \$8d
+..def ........oct false true  true  true  false false false true  \$8e
+..def ........oct true  true  true  true  false false false true  \$8f
+..def ........oct false false false false true  false false true  \$90
+..def ........oct true  false false false true  false false true  \$91
+..def ........oct false true  false false true  false false true  \$92
+..def ........oct true  true  false false true  false false true  \$93
+..def ........oct false false true  false true  false false true  \$94
+..def ........oct true  false true  false true  false false true  \$95
+..def ........oct false true  true  false true  false false true  \$96
+..def ........oct true  true  true  false true  false false true  \$97
+..def ........oct false false false true  true  false false true  \$98
+..def ........oct true  false false true  true  false false true  \$99
+..def ........oct false true  false true  true  false false true  \$9a
+..def ........oct true  true  false true  true  false false true  \$9b
+..def ........oct false false true  true  true  false false true  \$9c
+..def ........oct true  false true  true  true  false false true  \$9d
+..def ........oct false true  true  true  true  false false true  \$9e
+..def ........oct true  true  true  true  true  false false true  \$9f
+..def ........oct false false false false false true  false true  \$a0
+..def ........oct true  false false false false true  false true  \$a1
+..def ........oct false true  false false false true  false true  \$a2
+..def ........oct true  true  false false false true  false true  \$a3
+..def ........oct false false true  false false true  false true  \$a4
+..def ........oct true  false true  false false true  false true  \$a5
+..def ........oct false true  true  false false true  false true  \$a6
+..def ........oct true  true  true  false false true  false true  \$a7
+..def ........oct false false false true  false true  false true  \$a8
+..def ........oct true  false false true  false true  false true  \$a9
+..def ........oct false true  false true  false true  false true  \$aa
+..def ........oct true  true  false true  false true  false true  \$ab
+..def ........oct false false true  true  false true  false true  \$ac
+..def ........oct true  false true  true  false true  false true  \$ad
+..def ........oct false true  true  true  false true  false true  \$ae
+..def ........oct true  true  true  true  false true  false true  \$af
+..def ........oct false false false false true  true  false true  \$b0
+..def ........oct true  false false false true  true  false true  \$b1
+..def ........oct false true  false false true  true  false true  \$b2
+..def ........oct true  true  false false true  true  false true  \$b3
+..def ........oct false false true  false true  true  false true  \$b4
+..def ........oct true  false true  false true  true  false true  \$b5
+..def ........oct false true  true  false true  true  false true  \$b6
+..def ........oct true  true  true  false true  true  false true  \$b7
+..def ........oct false false false true  true  true  false true  \$b8
+..def ........oct true  false false true  true  true  false true  \$b9
+..def ........oct false true  false true  true  true  false true  \$ba
+..def ........oct true  true  false true  true  true  false true  \$bb
+..def ........oct false false true  true  true  true  false true  \$bc
+..def ........oct true  false true  true  true  true  false true  \$bd
+..def ........oct false true  true  true  true  true  false true  \$be
+..def ........oct true  true  true  true  true  true  false true  \$bf
+..def ........oct false false false false false false true  true  \$c0
+..def ........oct true  false false false false false true  true  \$c1
+..def ........oct false true  false false false false true  true  \$c2
+..def ........oct true  true  false false false false true  true  \$c3
+..def ........oct false false true  false false false true  true  \$c4
+..def ........oct true  false true  false false false true  true  \$c5
+..def ........oct false true  true  false false false true  true  \$c6
+..def ........oct true  true  true  false false false true  true  \$c7
+..def ........oct false false false true  false false true  true  \$c8
+..def ........oct true  false false true  false false true  true  \$c9
+..def ........oct false true  false true  false false true  true  \$ca
+..def ........oct true  true  false true  false false true  true  \$cb
+..def ........oct false false true  true  false false true  true  \$cc
+..def ........oct true  false true  true  false false true  true  \$cd
+..def ........oct false true  true  true  false false true  true  \$ce
+..def ........oct true  true  true  true  false false true  true  \$cf
+..def ........oct false false false false true  false true  true  \$d0
+..def ........oct true  false false false true  false true  true  \$d1
+..def ........oct false true  false false true  false true  true  \$d2
+..def ........oct true  true  false false true  false true  true  \$d3
+..def ........oct false false true  false true  false true  true  \$d4
+..def ........oct true  false true  false true  false true  true  \$d5
+..def ........oct false true  true  false true  false true  true  \$d6
+..def ........oct true  true  true  false true  false true  true  \$d7
+..def ........oct false false false true  true  false true  true  \$d8
+..def ........oct true  false false true  true  false true  true  \$d9
+..def ........oct false true  false true  true  false true  true  \$da
+..def ........oct true  true  false true  true  false true  true  \$db
+..def ........oct false false true  true  true  false true  true  \$dc
+..def ........oct true  false true  true  true  false true  true  \$dd
+..def ........oct false true  true  true  true  false true  true  \$de
+..def ........oct true  true  true  true  true  false true  true  \$df
+..def ........oct false false false false false true  true  true  \$e0
+..def ........oct true  false false false false true  true  true  \$e1
+..def ........oct false true  false false false true  true  true  \$e2
+..def ........oct true  true  false false false true  true  true  \$e3
+..def ........oct false false true  false false true  true  true  \$e4
+..def ........oct true  false true  false false true  true  true  \$e5
+..def ........oct false true  true  false false true  true  true  \$e6
+..def ........oct true  true  true  false false true  true  true  \$e7
+..def ........oct false false false true  false true  true  true  \$e8
+..def ........oct true  false false true  false true  true  true  \$e9
+..def ........oct false true  false true  false true  true  true  \$ea
+..def ........oct true  true  false true  false true  true  true  \$eb
+..def ........oct false false true  true  false true  true  true  \$ec
+..def ........oct true  false true  true  false true  true  true  \$ed
+..def ........oct false true  true  true  false true  true  true  \$ee
+..def ........oct true  true  true  true  false true  true  true  \$ef
+..def ........oct false false false false true  true  true  true  \$f0
+..def ........oct true  false false false true  true  true  true  \$f1
+..def ........oct false true  false false true  true  true  true  \$f2
+..def ........oct true  true  false false true  true  true  true  \$f3
+..def ........oct false false true  false true  true  true  true  \$f4
+..def ........oct true  false true  false true  true  true  true  \$f5
+..def ........oct false true  true  false true  true  true  true  \$f6
+..def ........oct true  true  true  false true  true  true  true  \$f7
+..def ........oct false false false true  true  true  true  true  \$f8
+..def ........oct true  false false true  true  true  true  true  \$f9
+..def ........oct false true  false true  true  true  true  true  \$fa
+..def ........oct true  true  false true  true  true  true  true  \$fb
+..def ........oct false false true  true  true  true  true  true  \$fc
+..def ........oct true  false true  true  true  true  true  true  \$fd
+..def ........oct false true  true  true  true  true  true  true  \$fe
+..def ........oct true  true  true  true  true  true  true  true  \$ff
+# a term like `:a` is both a difference list containing the character 'a' and a
+# function that appends the character 'a' to the head of a list
+...vireo $00 .cons $00 \'\0' \:\0
+...vireo $07 .cons $07 \'\a' \:\a
+...vireo $08 .cons $08 \'\b' \:\b
+...vireo $09 .cons $09 \'\t' \:\t
+...vireo $0a .cons $0a \'\n' \:\n
+...vireo $0b .cons $0b \'\v' \:\v
+...vireo $0c .cons $0c \'\f' \:\f
+...vireo $0d .cons $0d \'\r' \:\r
+...vireo $1b .cons $1b \'\e' \:\e
+...vireo \' $20 .cons $20 \' \: # eg .putc .' ' or .puts .:  nil
+...vireo $21 .cons $21 \'!' \:!
+...vireo $22 .cons $22 \'"' \:"
+...vireo $23 .cons $23 \'#' \:#
+...vireo $24 .cons $24 \'$' \:$
+...vireo $25 .cons $25 \'%' \:%
+...vireo $26 .cons $26 \'&' \:&
+...vireo $27 .cons $27 \''' \:'
+...vireo $28 .cons $28 \'(' \:(
+...vireo $29 .cons $29 \')' \:)
+...vireo $2a .cons $2a \'*' \:*
+...vireo $2b .cons $2b \'+' \:+
+...vireo $2c .cons $2c \',' \:,
+...vireo $2d .cons $2d \'-' \:-
+...vireo $2e .cons $2e \'.' \:.
+...vireo $2f .cons $2f \'/' \:/
+...vireo $30 .cons $30 \'0' \:0
+...vireo $31 .cons $31 \'1' \:1
+...vireo $32 .cons $32 \'2' \:2
+...vireo $33 .cons $33 \'3' \:3
+...vireo $34 .cons $34 \'4' \:4
+...vireo $35 .cons $35 \'5' \:5
+...vireo $36 .cons $36 \'6' \:6
+...vireo $37 .cons $37 \'7' \:7
+...vireo $38 .cons $38 \'8' \:8
+...vireo $39 .cons $39 \'9' \:9
+...vireo $3a .cons $3a \':' \::
+...vireo $3b .cons $3b \';' \:;
+...vireo $3c .cons $3c \'<' \:<
+...vireo $3d .cons $3d \'=' \:=
+...vireo $3e .cons $3e \'>' \:>
+...vireo $3f .cons $3f \'?' \:?
+...vireo $40 .cons $40 \'@' \:@
+...vireo $41 .cons $41 \'A' \:A
+...vireo $42 .cons $42 \'B' \:B
+...vireo $43 .cons $43 \'C' \:C
+...vireo $44 .cons $44 \'D' \:D
+...vireo $45 .cons $45 \'E' \:E
+...vireo $46 .cons $46 \'F' \:F
+...vireo $47 .cons $47 \'G' \:G
+...vireo $48 .cons $48 \'H' \:H
+...vireo $49 .cons $49 \'I' \:I
+...vireo $4a .cons $4a \'J' \:J
+...vireo $4b .cons $4b \'K' \:K
+...vireo $4c .cons $4c \'L' \:L
+...vireo $4d .cons $4d \'M' \:M
+...vireo $4e .cons $4e \'N' \:N
+...vireo $4f .cons $4f \'O' \:O
+...vireo $50 .cons $50 \'P' \:P
+...vireo $51 .cons $51 \'Q' \:Q
+...vireo $52 .cons $52 \'R' \:R
+...vireo $53 .cons $53 \'S' \:S
+...vireo $54 .cons $54 \'T' \:T
+...vireo $55 .cons $55 \'U' \:U
+...vireo $56 .cons $56 \'V' \:V
+...vireo $57 .cons $57 \'W' \:W
+...vireo $58 .cons $58 \'X' \:X
+...vireo $59 .cons $59 \'Y' \:Y
+...vireo $5a .cons $5a \'Z' \:Z
+...vireo $5b .cons $5b \'[' \:[
+...vireo $5c .cons $5c \'\' \:\
+...vireo $5d .cons $5d \']' \:]
+...vireo $5e .cons $5e \'^' \:^
+...vireo $5f .cons $5f \'_' \:_
+...vireo $60 .cons $60 \'`' \:`
+...vireo $61 .cons $61 \'a' \:a
+...vireo $62 .cons $62 \'b' \:b
+...vireo $63 .cons $63 \'c' \:c
+...vireo $64 .cons $64 \'d' \:d
+...vireo $65 .cons $65 \'e' \:e
+...vireo $66 .cons $66 \'f' \:f
+...vireo $67 .cons $67 \'g' \:g
+...vireo $68 .cons $68 \'h' \:h
+...vireo $69 .cons $69 \'i' \:i
+...vireo $6a .cons $6a \'j' \:j
+...vireo $6b .cons $6b \'k' \:k
+...vireo $6c .cons $6c \'l' \:l
+...vireo $6d .cons $6d \'m' \:m
+...vireo $6e .cons $6e \'n' \:n
+...vireo $6f .cons $6f \'o' \:o
+...vireo $70 .cons $70 \'p' \:p
+...vireo $71 .cons $71 \'q' \:q
+...vireo $72 .cons $72 \'r' \:r
+...vireo $73 .cons $73 \'s' \:s
+...vireo $74 .cons $74 \'t' \:t
+...vireo $75 .cons $75 \'u' \:u
+...vireo $76 .cons $76 \'v' \:v
+...vireo $77 .cons $77 \'w' \:w
+...vireo $78 .cons $78 \'x' \:x
+...vireo $79 .cons $79 \'y' \:y
+...vireo $7a .cons $7a \'z' \:z
+...vireo $7b .cons $7b \'{' \:{
+...vireo $7c .cons $7c \'|' \:|
+...vireo $7d .cons $7d \'}' \:}
+...vireo $7e .cons $7e \'~' \:~
 
  # typeclass definitions and utility instances
 
@@ -469,22 +555,26 @@
 ..def \ord \lhs \rhs ......compare ord rhs lhs lhs rhs rhs \max
 ..def \ord .thrush .min ord \min:sgrp
 ..def \ord .thrush .max ord \max:sgrp
-..def \ord \bndd .bndd \top \bot
-  ..vireo .min:sgrp ord top
-\min:mnid
-..def \ord \bndd .bndd \top \bot
-  ..vireo .max:sgrp ord bot
-\max:mnid
+..def \ord \bndd .bndd \top \bot ..vireo .min:sgrp ord top \min:mnid
+..def \ord \bndd .bndd \top \bot ..vireo .max:sgrp ord bot \max:mnid
 # return the argument when it is equal to one or both bounds
 ..def \ord \lo \hi ..bluebird ..min ord hi ..max ord lo \clamp
 ..def \ord \lo \hi \val ..and
   .isge ...compare ord lo val
   .isle ...compare ord hi val
 \clamped
+# the reverse ordering, obtained by swapping arguments to `compare`
+..def \inner:ord .inner:ord \inner:eq \innercompare
+  ..ord inner:eq .cardinal innercompare
+\down:ord
 
 ..def \top \bot ..vireo top bot \bndd
 ..def .thrush \top \bot top \top
 ..def .thrush \top \bot bot \bot
+# the reverse bounding, obtained by swapping `top` and `bot`
+..def \inner:bndd .inner:bndd \innertop \innerbot
+  ..bndd innertop innerbot
+\down:bndd
 
 # a minimalistic programmer-facing debug representation. there is no requirement
 # for the output to be unambiguous.
@@ -519,9 +609,10 @@
 # its argument but which also forces some other unrelated computation. `force`
 # on a unit type is the identity function. `force` on a void type is void.
 # `force` on a sum type forces component types by case analysis. `force` on a
-# product type forces component types then composes the results together. for
-# example, forcing `nil` is the identity function and forcing a `cons` cell is
-# the composition of forcing the head and recursively forcing the tail.
+# product type forces all component types and composes the results together.
+# for example, forcing a list is case analysis for forcing either a `nil` or a
+# `cons`, forcing a `nil` is the identity function, and forcing a `cons` is the
+# composition of forcing the head and recursively forcing the tail.
 # force :: a -> b -> b
 ..def \force .thrush force \seq
 ..def .thrush \force force \force
@@ -619,8 +710,9 @@
 ..def \many \altv \val
   ....lifta2 .altv:aptv altv cons val ..many altv val
 \many1
-..def .fix ..bluebird many1 many
-..def .fix ..bluebird many many1
+...vireo
+  .fix ..bluebird many many1
+  .fix ..bluebird many1 many
 \many \many1
 ..def \altv \sep \elem
   ....lifta2 .altv:aptv altv cons
@@ -772,14 +864,6 @@
 ..def ..mnid tsum:sgrp  et \tsum:mnid
 ..def ..mnid telse:sgrp et \telse:mnid
 ..def ..mnid tnles:sgrp et \tnles:mnid
-# the reverse ordering, obtained by swapping arguments to `compare`
-..def \inner:ord .inner:ord \inner:eq \innercompare
-  ..ord inner:eq .cardinal innercompare
-\down:ord
-# the reverse bounding, obtained by swapping `top` and `bot`
-..def \inner:bndd .inner:bndd \innertop \innerbot
-  ..bndd innertop innerbot
-\down:bndd
 
 ..def .ftor
   \func \optarg
@@ -845,7 +929,7 @@
 
 # def:nat
 # type Nat = Fix Maybe
-# a natural is an optional predecessor; when there isn't one, you've hit zero
+# a natural is an optional predecessor; when it's missing, you've hit zero
 ..def some \succ
 ..def none \zero
 # the "base" functor for `nat`, with the property `Fix NatF = Nat`.
@@ -925,8 +1009,6 @@ zero lhs \divmod
 ..def \res .cardinal res \flip
 
 # type Flip a b = Either b a
-#
-# the ordering obtained by flipping elements of the either ordering
 ..def \err:eq \ok:eq .eq
   \rhs \lhs
     ....res:eq err:eq ok:eq
@@ -942,19 +1024,15 @@ zero lhs \divmod
           .flip rhs
           .flip lhs
 \flip:ord
-# the bounding obtained by flipping elements of the either bounding
 ..def \err:bndd \ok:bndd
   ..res:bndd err:bndd ok:bndd
 \flip:bndd
-# the debugging obtained by flipping elements of the either debugging
 ..def \err:dbg \ok:dbg .dbg
   \res ..debug ..res:dbg err:dbg ok:dbg .flip res
 \flip:dbg
-# the sequencing obtained by flipping elements of the either sequencing
 ..def \err:seq \ok:seq .seq
   \res ..force ..res:seq err:seq ok:seq .flip res
 \flip:seq
-# the monad obtained by flipping elements of the either monad
 ..def .ftor
   \errfunc \resarg .flip
     ...fmap resb:ftor errfunc
@@ -1084,8 +1162,8 @@ zero lhs \divmod
     ..pair:sgrp .mnid:sgrp fst:mnid .mnid:sgrp snd:mnid
     ..pair .mempty fst:mnid .mempty snd:mnid
 \pair:mnid
-..def .ftor \sndfunc \pairarg
-  .pairarg \fstarg \sndarg
+..def .ftor
+  \sndfunc \pairarg .pairarg \fstarg \sndarg
     ..pair fstarg .sndfunc sndarg
 \paira:ftor
 ..def \fst:mnid .fst:mnid \fst:sgrp \fstmempty .fst:sgrp \fstsappend
@@ -1116,11 +1194,9 @@ zero lhs \divmod
   paira:fldb
   \snd:aptv \pairaptv .pairaptv ..bluebird .fmap .aptv:ftor snd:aptv pair
 \paira:tvsb
-..def \pair ..bluebird pair cardinal \swap
+..def \pair .pair finch \swap
 
 # type Swap a b = Pair b a
-#
-# the ordering obtained by swapping elements of the pair ordering
 ..def \snd:eq \fst:eq .eq
   \rhs \lhs
     ....pair:eq snd:eq fst:eq
@@ -1136,19 +1212,15 @@ zero lhs \divmod
           .swap rhs
           .swap lhs
 \swap:ord
-# the bounding obtained by swapping elements of the pair bounding
 ..def \snd:bndd \fst:bndd
   ..pair:bndd snd:bndd fst:bndd
 \swap:bndd
-# the debugging obtained by swapping elements of the pair debugging
 ..def \snd:dbg \fst:dbg .dbg
   \pair ..debug ..pair:dbg snd:dbg fst:dbg .swap pair
 \swap:dbg
-# the sequencing obtained by swapping elements of the pair sequencing
 ..def \snd:seq \fst:seq .seq
   \pair ..force ..pair:seq snd:seq fst:seq .swap pair
 \swap:seq
-# the monad obtained by swapping elements of the pair monad
 ..def .ftor
   \fstfunc \pairarg .swap
     ...fmap paira:ftor fstfunc
@@ -1367,7 +1439,7 @@ zero lhs \divmod
 ..def ...tvsb
   stream:ftor
   stream:fldb
-  \elem:aptv ..cata streamf:ftor ..lifta2 elem:aptv pair
+  \elem:aptv ..cata streamf:ftor .thrush ..lifta2 elem:aptv pair
 \stream:tvsb
 ..def ..dstv
   stream:ftor
@@ -1681,6 +1753,98 @@ zero lhs \divmod
 ..def \elem:ord .down:ord .dlist:ord .down:ord elem:ord \dshort:ord
 ..def \elem:bndd .down:bndd .dlist:bndd .down:bndd elem:bndd \dshort:bndd
 
+# type Tape a = Pair a (Sqr (Stream a))
+# it's pairs all the way down!
+..def .thrush \head .thrush \left \right .right \fst \snd
+  ..pair fst ..pair ..pair head left snd
+\leftshift
+..def .thrush \head .thrush \left \right .left \fst \snd
+  ..pair fst ..pair snd ..pair head right
+\rightshift
+..def \elem:eq .eq
+  ..psi .equal ..pair:eq elem:eq .stream:eq .sqr:eq elem:eq
+    ..fmap paira:ftor ..sequence sqr:tvsb stream:aptv
+\tape:eq
+..def \elem:ord ..ord
+  tape:eq
+  ..psi .compare ..pair:ord elem:ord .stream:ord .sqr:ord elem:ord
+    ..fmap paira:ftor ..sequence sqr:tvsb stream:aptv
+\tape:ord
+..def \elem:bndd
+  ..pair:bndd elem:bndd .sqr:bndd .stream:bndd elem:bndd
+\tape:bndd
+..def \radius \elem:dbg .elem:dbg \elemdebug .dbg
+  .thrush \head .thrush \left \right ...becard
+    ..fold .dual:mnid endo:mnid
+      ...fmap list:ftor \elem ..bluebird .elemdebug elem :]
+        ..stake radius left
+    .elemdebug head
+    ..fold endo:mnid
+      ...fmap list:ftor \elem ..bluebird :[ .elemdebug elem
+        ..stake radius right
+\tape:dbg
+..def \elem:seq
+  ..pair:seq elem:seq .sqr:seq .stream:seq seq
+\tape:seq # never terminates
+..def \elem:sgrp
+  ..pair:sgrp elem:sgrp ..ap:sgrp sqr:aptv .stream:sgrp elem:sgrp
+\tape:sgrp
+..def \elem:mnid
+  ..pair:mnid elem:mnid ..ap:mnid sqr:aptv .stream:mnid elem:mnid
+\tape:mnid
+..def .ftor
+  \func \tapearg .tapearg \headarg \sqrarg
+    ..pair .func headarg ...fmap sqr:ftor ..fmap stream:ftor func sqrarg
+\tape:ftor
+..def ...aptv
+  tape:ftor
+  \val ..pair val ..pure sqr:aptv ..pure stream:aptv val
+  \tapefunc \tapearg .tapefunc \headfunc \sqrfunc .tapearg \headarg \sqrarg
+    ..pair .headfunc headarg
+      ....lifta2 sqr:aptv .apply stream:aptv sqrfunc sqrarg
+\tape:aptv
+..def ..mnad
+  tape:aptv
+  \tapearg \func .tapearg \headarg .thrush \leftarg \rightarg
+    ..pair .fst .func headarg ..pair
+      ...bind stream:mnad  leftarg ...becard fst snd func
+      ...bind stream:mnad rightarg ...becard snd snd func
+\tape:mnad
+..def ...cmnd
+  tape:ftor
+  \tapeval .fst tapeval
+  \func \arg
+    ..pair .func arg ..pair
+      ...fmap stream:ftor func .snd ..iterate rightshift arg
+      ...fmap stream:ftor func .snd ..iterate  leftshift arg
+\tape:cmnd
+..def .fldb
+  \tapeval .tapeval \head \sqr
+    ..cons head
+      ...cardinal .bind list:mnad .tolist sqr:fldb
+        ..tolist stream:fldb
+          ...sequence sqr:tvsb stream:aptv sqr
+\tape:fldb
+..def ...tvsb
+  tape:ftor
+  tape:fldb
+  \elem:aptv \tapeaptv .tapeaptv \head \sqr
+    ....lifta2 elem:aptv cons head
+      ...sequence stream:tvsb elem:aptv
+        ...fmap stream:ftor
+          ..sequence sqr:tvsb elem:aptv
+          ...sequence sqr:tvsb stream:aptv sqr
+\tape:tvsb
+..def ..dstv
+  tape:ftor
+  \outer:ftor .outer:ftor \outerfmap \ftortape
+    ..pair ..outerfmap fst ftortape
+      ...fmap sqr:ftor
+        ..distribute stream:dstv outer:ftor
+        ...distribute sqr:dstv outer:ftor
+          ..outerfmap snd ftortape
+\tape:dstv
+
 # the "base" functor for `free`, with the property `Fix (FreeF f a) = Free f a`.
 # `data FreeF f a r = Roll (f r) | Return a deriving Functor`
 ..def \term:ftor .term:ftor \termfmap
@@ -1988,6 +2152,10 @@ zero lhs \divmod
                   ..func a7
                     zero
 \oct.foldr
+..def \octval
+  .octval \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    ........oct a7 a6 a5 a4 a3 a2 a1 a0
+\oct.rev
 ..def \elem:eq .elem:eq \elemequal
   .eq
     \rhs \lhs ..fold and:mnid ..tolist oct:fldb
@@ -2162,7 +2330,7 @@ zero lhs \divmod
 ..def ..bluebird snd .u8.incc true \u8.inc
 ..def ..bluebird snd .u8.decb true \u8.dec
 ..def .sgrp u8.add \u8.add:sgrp
-..def ..mnid u8.add:sgrp '\0' \u8.add:mnid
+..def ..mnid u8.add:sgrp $00 \u8.add:mnid
 
 # type Fn a b = a -> b
 ..def \inner:sgrp .inner:sgrp \innersappend

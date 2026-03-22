@@ -4,7 +4,7 @@ _A toy functional language_
 
 ## Overview
 
-PNLC is λ‑calculus in prefix notation plus normal-order semantics plus continuation-based I/O plus a small prelude. Arguably, [the prelude](prelude.pnlc) _is_ the language, because without it you’re left with little more than [a λ‑calculus interpreter](pnlc.c).
+PNLC is untyped λ‑calculus in prefix notation plus normal-order semantics plus continuation-based I/O plus a bootstrapping prelude. Arguably, [the prelude](prelude.pnlc) _is_ the language, because without it you’re left with little more than a λ‑calculus interpreter.
 
 The grammar for the language is specified in [grammar.bnf](grammar.bnf). Roughly speaking,
 
@@ -14,9 +14,9 @@ The grammar for the language is specified in [grammar.bnf](grammar.bnf). Roughly
          | <var>             ; variable
 ```
 
-During execution, the top-level term is expected to β‑reduce to one of the following forms, at which point the corresponding effect is performed. The prelude provides monadic wrappers for use in user programs.
+In addition, `#` introduces a comment to the end of the line. `let` bindings are left out.
 
-<!-- keep in sync with pnlc.c, examples/pnlc.pnlc, pnlc.vim and io\ hook.pnlc -->
+During execution, the top-level term is expected to β‑reduce to one of the following forms, at which point the corresponding effect is performed. The prelude provides monadic wrappers for use in user programs.
 
 | Form                | Effect                                                                                                                              |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -50,6 +50,7 @@ bin/pnlc prelude.pnlc examples/truth-machine.pnlc
 bin/pnlc prelude.pnlc examples/reverse.pnlc
 bin/pnlc prelude.pnlc examples/rot13.pnlc
 bin/pnlc prelude.pnlc examples/quine.pnlc
+bin/pnlc prelude.pnlc examples/rule\ 110.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/hello\ world.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/bit-cat.pnlc
 

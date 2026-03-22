@@ -1,4 +1,4 @@
-; keep in sync with pnlc.c and pnlc.vim
+; keep in sync with pnlc.c, examples/pnlc.pnlc and pnlc.vim
 <term> ::= "." <ws> <term> <term> | "\\" <ws> <var> <term> | "#" <line> <ws> <term> | <var> & (? head none of ".\\#" ?)
 <line> ::= (? not '\n' ?)* "\n"
 <var> ::= (? `!isspace` ?)+ <ws>:? ; non-empty whitespace

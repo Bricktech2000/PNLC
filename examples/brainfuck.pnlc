@@ -1,37 +1,6 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-# data Tape = Tape (Stream U8) U8 (Stream U8)
-..def \left \head \right ...veery left head right \tape
-..def .thrush \left \head \right left \left
-..def .thrush \left \head \right head \head
-..def .thrush \left \head \right right \right
-..def .ftor \func \tape
-  .tape \left \head \right \tape
-    ...tape left .func head right
-\tape:ftor # apply `func` to the `head`
-..def
-  ...tape ..pure stream:aptv '\0' '\0' ..pure stream:aptv '\0'
-\0tape # an infinite tape of zeroes
-..def .thrush \left \head \right .right \fst \snd
-  ...tape ..pair head left fst snd
-\tape.shl
-..def .thrush \left \head \right .left \fst \snd
-  ...tape snd fst ..pair head right
-\tape.shr
-..def .dbg
-  \tape .tape \left \head \right
-    .\radius ...becard
-      ..fold .dual:mnid endo:mnid
-        ...fmap list:ftor ...cardinalstar dove .debug u8.hex:dbg :sp
-        ..stake radius left
-      ..debug .brack:dbg u8.hex:dbg head
-      ..fold endo:mnid
-        ...fmap list:ftor ..blackbird :sp .debug u8.hex:dbg
-        ..stake radius right
-    .succ .succ .succ .succ .succ .succ .succ .succ zero
-\tape:dbg
-
 # equivalent to the prelude implementations but unrolled for higher performance
 ..def .eq
   \rhs \lhs
@@ -60,53 +29,58 @@
       ...a7 id id
     x
 \u8:seq
+..def .ftor
+  \fstfunc \pairarg .pairarg \fstarg \sndarg
+    ..pair .fstfunc fstarg sndarg
+\swapa:ftor
 
-# bfp :: Parser (Tape -> IO Tape)
+# bfp :: Parser (Tape U8 -> IO (Tape U8))
 # all the component parsers also have this type. this way, juxtaposition of
 # Brainfuck program strings corresponds to `liftA2 (>=>)`, that is, penetration
 # of parsers with Kleisli composition
 ..def .fix \bfp
+  ..def .succ .succ .succ .succ .succ .succ .succ .succ zero \radius
   # force the head of the tape before incrementing or decrementing its value and
   # before moving to another cell to avoid drowning in unfinished computations
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ...phi .force u8:seq head tape.shl
+    ..bluebird .pure io:aptv ...phi .force u8:seq fst leftshift
     .chrp '>'
   \'>'p
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ...phi .force u8:seq head tape.shr
+    ..bluebird .pure io:aptv ...phi .force u8:seq fst rightshift
     .chrp '<'
   \'<'p
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ..fmap tape:ftor ..starling .force u8:seq u8.inc
+    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.inc
     .chrp '+'
   \'+'p
   ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ..fmap tape:ftor ..starling .force u8:seq u8.dec
+    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.dec
     .chrp '-'
   \'-'p
   ..def ...fmapk parser:ftor
     \tape ...fmapk io:ftor
       tape
-      .putc .head tape
+      .putc .fst tape
     .chrp '.'
   \'.'p
   ..def ...fmapk parser:ftor
     \tape ...fmap io:ftor
-      \optchr ...fmapk tape:ftor ..optchr id '\0' tape
+      \optchr ...fmapk swapa:ftor ..optchr id '\0' tape
       getc
     .chrp ','
   \','p
   ..def ...fmapk parser:ftor
     \tape ...fmapk io:ftor
       tape
-      .eputs ...debug tape:dbg tape .:\n nil
+      ..eputd ..before:dbg :\n ..tape:dbg radius u8.hex:dbg tape
     .chrp '#'
   \'#'p
   ..def ...fmap parser:ftor
     \bf .fix \rec \tape
       # without `..kite tape`, truth-machine.bf slows down over time because its
       # lambda-term grows over time, and I'm not sure why
-      ......equal u8:eq '\0' .head tape
+      ......equal u8:eq '\0' .fst tape
         .pure io:aptv
         ...kleisli io:mnad bf ..kite tape rec
       tape
@@ -149,5 +123,5 @@
 .main
   ...bind io:mnad getbang \str
     ......seql parser:aptv bfp eofp str
-      .thrush \prog \inp .prog 0tape
+      .thrush \prog \inp .prog ..pure tape:aptv '\0'
       .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
