@@ -58,6 +58,8 @@ bin/pnlc prelude.pnlc examples/reverse.pnlc
 bin/pnlc prelude.pnlc examples/rot13.pnlc
 bin/pnlc prelude.pnlc examples/quine.pnlc
 bin/pnlc prelude.pnlc examples/rule\ 110.pnlc
+bin/pnlc prelude.pnlc examples/fizzbuzz.pnlc
+bin/pnlc prelude.pnlc examples/hanoi.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/hello\ world.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/bit-cat.pnlc
 

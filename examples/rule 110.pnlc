@@ -15,9 +15,9 @@
 ..def .dbg \bool ..bool :@ :_ \cell:dbg
 
 ..def
-  .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ
-  .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ .succ
-zero \radius
+  .some .some .some .some .some .some .some .some .some .some .some .some
+  .some .some .some .some .some .some .some .some .some .some .some .some
+none \radius
 
 ..def ..pair true ..pair   # head
   ..pure stream:aptv false # left

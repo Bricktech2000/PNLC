@@ -1,0 +1,17 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# hanoi :: a -> a -> a -> Nat -> DList (Sqr a)
+..def .fix \hanoi \src \via \dst
+  ..finch id \pred ...becard
+    ....hanoi src dst via pred # n-1 disks from `src` to `via`
+    .cons ..pair src dst       # one disk  from `src` to `dst`
+    ....hanoi via src dst pred # n-1 disks from `via` to `dst`
+\hanoi
+
+..def .some .some .some .some .some .some .some .some none \height
+
+.main # `sequence` accumulates junk
+  ...cata listf:ftor ..vireo .bindk io:mnad ..pure io:aptv unit
+    ...fmap list:ftor .thrush \src \dst .puts .src .:  .:- .:> .:  .dst .:\n nil
+      .....hanoi :A :B :C height nil

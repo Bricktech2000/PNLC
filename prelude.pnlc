@@ -124,7 +124,7 @@
 ..def ...veery tptb tbuf tntb \tnles # unless, priority right
 
 # def:opt
-..def \opt \some \none .some opt \some
+..def \val \some \none .some val \some
 ..def \some \none none \none
 ..def ..vireo .kestrel true false \issome
 ..def ..vireo .kestrel false true \isnone
@@ -165,7 +165,7 @@
 ..def .thrush \trace \ann trace \trace
 ..def .thrush \trace \ann ann \ann
 
-# type Oct a = (a, a, a, a, a, a, a, a)
+# data Oct a = Oct a a a a a a a a
 ..def \0 \1 \2 \3 \4 \5 \6 \7 \oct ........oct 0 1 2 3 4 5 6 7 \oct
 ..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 0 \oct.0
 ..def .thrush \0 \1 \2 \3 \4 \5 \6 \7 1 \oct.1
@@ -930,36 +930,30 @@
 # def:nat
 # type Nat = Fix Maybe
 # a natural is an optional predecessor; when it's missing, you've hit zero
-..def some \succ
-..def none \zero
-# the "base" functor for `nat`, with the property `Fix NatF = Nat`.
-# `data NatF a = Succ a | Zero deriving Functor`
-..def .ftor
-  \func \natfarg ..natfarg ..bluebird succ func zero
-\natf:ftor
+..def opt:ftor \natf:ftor
 ..def .fix opt:eq \nat:eq
 ..def .fix opt:ord \nat:ord
-..def .fix opt:bndd \nat:bndd # zero, fix succ
+..def .fix opt:bndd \nat:bndd # none (zero), fix some (infinity)
 ..def .fix opt:dbg \nat:dbg # S = some = succ, N = none = naught
 ..def .fix opt:seq \nat:seq
-..def \rhs \lhs ...cata natf:ftor ..vireo succ lhs rhs \add
-..def \rhs \lhs ...cata natf:ftor ..vireo .add lhs zero rhs \mul
-..def \rhs \lhs ...cata natf:ftor ..vireo .mul lhs .succ zero rhs \exp
-..def \rhs \lhs ...cata natf:ftor ..vireo ..cardinal exp lhs .succ zero rhs \tet
+..def \rhs \lhs ...cata natf:ftor ..vireo some lhs rhs \add
+..def \rhs \lhs ...cata natf:ftor ..vireo .add lhs none rhs \mul
+..def \rhs \lhs ...cata natf:ftor ..vireo .mul lhs .some none rhs \exp
+..def \rhs \lhs ...cata natf:ftor ..vireo ..cardinal exp lhs .some none rhs \tet
 ..def .join opt:mnad \satpred
 ..def ..cata natf:ftor ..vireo .cardinal .bind opt:mnad id \satsub
-..def ..cata natf:ftor ..vireo .cardinal .bind opt:mnad succ \sub
+..def ..cata natf:ftor ..vireo .cardinal .bind opt:mnad some \sub
 ..def \rhs \lhs ...fix \rec \quot \rem
-  ....sub rhs rem .rec .succ quot ..pair quot rem
-zero lhs \divmod
+  ....sub rhs rem .rec .some quot ..pair quot rem
+none lhs \divmod
 ..def ..blackbird fst divmod \div
 ..def ..blackbird snd divmod \mod
 ..def ..cata natf:ftor ..vireo not true \even
 ..def ..cata natf:ftor ..vireo not false \odd
 ..def .sgrp add \add:sgrp
 ..def .sgrp mul \mul:sgrp
-..def ..mnid add:sgrp zero \add:mnid
-..def ..mnid mul:sgrp .succ zero \mul:mnid
+..def ..mnid add:sgrp none \add:mnid
+..def ..mnid mul:sgrp .some none \mul:mnid
 
 ..def \ok:eq \err:eq .ok:eq \okequal .err:eq \errequal
   .eq
@@ -1333,9 +1327,9 @@ zero lhs \divmod
 \sqr:dstv
 
 # type Int = Sqr Nat
-..def ..pair zero zero \zzero
-..def \nat ..pair nat zero \pos
-..def \nat ..pair zero nat \neg
+..def ..pair none none \zzero
+..def \nat ..pair nat none \pos
+..def \nat ..pair none nat \neg
 ..def ...veery pos .kestrel zzero neg \signed
 ..def .fix \znorm \int ...int ..lifta2 opt:aptv pair znorm int \znorm
 ..def .eq
@@ -1354,10 +1348,10 @@ zero lhs \divmod
 ..def ..bluebird pos abs \zabs
 ..def ..bluebird neg abs \znbs
 ..def ..compare int:ord zzero \sign
-..def \int ..signed .sign int .succ zero \signum
+..def \int ..signed .sign int .some none \signum
 ..def swap \zneg
-..def ..fmap swapa:ftor succ \zsucc
-..def ..fmap paira:ftor succ \zpred
+..def ..fmap swapa:ftor some \zsucc
+..def ..fmap paira:ftor some \zpred
 ..def ..lifta2 sqr:aptv add \zadd
 ..def ..bluebird zadd zneg \zsub
 ..def \rhs \lhs
@@ -1393,8 +1387,8 @@ zero lhs \divmod
 ..def ..blackbird snd zfloordivmod \zfloormod
 ..def .sgrp zadd \zadd:sgrp
 ..def .sgrp zmul \zmul:sgrp
-..def ..mnid zadd:sgrp zero \zadd:mnid
-..def ..mnid zmul:sgrp .succ zero \zmul:mnid
+..def ..mnid zadd:sgrp zzero \zadd:mnid
+..def ..mnid zmul:sgrp .zsucc zzero \zmul:mnid
 
 # type Stream a = Fix (Pair a)
 ..def paira:ftor \streamf:ftor
@@ -1413,7 +1407,7 @@ zero lhs \divmod
   \val .fix .pair val
   \streamfunc \streamarg ...ana streamf:ftor
     # almost a `swapa:aptv`, but `pair` the constructor does not induce a monoid
-    \pair .pair \streamfunc \streamarg
+    .thrush \streamfunc \streamarg
       .streamfunc \fstfunc \sndfunc .streamarg \fstarg \sndarg
         ..pair .fstfunc fstarg ..pair sndfunc sndarg
     ..pair streamfunc streamarg
@@ -1456,10 +1450,10 @@ zero lhs \divmod
   \fst \acc ...pred fst fst acc
 \sfind
 ..def \pred ..cata streamf:ftor .thrush
-  \fst \acc ...pred fst zero .succ acc
+  \fst \acc ...pred fst none .some acc
 \sfindindex
 ..def \pred ..cata streamf:ftor .thrush
-  \fst \acc ....pred head .pair zero id ...fmap stream:ftor succ acc
+  \fst \acc ....pred head .pair none id ...fmap stream:ftor some acc
 \sfindindices
 ..def \item:eq \item .sfind ..equal item:eq item \selem
 ..def \item:eq \item .sfindindex ..equal item:eq item \selemindex
@@ -1528,7 +1522,7 @@ zero lhs \divmod
 ..def \width \stream
   ...fmap stream:ftor .stake width .stails stream
 \swindows
-..def ..iterate succ zero \iota
+..def ..iterate some none \iota
 
 # the "base" functor for `list`, with the property `Fix (ListF a) = List a`.
 # `data ListF a b = Cons a b | Nil deriving Functor`
@@ -1598,17 +1592,17 @@ zero lhs \divmod
 \list:ord
 ..def \elem:bndd ..bndd .fix .cons .top elem:bndd nil \list:bndd
 ..def \elem:dbg .elem:dbg \elemdebug .dbg
-  ..cata listf:ftor ..finch :N \head \tail ...becard .elemdebug head :: tail
+  ..cata listf:ftor ..finch :N \head \acc ...becard .elemdebug head :: acc
 \list:dbg
 ..def \elem:seq .elem:seq \elemforce .seq
-  ..cata listf:ftor ..finch id \head \tail ..bluebird .elemforce head tail
+  ..cata listf:ftor ..finch id \head \acc ..bluebird .elemforce head acc
 \list:seq
 # `type Short a = Down (List (Down a))`
 # the ordering where shorter lists compare greater than longer lists and where
 # `Nil` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .list:ord .down:ord elem:ord \short:ord
 ..def \elem:bndd .down:bndd .list:bndd .down:bndd elem:bndd \short:bndd
-..def ..cata listf:ftor ..finch zero .kestrel succ \len
+..def ..cata listf:ftor ..finch none .kestrel some \len
 ..def ..cata listf:ftor ..finch none \head \acc .some ..acc id head \last
 ..def ..cata listf:ftor ..finch none \head \acc .some ..acc .cons head nil \init
 # rev list = appEndo (getDual (foldMap (Dual . Endo . cons) list)) nil
@@ -1628,10 +1622,10 @@ zero lhs \divmod
   \head \acc ...pred head .some head acc
 \find
 ..def \pred ..cata listf:ftor ..finch none
-  \head \acc ...pred head .some zero ...fmap opt:ftor succ acc
+  \head \acc ...pred head .some none ...fmap opt:ftor some acc
 \findindex
 ..def \pred ..cata listf:ftor ..finch nil
-  \head \acc ....pred head .cons zero id ...fmap list:ftor succ acc
+  \head \acc ....pred head .cons none id ...fmap list:ftor some acc
 \findindices
 ..def \item:eq \item .find ..equal item:eq item \elem
 ..def \item:eq \item .findindex ..equal item:eq item \elemindex
@@ -1718,7 +1712,7 @@ zero lhs \divmod
 \dlist:ftor
 ..def ...aptv
   dlist:ftor
-  \val .dcons val # aka \val .bluebird .cons val
+  \val .cons val
   \dlistfunc \dlistarg ...cata listf:ftor
     ..finch dnil .dove ..cardinal .fmap dlist:ftor dlistarg
     .dlistfunc nil

@@ -39,7 +39,7 @@
 # Brainfuck program strings corresponds to `liftA2 (>=>)`, that is, penetration
 # of parsers with Kleisli composition
 ..def .fix \bfp
-  ..def .succ .succ .succ .succ .succ .succ .succ .succ zero \radius
+  ..def .some .some .some .some .some .some .some .some none \radius
   # force the head of the tape before incrementing or decrementing its value and
   # before moving to another cell to avoid drowning in unfinished computations
   ..def ...fmapk parser:ftor

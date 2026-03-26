@@ -73,7 +73,7 @@
 ..def \arg .fix \beta \lvl \term
   ....term
     ..psi app .beta lvl
-    ..bluebird lam .beta .succ lvl
+    ..bluebird lam .beta .some lvl
     ..bluebird ..vireo arg term ..equal nat:eq lvl
     io
 \beta
@@ -83,7 +83,7 @@
   ...getapp term
     \func \arg ..def .whnf func \func
       ...body func
-        ..bluebird whnf ..beta arg zero
+        ..bluebird whnf ..beta arg none
         ..app func arg
     term
 \whnf
@@ -110,8 +110,8 @@
         ...bind io:mnad get \optbit
           .\arg .run ..app cont arg
           .lam .lam ..optbit
-            \bit ..app .var .succ zero .lam .lam .var ...bit succ id zero
-            .var zero
+            \bit ..app .var .some none .lam .lam .var ...bit some id none
+            .var none
       ..pure io:aptv false
     ..pure io:aptv false
   ..pure io:aptv ...typ term isexit false
