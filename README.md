@@ -2,11 +2,14 @@
 
 _A toy functional language_
 
-## Overview
+PNLC consists of two components:
 
-PNLC is untyped λ‑calculus in prefix notation plus normal-order semantics plus continuation-based I/O plus a bootstrapping prelude. Arguably, [the prelude](prelude.pnlc) _is_ the language, because without it you’re left with little more than a λ‑calculus interpreter.
+1. [An interpreter](pnlc.c) for a lazily-evaluated untyped λ‑calculus augmented with I/O.
+2. [A prelude](prelude.pnlc) that bootstraps the calculus into a practical language.
 
-The grammar for the language is specified in [grammar.bnf](grammar.bnf). Roughly speaking,
+## The Interpreter
+
+A PNLC program is a λ‑term written in prefix notation. Prefix notation simplifies parsing and obviates a syntax for `let` bindings. The grammar is specified in [grammar.bnf](grammar.bnf). Roughly speaking,
 
 ```bnf
 <term> ::= "." <term> <term> ; application
@@ -14,9 +17,7 @@ The grammar for the language is specified in [grammar.bnf](grammar.bnf). Roughly
          | <var>             ; variable
 ```
 
-In addition, `#` introduces a comment to the end of the line. `let` bindings are left out.
-
-During execution, the top-level term is expected to β‑reduce to one of the following forms, at which point the corresponding effect is performed. The prelude provides monadic wrappers for use in user programs.
+I/O is based on continuations. During execution, the top-level term is expected to β‑reduce to one of the following forms, at which point the corresponding effect is performed.
 
 | Form                | Effect                                                                                                                              |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -27,15 +28,21 @@ During execution, the top-level term is expected to β‑reduce to one of the fo
 | `..$eput bit cont`  | Write `bit` to `stderr`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
 | `..$dump term cont` | Reduce `term` to weak head normal form, dump it to `stderr`, invoke `cont` without arguments.                                       |
 
-## Usage
+## The Prelude
 
-First compile the interpreter:
+The prelude defines data types like booleans, integers, pairs, optionals, lists, characters, strings; type classes like monoids, functors, monads, comonads, foldables; type class instances like monoids under addition, total ordering of lists, the stream functor, the I/O monad; and more.
+
+Arguably, the prelude _is_ the language, because without it you’re left with little more than a λ‑calculus interpreter. Much of it is inspired by Haskell’s base library and Miranda’s standard environment. As a first step in becoming familiar with it you might study the [example programs](examples/) included—though not the “naked” ones, because they’re designed not to depend on the prelude.
+
+## Examples
+
+First, compile the interpreter:
 
 ```sh
 make bin/pnlc
 ```
 
-Then run some example programs:
+Then, run any of the example programs:
 
 ```sh
 bin/pnlc examples/no-op\ naked.pnlc

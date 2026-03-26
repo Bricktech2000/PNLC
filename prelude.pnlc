@@ -2,11 +2,11 @@
 .\p .p \x \f .f x \def
 
 # this file is organized into a few sections separated by form feeds. sum
-# types and product types are Scott encoded. typeclasses are product types and
-# typeclass instances inhabit those types. we keep their names short, at most
-# four characters, because resolution is done manually; when you see a colon
-# in an identifier, think typeclass instance. when defining binary operators,
-# we order the parameters so as to be maximally lazy in the second argument;
+# types and product types are Scott encoded. type classes are product types and
+# instances thereof inhabit those types. we keep their names short, at most four
+# characters, because resolution is done manually; when you see a colon in an
+# identifier, think type class instance. when defining binary operators, we
+# order the parameters so as to be maximally lazy in the second argument;
 # when an operator is strict in both arguments or can be made lazy in either
 # argument, we order the parameters so as to make partial application useful
 
@@ -541,7 +541,7 @@
 ...vireo $7d .cons $7d \'}' \:}
 ...vireo $7e .cons $7e \'~' \:~
 
- # typeclass definitions and utility instances
+ # type class definitions and utility instances
 
 ..def \equal .thrush equal \eq
 ..def .thrush \equal equal \equal # \rhs \lhs
@@ -771,7 +771,7 @@
 ..def .thrush \ftor \distribute ftor \dstv:ftor
 ..def .thrush \ftor \distribute distribute \distribute
 
- # typeclass instances and utility functions
+ # type class instances and utility functions
 
 # catamorphisms, anamorphisms, hylomorphisms, paramorphisms, apomorphisms,
 # histomorphisms and futumorphisms.
@@ -904,8 +904,8 @@
 # no need for `Data.Monoid.Last a`, it'd be isomorphic to `Dual (Alt Maybe a)`
 # and to `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.Last a`.
 #
-# these typeclass instances need to be lazy in the element typeclass instance so
-# we can take their fixed points to define the equivalent instances for `nat`
+# these instances need to be lazy in the element instance so we can take their
+# fixed points to define the equivalent instances for `nat`
 ..def \elem:eq .eq
   \rhs \lhs ..rhs
     ..lhs .cardinal .equal elem:eq .kestrel false
@@ -1066,7 +1066,7 @@ zero lhs \divmod
 \flipb:tvsb
 
 # type Dbl a = Either a a
-# `a+a = 2*a` so `Dbl a ~= Pair Bool a`. the typeclass instances for `Dbl` are
+# `a+a = 2*a` so `Dbl a ~= Pair Bool a`. the type class instances for `Dbl` are
 # given by the corresponding instances for `Pair Bool` under the isomorphism
 ..def \dbl ..pair ..psi dbl kestrel ..dbl id id \dbl.iso
 ..def .thrush \fst \snd ...fst ok err snd \pairbool.iso
@@ -1118,8 +1118,8 @@ zero lhs \divmod
     ..fmap .aptv:ftor elem:aptv err
 \dbl:tvsb
 
-# these typeclass instances need to be lazy in the element typeclass instance so
-# we can take their fixed points to define the equivalent instances for `stream`
+# these instances need to be lazy in the element instance so we can take their
+# fixed points to define the equivalent instances for `stream`
 ..def \fst:eq \snd:eq
   .eq
     \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
@@ -1263,7 +1263,7 @@ zero lhs \divmod
 \swapa:tvsb
 
 # type Sqr a = Pair a a
-# `a*a = a^2` so `Sqr a ~= Fn Bool a`. the typeclass instances for `Sqr` are
+# `a*a = a^2` so `Sqr a ~= Fn Bool a`. the type class instances for `Sqr` are
 # given by the corresponding instances for `Fn Bool` under the isomorphism.
 # note that while `sqr.iso` is the identity function, `fnbool.iso` is not.
 # that's because you can always invoke a `Sqr a ~ (a -> a -> b) -> b` with
@@ -1754,7 +1754,7 @@ zero lhs \divmod
 ..def \elem:bndd .down:bndd .dlist:bndd .down:bndd elem:bndd \dshort:bndd
 
 # type Tape a = Pair a (Sqr (Stream a))
-# it's pairs all the way down!
+# pairs all the way down!
 ..def .thrush \head .thrush \left \right .right \fst \snd
   ..pair fst ..pair ..pair head left snd
 \leftshift

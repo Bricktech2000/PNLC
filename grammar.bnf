@@ -1,5 +1,8 @@
 ; keep in sync with pnlc.c, examples/pnlc.pnlc and pnlc.vim
-<term> ::= "." <ws> <term> <term> | "\\" <ws> <var> <term> | "#" <line> <ws> <term> | <var> & (? head none of ".\\#" ?)
+<term> ::= "." <ws> <term> <term>            ; application
+         | "\\" <ws> <var> <term>            ; abstraction
+         | "#" <line> <ws> <term>            ; comment
+         | <var> & (? head none of ".\\#" ?) ; variable
 <line> ::= (? not '\n' ?)* "\n"
-<var> ::= (? `!isspace` ?)+ <ws>:? ; non-empty whitespace
+<var> ::= (? `!isspace` ?)+ (? `isspace` ?)+ ; assuming isspace(EOF)
 <ws> ::= (? `isspace` ?)*
