@@ -11,8 +11,12 @@ enum { TYPE_APP, TYPE_LAM, TYPE_VAR };
 
 // "IO"s are opaque lambda-terms that are handled in special ways. when `term.
 // type < 0`, the term is an IO, and `~term.type` will be one of the following:
-enum { IO_EXIT, IO_ERR, IO_GET, IO_PUT, IO_EPUT, IO_DUMP };
-char *ios[] = {"$exit", "$err", "$get", "$put", "$eput", "$dump", NULL};
+// clang-format off
+enum {IO_EXIT, IO_ERR, IO_GET, IO_PUT, IO_EPUT,
+      IO_DUMP, IO_TRU, IO_FALS, IO_LEN};
+// clang-format on
+char *ios[] = {"$exit", "$err",  "$get",   "$put", "$eput",
+               "$dump", "#true", "#false", NULL};
 
 // a `struct term` is a node in a directed acyclic graph. `refcount` is the
 // in-degree. `beta` is a borrow, and together with `visited` it forms a cache
@@ -44,6 +48,12 @@ struct term {
   term_alloc((struct term){TYPE_LAM, .lhs = LHS, .rhs = RHS})
 #define VAR() term_alloc((struct term){TYPE_VAR})
 #define IO(TYP) term_alloc((struct term){~(TYP)})
+
+// a variable node that also stores the text of its name and a "next" pointer to
+// form an environment linked list
+#define ENV(NAME_BEGIN, NAME_END, NEXT)                                        \
+  term_alloc((struct term){TYPE_VAR, .lhs = (void *)(NAME_BEGIN),              \
+                           .rhs = (void *)(NAME_END), .beta = NEXT})
 
 struct term *term_alloc(struct term fields) {
   struct term *term = malloc(sizeof *term);
@@ -278,17 +288,15 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
       bool isput = ~head->type == IO_PUT;
       if (-head->visited != 2)
         return isput ? "$put expects 2 arguments" : "$eput expects 2 arguments";
-      // two sentinel lambda-terms with bogus `type` so they get treated like
-      // IOs and with huge `refcount` so nobody attempts to free them
-      struct term tru = {INT_MIN + 1, INT_MAX}, fals = {INT_MIN + 0, INT_MAX};
-      struct term *bit = APP(APP(term_incref((*term)->lhs->rhs), &tru), &fals);
+      struct term *bit =
+          APP(APP(term_incref((*term)->lhs->rhs), IO(IO_TRU)), IO(IO_FALS));
       if (~whnf(bit, visited)->type == IO_ERR)
         return term_decref(bit), isput ? "hit $err in $put argument"
                                        : "hit $err in $eput argument";
-      if (bit->type != tru.type && bit->type != fals.type)
+      if (~bit->type != IO_TRU && ~bit->type != IO_FALS)
         return term_decref(bit), isput ? "$put argument is malformed"
                                        : "$eput argument is malformed";
-      bs_put(isput ? bs_out : bs_err, bit->type == tru.type), term_decref(bit);
+      bs_put(isput ? bs_out : bs_err, ~bit->type == IO_TRU), term_decref(bit);
       cont = term_incref((*term)->rhs);
     } break;
     default:
@@ -346,19 +354,14 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
     if (*error)
       return NULL;
 
-    struct term *lhs = env = term_alloc((struct term){
-        TYPE_VAR,
-        .lhs = (void *)begin, // binder name
-        .rhs = (void *)end,   // end of binder name
-        .beta = env,          // next binder up
-    });
-
+    struct term *lhs = env = ENV(begin, end, env);
     struct term *rhs = parse_term(prog, error, env);
     if (*error)
       return term_decref(lhs), NULL;
 
     // uncomment this to avoid holding any pointers into `prog` when we return.
-    // `term_dump` will dump variables as their own memory address instead
+    // variables won't store the text of their names and `term_dump` will dump
+    // them as their memory addresses instead.
     // lhs->lhs = lhs->rhs = NULL;
 
     return LAM(lhs, rhs);
@@ -380,17 +383,10 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
     if (*error)
       return NULL;
 
-    // search binders first and IOs second so the IO functions can be shadowed
-
     for (; env; env = env->beta)
       if (end - begin == (char *)env->rhs - (char *)env->lhs &&
           strncmp(begin, (char *)env->lhs, end - begin) == 0)
         return term_incref(env);
-
-    for (char **io = ios; *io; io++)
-      if (end - begin == strlen(*io) && //
-          strncmp(begin, *io, end - begin) == 0)
-        return IO(io - ios);
 
     *error = "unbound variable", *prog = begin;
     return NULL;
@@ -401,9 +397,15 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
 struct term *parse(char **prog, char **error) {
   parse_ws(prog);
 
-  struct term *term = parse_term(prog, error, NULL);
+  struct term *env = NULL;
+  for (char **io = ios; *io; io++)
+    env = ENV(*io, *io + strlen(*io), env);
+
+  struct term *term = parse_term(prog, error, env);
+  for (int typ = IO_LEN; typ--; env = env->beta)
+    term = APP(LAM(env, term ? term : IO(0)), IO(typ));
   if (*error)
-    return NULL;
+    return term_decref(term), NULL;
 
   if (**prog) {
     *error = "trailing characters";

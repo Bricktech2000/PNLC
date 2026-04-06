@@ -23,13 +23,26 @@
 ..def \typ ........typ false false false false false false false true \isfals
 ..def .dbg \typ ........typ :X :E :G :P :R :D :T :F \typ:dbg
 ..def .seq \typ ........typ id id id id id id id id \typ:seq
+..def .enum
+  ..cons mkfals
+  ..cons mktru
+  ..cons mkdump
+  ..cons mkeput
+  ..cons mkput
+  ..cons mkget
+  ..cons mkerr
+  ..cons mkexit
+  nil
+\typ:enum
 ..def
-  ..cons ..pair .:$ .:e .:x .:i .:t nil mkexit
-  ..cons ..pair .:$ .:e .:r .:r     nil mkerr
-  ..cons ..pair .:$ .:g .:e .:t     nil mkget
-  ..cons ..pair .:$ .:p .:u .:t     nil mkput
-  ..cons ..pair .:$ .:e .:p .:u .:t nil mkeput
-  ..cons ..pair .:$ .:d .:u .:m .:p nil mkdump
+  ..cons .:$ .:e .:x .:i .:t nil
+  ..cons .:$ .:e .:r .:r     nil
+  ..cons .:$ .:g .:e .:t     nil
+  ..cons .:$ .:p .:u .:t     nil
+  ..cons .:$ .:e .:p .:u .:t nil
+  ..cons .:$ .:d .:u .:m .:p nil
+  ..cons .:# .:t .:r .:u     nil
+  ..cons .:# .:f .:a .:l .:s nil
   nil
 \ios
 
@@ -146,11 +159,16 @@
         .kestrel .empty parser:altv
         .....elemindex .list:eq u8:eq name env
           ..bluebird .pure parser:aptv var
-          .....lookup .list:eq u8:eq name ios
-            ..bluebird .pure parser:aptv io
-            .empty parser:altv
+          .empty parser:altv
   .empty parser:altv
 \termp
+
+..def ...fmap parser:ftor
+  \term ...cata listf:ftor ..finch term
+    \typ \acc ..app .lam acc .io typ
+    .enumerate typ:enum
+  ....between parser:aptv wsp eofp .termp ios
+\parse
 
 # read characters from stdin until a '\0'. we use the character '\0' to end the
 # program string and begin its execution
@@ -163,10 +181,8 @@
 \getnul
 
 .main
-  ...bind io:mnad getnul \str
-    .......between parser:aptv wsp eofp .termp nil str
-      # .thrush \term \inp ..pure io:aptv unit # parse only
-      .thrush \term \inp ...bind io:mnad .run term ..vireo # parse then run
-        ..pure io:aptv unit
-        .eputs .:r .:u .:n .:t .:i .:m .:e .:  .:e .:r .:r .:o .:r .:\n nil
-      .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
+  ...bind io:mnad getnul \str ...parse str
+    .thrush \term \inp ...bind io:mnad .run term ..vireo
+      ..pure io:aptv unit
+      .eputs .:r .:u .:n .:t .:i .:m .:e .:  .:e .:r .:r .:o .:r .:\n nil
+    .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
