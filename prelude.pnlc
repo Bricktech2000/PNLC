@@ -35,6 +35,7 @@
 ..def \f \x \y \g \z ...f x y .g z \dickcissel
 ..def \f \g \x \h \y ..f .g x .h y \dovekies
 ..def \f \x \g \y \z ..f x ..g y z \eagle
+..def \f \g \w \x \h \y \z ..f ..g w x ..h y z \baldeagle
 ..def \f \g \x ..f x .g x \starling
 ..def \f \g \x ..f .g x x \violet # -backed starling
 ..def \f \g \x \y ..f y .g x \goldfinch
@@ -160,7 +161,7 @@
 ..def ..vireo .kestrel none some \var
 
 # the cofree comonad
-# data Cofree f a = Cofree (f (Cofree a)) a
+# data Cofree f a = Cofree (f (Cofree f a)) a
 ..def \trace \ann ..vireo trace ann \cofree
 ..def .thrush \trace \ann trace \trace
 ..def .thrush \trace \ann ann \ann
@@ -602,6 +603,7 @@
 ..def ..within:dbg :" :" \quote:dbg
 ..def ..within:dbg :' :' \acute:dbg
 ..def ..within:dbg :` :` \grave:dbg
+..def ..within:dbg :  :  \space:dbg
 
 # sequencing of evaluation order. forcing a call to `force` forces the first
 # argument then evaluates to the second argument. partially applying `force`
@@ -621,6 +623,24 @@
 # the lazy sequencing, doesn't actually force the argument. for example, `.force
 # .list:seq lazy:seq` forces the shape of a list but doesn't force its elements
 ..def .seq .kestrel id \lazy:seq
+
+# this `Enum` serves a different purpose than Haskell's `Enum`. this `Enum`
+# serves as a best-effort enumeration of the values of a type in no particular
+# order. this is used for ordering functions, for example. generally speaking,
+#   - if a type has a finite set of values, the enumeration tries to be
+#     exhaustive.
+#   - if a type has a recursively enumerable set of values, the enumertion tries
+#     to attain every value in finite time.
+#   - if a type has a non-recursively enumerable set of value, the enumeration
+#     tries not to be trivial.
+# enumerate :: Enum a => [a]
+..def \enumerate .thrush enumerate \enum
+..def .thrush \enumerate enumerate \enumerate
+# the reverse enumeration, obtained by reversing `enumerate`
+..def \inner:enum .inner:enum \innerenumerate .enum
+  ...fix \rec \zero ..finch zero \head \tail ..rec ..cons head zero tail nil
+    innerenumerate
+\down:enum
 
 ..def \sappend .thrush sappend \sgrp
 ..def .thrush \sappend sappend \sappend # \lhs \rhs
@@ -651,7 +671,7 @@
 ..def \ftor ..bluebird .fmap ftor kestrel \fmapk
 ..def \ftor ...phi pair ..fmap ftor fst ..fmap ftor snd \unzip
 # the const functor, whose `fmap` is a no-op. it is also the "base" functor for
-# `solo`, with the property `Fix (Const a) = Solo a`.
+# `Solo`, with the property `Fix (Const a) ~= Solo a`.
 # `data Const a b = Const a deriving Functor`
 ..def .ftor kestrel \const:ftor
 ..def \inner:mnid .inner:mnid \inner:sgrp \innermempty .inner:sgrp \innersappend
@@ -811,6 +831,51 @@
   ..fix \rec ..fmap ftor ..kite seed ..vireo rec futu .cvcoalg seed
 \futu
 
+# these instances belong to `List` but they are located here at the beginning of
+# the section because many `Enum` instances depend on them.
+#
+# the "base" functor for `List`, with the property `Fix (ListF a) ~= List a`.
+# `data ListF a b = Cons a b | Nil deriving Functor`
+..def .ftor
+  \func \listfarg ..listfarg \head \tail ..cons head .func tail nil
+\listf:ftor
+..def \elem:mnid .elem:mnid \elem:sgrp \mempty .elem:sgrp \sappend
+  ..cata listf:ftor ..vireo sappend mempty
+\fold
+..def .ftor
+  \func ..cata listf:ftor ..finch nil ..bluebird cons func
+\list:ftor
+..def ...aptv
+  list:ftor
+  \val ..cons val nil
+  \listfunc \listarg ...cata listf:ftor ..finch nil
+    # avoiding `fmap` for efficiency. notice the init is `acc` instead of `nil`
+    \func \acc ...cata listf:ftor ..finch acc ..bluebird cons func listarg
+    listfunc
+\list:aptv
+..def ..mnad
+  list:aptv
+  \listarg \func ...cata listf:ftor ..finch nil
+    \arg \acc ...cata listf:ftor ..vireo cons acc .func arg
+    listarg
+\list:mnad
+..def ...altv
+  list:aptv
+  nil
+  \listlhs \listrhs
+    ...cata listf:ftor ..vireo cons listrhs listlhs
+\list:altv
+..def .fldb
+  \listval listval
+\list:fldb
+..def ...tvsb
+  list:ftor
+  list:fldb
+  \elem:aptv ..cata listf:ftor ..vireo
+    ..lifta2 elem:aptv cons
+    ..pure elem:aptv nil
+\list:tvsb
+
 ..def .eq \rhs \lhs true \unit:eq
 ..def .eq \rhs \lhs void \void:eq
 ..def ..ord unit:eq \rhs \lhs et \unit:ord
@@ -821,6 +886,8 @@
 ..def .dbg \void $err \void:dbg
 ..def .seq \unit id \unit:seq
 ..def .seq \void $err \void:seq
+..def .enum ..cons unit nil \unit:enum
+..def .enum nil \void:enum
 ..def .sgrp \lhs \rhs unit \unit:sgrp
 ..def .sgrp \lhs \rhs void \void:sgrp
 ..def ..mnid unit:sgrp unit \unit:mnid
@@ -831,6 +898,7 @@
 ..def ..bndd true false \bool:bndd
 ..def .dbg \bool ..bool :1 :0 \bool:dbg
 ..def .seq \bool ..bool id id \bool:seq
+..def .enum ..cons false ..cons true nil \bool:enum
 # `and:mnid` and `or:mnid` work like `..min:mnid bool:ord bool:bndd` and
 # `..max:mnid bool:ord bool:bndd`
 ..def .sgrp and \and:sgrp
@@ -847,6 +915,7 @@
 ..def ..bndd gt lt \cmp:bndd
 ..def .dbg \cmp ...cmp :> := :< \cmp:dbg
 ..def .seq \cmp ...cmp id id id \cmp:seq
+..def .enum ..cons lt ..cons et ..cons gt nil \cmp:enum
 # `tand:mnid` and `tor:mnid` work like `..min:mnid cmp:ord cmp:bndd` and
 # `..max:mnid cmp:ord cmp:bndd`
 ..def .sgrp tand  \tand:sgrp
@@ -905,7 +974,7 @@
 # and to `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.Last a`.
 #
 # these instances need to be lazy in the element instance so we can take their
-# fixed points to define the equivalent instances for `nat`
+# fixed points to define the equivalent instances for `Nat`
 ..def \elem:eq .eq
   \rhs \lhs ..rhs
     ..lhs .cardinal .equal elem:eq .kestrel false
@@ -922,10 +991,14 @@
   \opt ..opt ..blackbird :S .debug inner:dbg :N
 \opt:dbg
 ..def \elem:seq .seq \opt ..opt .force elem:seq id \opt:seq
+..def \elem:enum
+  .enum ..cons none ...fmap list:ftor some .enumerate elem:enum
+\opt:enum
 # `type Every a = Down (Maybe (Down a))`
 # the ordering where `Nothing` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .opt:ord .down:ord elem:ord \every:ord
 ..def \elem:bndd .down:bndd .opt:bndd .down:bndd elem:bndd \every:bndd
+..def \elem:enum .down:enum .opt:enum .down:enum elem:enum \every:enum
 
 # def:nat
 # type Nat = Fix Maybe
@@ -936,6 +1009,7 @@
 ..def .fix opt:bndd \nat:bndd # none (zero), fix some (infinity)
 ..def .fix opt:dbg \nat:dbg # S = some = succ, N = none = naught
 ..def .fix opt:seq \nat:seq
+..def .fix opt:enum \nat:enum
 ..def \rhs \lhs ...cata natf:ftor ..vireo some lhs rhs \add
 ..def \rhs \lhs ...cata natf:ftor ..vireo .add lhs none rhs \mul
 ..def \rhs \lhs ...cata natf:ftor ..vireo .mul lhs .some none rhs \exp
@@ -975,6 +1049,12 @@ none lhs \divmod
 ..def \ok:seq \err:seq .ok:seq \okforce .err:seq \errforce
   .seq \res ..res okforce errforce
 \res:seq
+..def \ok:enum \err:enum .ok:enum \okenumerate .err:enum \errenumerate
+  .enum
+    ...alt list:altv
+      ...fmap list:ftor err errenumerate
+      ...fmap list:ftor ok  okenumerate
+\res:enum
 ..def .sgrp \lhs \rhs ..lhs ok rhs \res:sgrp
 ..def .ftor
   \okfunc \resarg
@@ -1027,6 +1107,10 @@ none lhs \divmod
 ..def \err:seq \ok:seq .seq
   \res ..force ..res:seq err:seq ok:seq .flip res
 \flip:seq
+..def \err:enum \ok:enum .enum
+  ...fmap list:ftor flip
+    .enumerate ..res:enum err:enum ok:enum
+\flip:enum
 ..def .ftor
   \errfunc \resarg .flip
     ...fmap resb:ftor errfunc
@@ -1069,6 +1153,7 @@ none lhs \divmod
 ..def .warbler res:bndd \dbl:bndd
 ..def .warbler res:dbg \dbl:dbg
 ..def .warbler res:seq \dbl:seq
+..def .warbler res:enum \dbl:enum
 # no need for `Monoid a => Monoid (Dbl a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Dbl`
 ..def .ftor
@@ -1077,7 +1162,7 @@ none lhs \divmod
 \dbl:ftor
 # the Applicative and Monad instances for `Pair a` require a monoid on `a`, and
 # `Dbl` is isomorphic to `Pair Bool`, so the Applicative and Monad instances for
-# `Dbl` must require a monoid on `Bool`. we use the identity element to know
+# `Dbl` ought to require a monoid on `Bool`. we use the identity element to know
 # whether `pure` is a `Left` or a `Right` and we use the monoid operation to
 # combine information about whether contents came from `Left` or from `Right`
 ..def \bool:mnid .bool:mnid \bool:sgrp \boolmempty .bool:sgrp \boolsappend
@@ -1113,7 +1198,7 @@ none lhs \divmod
 \dbl:tvsb
 
 # these instances need to be lazy in the element instance so we can take their
-# fixed points to define the equivalent instances for `stream`
+# fixed points to define the equivalent instances for `Stream`
 ..def \fst:eq \snd:eq
   .eq
     \rhs \lhs .rhs \rhsfst \rhssnd .lhs \lhsfst \lhssnd
@@ -1144,6 +1229,9 @@ none lhs \divmod
     \pair .pair \fst \snd
       ..bluebird ..force fst:seq fst ..force snd:seq snd
 \pair:seq
+..def \fst:enum \snd:enum .enum
+  ....lifta2 list:aptv .cardinal pair .enumerate snd:enum .enumerate fst:enum
+\pair:enum
 ..def \fst:sgrp \snd:sgrp
   .sgrp
     \lhs \rhs .lhs \lhsfst \lhssnd .rhs \rhsfst \rhssnd
@@ -1215,6 +1303,10 @@ none lhs \divmod
 ..def \snd:seq \fst:seq .seq
   \pair ..force ..pair:seq snd:seq fst:seq .swap pair
 \swap:seq
+..def \snd:enum \fst:enum .enum
+  ...fmap list:ftor swap
+    .enumerate ..pair:enum snd:enum fst:enum
+\swap:enum
 ..def .ftor
   \fstfunc \pairarg .swap
     ...fmap paira:ftor fstfunc
@@ -1263,13 +1355,14 @@ none lhs \divmod
 # that's because you can always invoke a `Sqr a ~ (a -> a -> b) -> b` with
 # a `Bool ~ a -> a -> a`, but you can't always destructure a `Fn Bool a ~
 # (a -> a -> a) -> a` by invoking it with an `a -> a -> b`.
-..def \sqr \env .sqr env \sqr.iso
+..def \sqr \arg .sqr arg \sqr.iso
 ..def \fnbool ....psi pair fnbool true false \fnbool.iso
 ..def .warbler pair:eq \sqr:eq
 ..def .warbler pair:ord \sqr:ord
 ..def .warbler pair:bndd \sqr:bndd
 ..def .warbler pair:dbg \sqr:dbg
 ..def .warbler pair:seq \sqr:seq
+..def .warbler pair:enum \sqr:enum
 # no need for `Monoid a => Monoid (Sqr a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Sqr`
 ..def .ftor
@@ -1344,6 +1437,11 @@ none lhs \divmod
   \int .int \pos \neg ...becard .natdebug pos :- .natdebug neg
 \int:dbg
 ..def .sqr:seq nat:seq \int:seq
+..def .enum
+  ..cons zzero ...rapply list:aptv
+    ...fmap list:ftor some .enumerate nat:enum
+    ..cons pos ..cons neg nil
+\int:enum
 ..def \int ..znorm int .max nat:ord \abs
 ..def ..bluebird pos abs \zabs
 ..def ..bluebird neg abs \znbs
@@ -1397,6 +1495,22 @@ none lhs \divmod
 ..def ..bluebird fix pair:bndd \stream:bndd
 ..def ..bluebird fix pair:dbg \stream:dbg
 ..def ..bluebird fix pair:seq \stream:seq # never terminates
+# there is an uncountably infinite number of streams of a finite type. the best
+# we can do is ask for a finite list of infinite tails to append to the infinite
+# enumeration of finite lists of elements. if we tried to go
+#     ..def ..bluebird fix pair:enum \stream:enum
+# then we'd never finish generating the first element of the enumeration.
+..def \tails:enum1 \elem:enum .elem:enum \elemenumerate .enum
+  .fix \streamenumerate
+    ...alt list:altv .enumerate .tails:enum1 elem:enum
+      ....lifta2 list:aptv .cardinal pair streamenumerate elemenumerate
+\stream:enum
+..def \elem:enum .elem:enum \elemenumerate .enum
+  ...fmap list:ftor \elem .fix .pair elem elemenumerate
+\srepeat:enum
+..def \elem:enum .elem:enum \elemenumerate .enum
+  ..elemenumerate \head \tail ..cons .fix .pair head nil nil
+\ssingle:enum
 ..def ..bluebird fix pair:sgrp \stream:sgrp
 ..def ..bluebird fix pair:mnid \stream:mnid
 ..def .ftor
@@ -1524,49 +1638,11 @@ none lhs \divmod
 \swindows
 ..def ..iterate some none \iota
 
-# the "base" functor for `list`, with the property `Fix (ListF a) = List a`.
-# `data ListF a b = Cons a b | Nil deriving Functor`
-..def .ftor
-  \func \listfarg ..listfarg \head \tail ..cons head .func tail nil
-\listf:ftor
-..def \elem:mnid .elem:mnid \elem:sgrp \mempty .elem:sgrp \sappend
-  ..cata listf:ftor ..vireo sappend mempty
-\fold
+# the missing instances are located at the beginning of the section because many
+# `Enum` instances depend on them.
+#
 # no need for `Monoid (List a)`, it'd be isomorphic to `Alternative f =>
 # Monoid (Alt f a)` for `f ~ List`
-..def .ftor
-  \func ..cata listf:ftor ..finch nil ..bluebird cons func
-\list:ftor
-..def ...aptv
-  list:ftor
-  \val ..cons val nil
-  \listfunc \listarg ...cata listf:ftor ..finch nil
-    # avoiding `fmap` for efficiency. notice the init is `acc` instead of `nil`
-    \func \acc ...cata listf:ftor ..finch acc ..bluebird cons func listarg
-    listfunc
-\list:aptv
-..def ..mnad
-  list:aptv
-  \listarg \func ...cata listf:ftor ..finch nil
-    \arg \acc ...cata listf:ftor ..vireo cons acc .func arg
-    listarg
-\list:mnad
-..def ...altv
-  list:aptv
-  nil
-  \listlhs \listrhs
-    ...cata listf:ftor ..vireo cons listrhs listlhs
-\list:altv
-..def .fldb
-  \listval listval
-\list:fldb
-..def ...tvsb
-  list:ftor
-  list:fldb
-  \elem:aptv ..cata listf:ftor ..vireo
-    ..lifta2 elem:aptv cons
-    ..pure elem:aptv nil
-\list:tvsb
 ..def \elem:eq .elem:eq \elemequal
   .eq
     .fix \listequal \rhs \lhs
@@ -1597,11 +1673,16 @@ none lhs \divmod
 ..def \elem:seq .elem:seq \elemforce .seq
   ..cata listf:ftor ..finch id \head \acc ..bluebird .elemforce head acc
 \list:seq
+..def \elem:enum .elem:enum \elemenumerate .enum
+  .fix \listenumerate ..cons nil
+    ....lifta2 list:aptv .cardinal cons listenumerate elemenumerate
+\list:enum
 # `type Short a = Down (List (Down a))`
 # the ordering where shorter lists compare greater than longer lists and where
 # `Nil` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .list:ord .down:ord elem:ord \short:ord
 ..def \elem:bndd .down:bndd .list:bndd .down:bndd elem:bndd \short:bndd
+..def \elem:enum .down:enum .list:enum .down:enum elem:enum \short:enum
 ..def ..cata listf:ftor ..finch none .kestrel some \len
 ..def ..cata listf:ftor ..finch none \head \acc .some ..acc id head \last
 ..def ..cata listf:ftor ..finch none \head \acc .some ..acc .cons head nil \init
@@ -1699,7 +1780,7 @@ none lhs \divmod
 # prepends the list it represents to that tail. concatenation of difference
 # lists is function composition, which is constant time. `tolist` and `todlist`
 # are linear time. see 'A Novel Representation of Lists and its Application to
-# the Function "Reverse"' by John Hughes (1986)
+# the Function "Reverse"' by John Hughes, 1986
 ..def .dove cons \dcons
 ..def id \dnil
 ..def ..cardinal blackbird cons \dsnoc
@@ -1741,11 +1822,18 @@ none lhs \divmod
   \rhs \lhs ...compare .list:ord elem:ord .rhs nil .lhs nil
 \dlist:ord
 ..def \elem:bndd ..bndd .fix .dcons .top elem:bndd dnil \dlist:bndd
+..def \elem:dbg \dlist ..debug .list:dbg elem:dbg .dlist nil \dlist:dbg
+..def \elem:seq \dlist ..force .list:seq elem:seq .dlist nil \dlist:seq
+..def \elem:enum .elem:enum \elemenumerate .enum
+  .fix \dlistenumerate ..dcons nil
+    ....lifta2 list:aptv .cardinal dcons dlistenumerate elemenumerate
+\dlist:enum
 # `type DShort a = Down (DList (Down a))`
 # the ordering where shorter dlists compare greater than longer dlists and where
 # `DNil` is the top element instead of the bottom element
 ..def \elem:ord .down:ord .dlist:ord .down:ord elem:ord \dshort:ord
 ..def \elem:bndd .down:bndd .dlist:bndd .down:bndd elem:bndd \dshort:bndd
+..def \elem:enum .down:enum .dlist:enum .down:enum elem:enum \dshort:enum
 
 # type Tape a = Pair a (Sqr (Stream a))
 # pairs all the way down!
@@ -1780,6 +1868,11 @@ none lhs \divmod
 ..def \elem:seq
   ..pair:seq elem:seq .sqr:seq .stream:seq seq
 \tape:seq # never terminates
+..def \tails:enum1 \elem:enum
+  ..pair:enum elem:enum .enum
+    ...fmap list:ftor ..distribute sqr:dstv stream:ftor
+      .enumerate ..stream:enum tails:enum1 .sqr:enum elem:enum
+\tape:enum
 ..def \elem:sgrp
   ..pair:sgrp elem:sgrp ..ap:sgrp sqr:aptv .stream:sgrp elem:sgrp
 \tape:sgrp
@@ -1839,42 +1932,14 @@ none lhs \divmod
           ..outerfmap snd ftortape
 \tape:dstv
 
-# the "base" functor for `free`, with the property `Fix (FreeF f a) = Free f a`.
-# `data FreeF f a r = Roll (f r) | Return a deriving Functor`
+# the "base" functor for `Free`, with the property `Fix (FreeF f a) ~=
+# Free f a`. `data FreeF f a r = Roll (f r) | Return a deriving Functor`
 ..def \term:ftor .term:ftor \termfmap
   .ftor
     \func \freefarg ..freefarg
       ..bluebird roll .termfmap func
       return
 \freef:ftor
-# `term:eq1` is a function that takes an `elem:eq` (an equality for the element
-# type) and returns a `term:eq` (an equality for the collection). `term:ord1`
-# works the same.
-..def \term:eq1 \var:eq .fix \free:eq .var:eq \varequal
-  .eq
-    \rhs \lhs ..rhs
-      ..lhs .equal .term:eq1 free:eq .kestrel false
-      ..lhs .kestrel false varequal
-\free:eq
-..def \term:ord1 \var:ord .fix \free:ord .var:ord \var:eq \varcompare
-  ..ord
-    ..free:eq ..bluebird ord:eq term:ord1 var:eq
-    \rhs \lhs ..rhs
-      ..lhs .compare .term:ord1 free:ord .kestrel lt
-      ..lhs .kestrel gt varcompare
-\free:ord
-..def \term:ftor \term:dbg1 \var:dbg
-  ..term:dbg1 dbgged:dbg \termdebug .var:dbg \vardebug
-    .dbg
-      ..cata .freef:ftor term:ftor ..vireo
-        ..blackbird :@ termdebug
-        ..blackbird :$ vardebug
-\free:dbg
-..def \term:ftor \term:seq1 \var:seq
-  ..term:seq1 forced:seq \termforce .var:seq \varforce
-    .seq
-      ..cata .freef:ftor term:ftor ..vireo termforce varforce
-\free:seq
 ..def \term:ftor .ftor
   \func ..cata .freef:ftor term:ftor ..vireo roll
     ..bluebird return func
@@ -1912,6 +1977,40 @@ none lhs \divmod
       ..bluebird ..fmap .aptv:ftor elem:aptv roll .termsequence elem:aptv
       ..fmap .aptv:ftor elem:aptv return
 \free:tvsb
+# `term:eq1` is a function that takes an `elem:eq` (an equality for the element
+# type) and returns a `term:eq` (an equality for the collection). `term:ord1`
+# works the same.
+..def \term:eq1 \var:eq .fix \free:eq .var:eq \varequal
+  .eq
+    \rhs \lhs ..rhs
+      ..lhs .equal .term:eq1 free:eq .kestrel false
+      ..lhs .kestrel false varequal
+\free:eq
+..def \term:ord1 \var:ord .fix \free:ord .var:ord \var:eq \varcompare
+  ..ord
+    ..free:eq ..bluebird ord:eq term:ord1 var:eq
+    \rhs \lhs ..rhs
+      ..lhs .compare .term:ord1 free:ord .kestrel lt
+      ..lhs .kestrel gt varcompare
+\free:ord
+..def \term:ftor \term:dbg1 \var:dbg
+  ..term:dbg1 dbgged:dbg \termdebug .var:dbg \vardebug
+    .dbg
+      ..cata .freef:ftor term:ftor ..vireo
+        ..blackbird :@ termdebug
+        ..blackbird :$ vardebug
+\free:dbg
+..def \term:ftor \term:seq1 \var:seq
+  ..term:seq1 forced:seq \termforce .var:seq \varforce
+    .seq
+      ..cata .freef:ftor term:ftor ..vireo termforce varforce
+\free:seq
+..def \term:enum1 \var:enum .fix \free:enum .var:enum \varenumerate
+  .enum
+    ...alt list:altv
+      ...fmap list:ftor return varenumerate
+      ...fmap list:ftor roll .enumerate .term:enum1 free:enum
+\free:enum
 # liftF :: Functor f => f a -> Free f a
 # retract :: Monad f => Free f a -> f a
 # hoistFree :: Functor f => (forall a. f a -> g a) -> Free f b -> Free g b
@@ -1934,7 +2033,7 @@ none lhs \divmod
 # no need for `unfoldFree`, it'd be equivalent to `.ana freef:ftor`.
 # no need for `iter` and `iterA`, they'd be trivial wrappers around the above
 
-# the "base" functor for `cofree`, with the property `Fix (CofreeF f a) =
+# the "base" functor for `Cofree`, with the property `Fix (CofreeF f a) ~=
 # Cofree f a`. `data CofreeF f a r = Cofree (f r) a deriving Functor`
 ..def \trace:ftor .trace:ftor \tracefmap
   .ftor
@@ -1968,6 +2067,10 @@ none lhs \divmod
       ..cata .cofreef:ftor trace:ftor .thrush
         \trace \ann ..bluebird .traceforce trace .annforce ann
 \cofree:seq
+..def \trace:enum1 \ann:enum .fix \cofree:enum .ann:enum \annenumerate
+  .enum
+    ....lifta2 list:aptv cofree .enumerate .trace:enum1 cofree:enum annenumerate
+\cofree:enum
 ..def \trace:ftor .ftor
   \func ..cata .cofreef:ftor trace:ftor .thrush
     \trace \ann ..cofree trace .func ann
@@ -2174,12 +2277,18 @@ none lhs \divmod
   \oct ..fold endo:mnid ..tolist oct:fldb
     ...fmap oct:ftor elemforce oct
 \oct:seq
+..def \elem:enum .elem:enum \elemenumerate .enum
+  ...fmap list:ftor oct.rev
+    ...sequence oct:tvsb list:aptv
+      ..pure oct:aptv elemenumerate
+\oct:enum
 
 ..def .oct:eq bool:eq \u8:eq
 ..def .oct:ord bool:ord \u8:ord
 ..def .oct:bndd bool:bndd \u8:bndd
 ..def .oct:dbg bool:dbg \u8:dbg
 ..def .oct:seq bool:seq \u8:seq
+..def .oct:enum bool:enum \u8:enum
 ..def .dbg
   \u8 .u8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     .\nibble ..bluebird
@@ -2189,9 +2298,9 @@ none lhs \divmod
       ..n2 ..n1 ..n0 :f :e ..n0 :d :c ..n1 ..n0 :b :a ..n0 :9 :8
       ..n2 ..n1 ..n0 :7 :6 ..n0 :5 :4 ..n1 ..n0 :3 :2 ..n0 :1 :0
 \u8.hex:dbg
-# do case analysis on each bit, looking any bit at most once. `and`, `or`, `blt`
-# and `ble` are special cases of case analysis where one branch short-circuits,
-# so we allow those too. memory aid:
+# perform case analysis on each bit, examining any bit at most once. `and`,
+# `or`, `blt` and `ble` are special cases of case analysis where one branch
+# short-circuits, so we allow those too. memory aid:
 #     `.and aN` --- it is necessary that aN be true
 #     `.or  aN` --- it is sufficient that aN be true
 #     `.blt aN` --- it is necessary that aN be false
@@ -2327,25 +2436,83 @@ none lhs \divmod
 ..def ..mnid u8.add:sgrp $00 \u8.add:mnid
 
 # type Fn a b = a -> b
-..def \inner:sgrp .inner:sgrp \innersappend
-  .sgrp \lhs \rhs ...phi innersappend lhs rhs
-\fna:sgrp
-..def \inner:mnid .inner:mnid ..bluebird mnid fna:sgrp \fna:mnid
+#
 # the environment monad, models computations that depend on a shared environment
 ..def .ftor bluebird \fna:ftor
 ..def ...aptv fna:ftor kestrel starling \fna:aptv # liftA2 = phi
 ..def ..mnad fna:aptv .cardinal violet \fna:mnad # join = warbler
-..def \env:mnid .env:mnid \env:sgrp \envmempty .env:sgrp \envsappend
+..def \arg:mnid .arg:mnid \arg:sgrp \argmempty .arg:sgrp \argsappend
   ...cmnd
     fna:ftor
-    \fnaval .fnaval envmempty
-    \func \arg ..bluebird func ..blackbird arg envsappend
+    \fnaval .fnaval argmempty
+    \func \arg ..bluebird func ..blackbird arg argsappend
 \fna:cmnd
+..def \arg:enum .arg:enum \argenumerate .fldb
+  \fnaval ...fmap list:ftor fnaval argenumerate
+\fna:fldb
+..def \arg:eq \arg:enum .arg:enum \argenumerate
+  ...tvsb
+    fna:ftor
+    .fna:fldb arg:enum
+    # we need to turn a function returning an applicative into an applicative
+    # holding a function... sounds impossible! the original applicative's effect
+    # depends on the input to the function while the resulting applicative's
+    # effect can't depend on anything. so what could that resulting effect
+    # possibly be? it can only be one thing: the sequencing of every effect in
+    # the function's image. so we call the function with every element of its
+    # domain, cache the results in an associative list, sequence all effects
+    # to the front, and respond to function calls using a cache lookup
+    \ret:aptv \fnaptv
+      ...fmap .aptv:ftor ret:aptv
+        \assoc \arg .unwrap ...lookup arg:eq arg assoc
+        ...sequence list:tvsb ret:aptv
+          ...fmap list:ftor
+            ...phi .fmap .aptv:ftor ret:aptv pair fnaptv
+            argenumerate
+\fna:tvsb
 ..def ..dstv
   fna:ftor
   \outer:ftor .outer:ftor \outerfmap
-    \ftorfna \env ..outerfmap .thrush env ftorfna
+    \ftorfna \arg ..outerfmap .thrush arg ftorfna
 \fna:dstv
+..def \arg:enum \ret:eq .arg:enum \argenumerate .ret:eq \retequal
+  .eq
+    \rhs \lhs ..fold and:mnid
+      ...fmap list:ftor ...phi retequal rhs lhs argenumerate
+\fn:eq
+..def \arg:enum \ret:ord .arg:enum \argenumerate .ret:ord \ret:eq \retcompare
+  ..ord
+    ..fn:eq arg:enum ret:eq
+    \rhs \lhs ..fold telse:mnid
+      ...fmap list:ftor ...phi retcompare rhs lhs argenumerate
+\fn:ord
+..def \ret:bndd .ret:bndd \rettop \retbot
+  ..bndd .kestrel rettop .kestrel retbot
+\fn:bndd
+..def \arg:enum \arg:dbg \ret:dbg
+  .arg:enum \argenumerate .arg:dbg \argdebug .ret:dbg \retdebug
+    .dbg
+      \fn ..fold endo:mnid
+        ...fmap list:ftor
+          \arg ..bluebird ...becard .argdebug arg := .retdebug .fn arg :;
+          argenumerate
+\fn:dbg
+..def \arg:enum \ret:seq .arg:enum \argenumerate .ret:seq \retforce
+  .seq
+    \fn ..fold endo:mnid
+      ...fmap list:ftor ..bluebird retforce fn argenumerate
+\fn:seq
+# here we call `sequence` on a concrete function returning superpositions of
+# values to get a superposition of functions returning concrete values
+..def \arg:eq \arg:enum \ret:enum .ret:enum \retenumerate
+  .enum
+    ...sequence ..fna:tvsb arg:eq arg:enum list:aptv
+      .kestrel retenumerate
+\fn:enum
+..def \ret:sgrp .ret:sgrp \retsappend
+  .sgrp \lhs \rhs ...phi retsappend lhs rhs
+\fna:sgrp
+..def \ret:mnid .ret:mnid ..bluebird mnid fna:sgrp \fna:mnid
 
 # type String = List U8
 # type Parser a = String -> Maybe (Pair a String)
