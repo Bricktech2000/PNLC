@@ -3,9 +3,8 @@
 
 # equivalent to the prelude implementations but unrolled for higher performance
 ..def .eq
-  \rhs \lhs
-    .rhs \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
-    .lhs \l0 \l1 \l2 \l3 \l4 \l5 \l6 \l7
+  .unoct \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
+    .unoct \l0 \l1 \l2 \l3 \l4 \l5 \l6 \l7
       ..and ..bet r0 l0
       ..and ..bet r1 l1
       ..and ..bet r2 l2
@@ -17,7 +16,7 @@
       true
 \u8:eq
 ..def .seq
-  \u8 .u8 \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     \x
       ...a0 id id
       ...a1 id id
@@ -30,7 +29,7 @@
     x
 \u8:seq
 ..def .ftor
-  \fstfunc \pairarg .pairarg \fstarg \sndarg
+  \fstfunc .unpair \fstarg \sndarg
     ..pair .fstfunc fstarg sndarg
 \swapa:ftor
 
@@ -112,16 +111,8 @@
 # read characters from stdin until a '!'. we use the character '!' to separate
 # the Brainfuck program from its input. that is, '!' ends a program string and
 # begins its execution
-..def .fix \getbang
-  ...bind io:mnad getc ..finch
-    ..pure io:aptv nil
-    \chr .....equal u8:eq '!' chr
-      ..pure io:aptv nil
-      ...fmap io:ftor .cons chr getbang
-\getbang
-
 .main
-  ...bind io:mnad getbang \str
+  ...bind io:mnad .getsep '!' \str
     ......seql parser:aptv bfp eofp str
-      .thrush \prog \inp .prog ..pure tape:aptv '\0'
+      .unpair \prog \inp .prog ..pure tape:aptv '\0'
       .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

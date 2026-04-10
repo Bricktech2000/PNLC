@@ -5,7 +5,7 @@
   ...bindk io:mnad
     .puts .:E .:n .:t .:e .:r .:  .:y .:o .:u .:r .:
       .:n .:a .:m .:e .:: .:  nil
-    ...bind io:mnad getln \str
+    ...bind io:mnad .getto '\n' \str
       ...unless io:aptv .isnil str
         ...bindk io:mnad
           .puts .:G .:r .:e .:e .:t .:i .:n .:g .:s .:, .:  str

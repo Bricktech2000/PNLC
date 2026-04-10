@@ -3,7 +3,6 @@
 
 # keep in sync with ../pnlc.c
 
-# def:typ
 # data Typ = Exit | Err | Get | Put | Eput | Dump | Tru | Fals
 ..def \exit \err \get \put \eput \dump \tru \fals exit \mkexit
 ..def \exit \err \get \put \eput \dump \tru \fals err  \mkerr
@@ -13,16 +12,19 @@
 ..def \exit \err \get \put \eput \dump \tru \fals dump \mkdump
 ..def \exit \err \get \put \eput \dump \tru \fals tru  \mktru
 ..def \exit \err \get \put \eput \dump \tru \fals fals \mkfals
-..def \typ ........typ true false false false false false false false \isexit
-..def \typ ........typ false true false false false false false false \iserr
-..def \typ ........typ false false true false false false false false \isget
-..def \typ ........typ false false false true false false false false \isput
-..def \typ ........typ false false false false true false false false \iseput
-..def \typ ........typ false false false false false true false false \isdump
-..def \typ ........typ false false false false false false true false \istru
-..def \typ ........typ false false false false false false false true \isfals
-..def .dbg \typ ........typ :X :E :G :P :R :D :T :F \typ:dbg
-..def .seq \typ ........typ id id id id id id id id \typ:seq
+..def \exit \err \get \put \eput \dump \tru \fals
+  \typ ........typ exit err get put eput dump tru fals
+\typ
+..def ........typ true false false false false false false false \isexit
+..def ........typ false true false false false false false false \iserr
+..def ........typ false false true false false false false false \isget
+..def ........typ false false false true false false false false \isput
+..def ........typ false false false false true false false false \iseput
+..def ........typ false false false false false true false false \isdump
+..def ........typ false false false false false false true false \istru
+..def ........typ false false false false false false false true \isfals
+..def .dbg ........typ :X :E :G :P :R :D :T :F \typ:dbg
+..def .seq ........typ id id id id id id id id \typ:seq
 ..def .enum
   ..cons mkfals
   ..cons mktru
@@ -46,54 +48,43 @@
   nil
 \ios
 
-# def:term
 # data Term = App Term Term | Lam Term | Var Nat | Io Typ
 ..def \func \arg \app \lam \var \io ..app func arg \app
 ..def \body \app \lam \var \io .lam body \lam
 ..def \idx \app \lam \var \io .var idx \var
 ..def \typ \app \lam \var \io .io typ \io
-..def \term ....term \func \arg .some func \body none \idx none \typ none \func
-..def \term ....term \func \arg .some arg  \body none \idx none \typ none \arg
-..def \term ....term \func \arg none \body .some body \idx none \typ none \body
-..def \term ....term \func \arg none \body none \idx .some idx  \typ none \idx
-..def \term ....term \func \arg none \body none \idx none \typ .some typ  \typ
-..def \term ....term cons \body nil \idx nil \typ nil \getapp # listf
-# the "base" functor for `term`, with the property `Fix TermF = Term`.
+..def \app \lam \var \io \term ....term app lam var io \term
+..def ....term \func \arg .some func \body none \idx none \typ none \func
+..def ....term \func \arg .some arg  \body none \idx none \typ none \arg
+..def ....term \func \arg none \body .some body \idx none \typ none \body
+..def ....term \func \arg none \body none \idx .some idx  \typ none \idx
+..def ....term \func \arg none \body none \idx none \typ .some typ  \typ
+..def ....term cons \body nil \idx nil \typ nil \unapp # listf
+# the "base" functor for `Term`, with the property `Fix TermF = Term`.
 # `data TermF a = App a a | Lam a | Var Nat | Io Typ deriving Functor`
 ..def .ftor
-  \func \termfarg ....termfarg
-    ..psi app func
-    ..bluebird lam func
-    var
-    io
+  \func ....term ..psi app func ..bluebird lam func var io
 \termf:ftor
 ..def .dbg
-  ..cata termf:ftor \term ....term
-    .becard :.
-    .bluebird :\
-    .debug nat:dbg
-    .debug typ:dbg
+  ..cata termf:ftor
+    ....term .becard :. .bluebird :\ .debug nat:dbg .debug typ:dbg
 \term:dbg
 ..def .seq
-  ..cata termf:ftor \term ....term
-    bluebird
-    id
-    .force nat:seq
-    .force typ:seq
+  ..cata termf:ftor
+    ....term bluebird id .force nat:seq .force typ:seq
 \term:seq
 
 # beta :: Term -> Nat -> Term -> Term
-..def \arg .fix \beta \lvl \term
-  ....term
-    ..psi app .beta lvl
-    ..bluebird lam .beta .some lvl
-    ..bluebird ..vireo arg term ..equal nat:eq lvl
-    io
+..def \arg .fix \beta \lvl \term ....term
+  ..psi app .beta lvl
+  ..bluebird lam .beta .some lvl
+  ..bluebird ..bool arg term ..equal nat:eq lvl
+  io
 \beta
 
 # whnf :: Term -> Term
 ..def .fix \whnf \term ...force term:seq term
-  ...getapp term
+  ...unapp term
     \func \arg ..def .whnf func \func
       ...body func
         ..bluebird whnf ..beta arg none
@@ -103,8 +94,8 @@
 
 # run :: Term -> IO Bool
 ..def .fix \run \term ..def .whnf term \term
-  ...getapp term \func \cont
-    ...getapp func \func \arg
+  ...unapp term \func \cont
+    ...unapp func \func \arg
       ...typ func \type
         ...isdump type
           .\dump ...bindk io:mnad .eputs dump .run cont
@@ -164,25 +155,16 @@
 \termp
 
 ..def ...fmap parser:ftor
-  \term ...cata listf:ftor ..finch term
-    \typ \acc ..app .lam acc .io typ
+  \term ...cata listf:ftor
+    ..list \typ \acc ..app .lam acc .io typ term
     .enumerate typ:enum
   ....between parser:aptv wsp eofp .termp ios
 \parse
 
 # read characters from stdin until a '\0'. we use the character '\0' to end the
 # program string and begin its execution
-..def .fix \getnul
-  ...bind io:mnad getc ..finch
-    ..pure io:aptv nil
-    \chr .....equal u8:eq '\0' chr
-      ..pure io:aptv nil
-      ...fmap io:ftor .cons chr getnul
-\getnul
-
 .main
-  ...bind io:mnad getnul \str ...parse str
-    .thrush \term \inp ...bind io:mnad .run term ..vireo
-      ..pure io:aptv unit
+  ...bind io:mnad .getsep '\0' \str ...parse str
+    .unpair \term \inp ...bind io:mnad .run term ..bool ..pure io:aptv unit
       .eputs .:r .:u .:n .:t .:i .:m .:e .:  .:e .:r .:r .:o .:r .:\n nil
     .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

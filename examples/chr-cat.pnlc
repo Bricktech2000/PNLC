@@ -2,6 +2,6 @@
 # inc:../prelude.pnlc
 
 .main .fix \main
-  ...bind io:mnad getc ..finch
-    ..pure io:aptv unit
+  ...bind io:mnad getc ..opt
     \chr ...bindk io:mnad .putc chr main
+    ..pure io:aptv unit

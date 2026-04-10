@@ -3,7 +3,7 @@
 
 # given some character, is it in [a-mA-M]?
 # ..def ..bluebird ...clamped u8:ord 'a' 'm' mklower \a-m
-# ..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+# ..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
 #   ..blt a7 ..and a6 ..blt a4 ..a3
 #     ..ble a2 ..ble a1 false
 #     ..or  a2 ..or  a1 ..or  a0 false
@@ -11,11 +11,11 @@
 
 # given a character in [a-zA-Z], is it in [a-mA-M]?
 # ..def ...becard isle ..compare u8:ord 'm' mklower \a-m
-..def .thrush \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
   ..blt a4 ..ble a3 ..ble a2 ..ble a1 false
 \a-m
 
 .main .fix \main
-  ...bind io:mnad getc ..finch ..pure io:aptv unit \chr
+  ...bind io:mnad getc ...cardinal opt ..pure io:aptv unit \chr
     .\chr ...bindk io:mnad .putc chr main
     ...not .isalpha chr chr .....a-m chr u8.add u8.sub '\r' chr
