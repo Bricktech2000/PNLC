@@ -39,73 +39,40 @@
 # of parsers with Kleisli composition
 ..def .fix \bfp
   ..def .some .some .some .some .some .some .some .some none \radius
-  # force the head of the tape before incrementing or decrementing its value and
-  # before moving to another cell to avoid drowning in unfinished computations
-  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ...phi .force u8:seq fst leftshift
-    .chrp '>'
-  \'>'p
-  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ...phi .force u8:seq fst rightshift
-    .chrp '<'
-  \'<'p
-  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.inc
-    .chrp '+'
-  \'+'p
-  ..def ...fmapk parser:ftor
-    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.dec
-    .chrp '-'
-  \'-'p
-  ..def ...fmapk parser:ftor
-    \tape ...fmapk io:ftor
-      tape
-      .putc .fst tape
-    .chrp '.'
-  \'.'p
-  ..def ...fmapk parser:ftor
-    \tape ...fmap io:ftor
-      \optchr ...fmapk swapa:ftor ..optchr id '\0' tape
-      getc
-    .chrp ','
-  \','p
-  ..def ...fmapk parser:ftor
-    \tape ...fmapk io:ftor
-      tape
-      ..eputd ..before:dbg :\n ..tape:dbg radius u8.hex:dbg tape
-    .chrp '#'
-  \'#'p
-  ..def ...fmap parser:ftor
-    \bf .fix \rec \tape
-      # without `..kite tape`, truth-machine.bf slows down over time because its
-      # lambda-term grows over time, and I'm not sure why
-      ......equal u8:eq '\0' .fst tape
-        .pure io:aptv
-        ...kleisli io:mnad bf ..kite tape rec
-      tape
-    ....between parser:aptv .chrp '[' .chrp ']' bfp
-  \[&]p
-  ..def ...fmapk parser:ftor
-    .pure io:aptv
-    .satp ...phi and ..unequal u8:eq '[' ..unequal u8:eq ']'
-  \![]p
-
-  ..def
-    ...alt parser:altv '>'p
-    ...alt parser:altv '<'p
-    ...alt parser:altv '+'p
-    ...alt parser:altv '-'p
-    ...alt parser:altv '.'p
-    ...alt parser:altv ','p
-    ...alt parser:altv '#'p # comment out to disable
-    ...alt parser:altv [&]p
-    ...alt parser:altv ![]p
-    .empty parser:altv
-  \atomp
   # bfp = liftA2 (>=>) atomp bfp <|> pure pure
-  ...alt parser:altv
+  .\atomp ...alt parser:altv
     ....lifta2 parser:aptv .kleisli io:mnad atomp bfp
     ..pure parser:aptv .pure io:aptv
+  # force the head of the tape before incrementing or decrementing its value and
+  # before moving to another cell to avoid drowning in unfinished computations.
+  ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '>'
+    ..bluebird .pure io:aptv ...phi .force u8:seq fst leftshift
+  ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '<'
+    ..bluebird .pure io:aptv ...phi .force u8:seq fst rightshift
+  ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '+'
+    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.inc
+  ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '-'
+    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.dec
+  ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '.'
+    \tape ...fmapk io:ftor tape .putc .fst tape
+  ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp ','
+    \tape ...cardinal .fmap io:ftor getc
+      \optchr ...fmapk swapa:ftor ..optchr id '\0' tape
+  ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '#'
+    \tape ...fmapk io:ftor tape
+      ..eputd ..before:dbg :\n ..tape:dbg radius u8.hex:dbg tape
+  ...alt parser:altv ...cardinal .fmap parser:ftor
+    ....between parser:aptv .chrp '[' .chrp ']' bfp
+    \bf .fix \rec \tape
+      # without `..kite tape`, truth-machine.bf slows down over time because
+      # its lambda-term grows over time, and I'm not sure why
+      ..thrush tape .....unequal u8:eq '\0' .fst tape
+        ...kleisli io:mnad bf ..kite tape rec
+        .pure io:aptv
+  ...alt parser:altv ...cardinal .fmapk parser:ftor
+    .satp ...phi and ..unequal u8:eq '[' ..unequal u8:eq ']'
+    .pure io:aptv
+  .empty parser:altv
 \bfp
 
 # read characters from stdin until a '!'. we use the character '!' to separate

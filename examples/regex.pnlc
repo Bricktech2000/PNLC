@@ -1,0 +1,197 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# keep in sync with NU-RE
+
+# type Regex = Union Regex Regex | Compl Regex | Concat Regex Regex | Star Regex
+#            | Range U8 U8 Bool
+..def \lhs \rhs    \union \compl \concat \star \range ..union lhs rhs    \union
+..def \lhs         \union \compl \concat \star \range .compl lhs         \compl
+..def \lhs \rhs    \union \compl \concat \star \range ..concat lhs rhs   \concat
+..def \lhs         \union \compl \concat \star \range .star lhs          \star
+..def \lo \hi \neg \union \compl \concat \star \range ...range lo hi neg \range
+..def \union \compl \concat \star \range
+  \regex .....regex union compl concat star range
+\regex
+..def \x \y \z \f \g ...f x y z \triad
+..def .....regex cons    \l nil  \l \r nil  \l nil  \lo \hi \neg nil  \ununion
+..def .....regex \l \r none some \l \r none \l none \lo \hi \neg none \uncompl
+..def .....regex \l \r nil  \l nil cons     \l nil  \lo \hi \neg nil  \unconcat
+..def .....regex \l \r none \l none \l \r none some \lo \hi \neg none \unstar
+..def .....regex \l \r kite \l kite \l \r kite \l kite triad          \unrange
+
+# the "base" functor for `Regex`, with the property `Fix RegexF = Regex`.
+# `data RegexF a = Union a a | Compl a | Concat a a | Star a | Range U8 U8 Bool
+#                  deriving Functor`
+..def .ftor
+  \func .....regex
+    ..psi union func
+    ..bluebird compl func
+    ..psi concat func
+    ..bluebird star func
+    range
+\regexf:ftor
+..def .eq
+  .fix \regexequal \rhs \lhs
+    ...\double \single \range .....rhs
+      ...ununion  lhs double \lhs \rhs false
+      ...uncompl  lhs single \lhs false
+      ...unconcat lhs double \lhs \rhs false
+      ...unstar   lhs single \lhs false
+      ...unrange  lhs range  \lo \hi \neg false
+    \lhslhs \lhsrhs \rhslhs \rhsrhs ..and
+      ..regexequal rhslhs lhslhs
+      ..regexequal rhsrhs lhsrhs
+    \lhslhs \rhslhs ..regexequal rhslhs lhslhs
+    \lhslo \lhshi \lhsneg \rhslo \rhshi \rhsneg
+      ..and ...equal u8:eq rhslo lhslo
+      ..and ...equal u8:eq rhshi lhshi
+      ...equal bool:eq rhsneg lhsneg
+\regex:eq
+..def .dbg
+  ..cata regexf:ftor
+    .....regex .becard :| .bluebird :! .becard :. .bluebird :*
+      \lo \hi \neg ...becard ..neg :~ :-
+        ..debug u8.hex:dbg lo
+        ..debug u8.hex:dbg hi
+\regex:dbg
+# forcing hasn't been needed so far.
+..def .seq
+  ..cata regexf:ftor
+    .....regex bluebird id bluebird id
+      \lo \hi \neg ...becard
+        ..force u8:seq lo
+        ..force u8:seq hi
+        ..force bool:seq neg
+\regex:seq
+
+# there's no place like 127.0.0.1
+# let me serve you some 3.1415
+#
+# Now there were some terrible seeds on the planet that was the home #0f the
+# little prince; and these were the seeds of the #ba0bab. The soil of that
+# planet was infested with them. A ba0bab is something you will never, never be
+# #ab1e to get rid of if you attend to it too late. It spreads over the entire
+# planet. It bores #c1ear through it with its roots. And if the planet is #t00
+# small, and the #ba0babs are too many, they split it in pieces...
+
+..def ...range $00 $ff true \emptyset
+..def .compl emptyset \univset
+..def .star emptyset \epsilon
+# simplify :: Regex -> Regex
+..def \regex .....regex
+  \lhs \rhs
+    .....equal regex:eq univset lhs lhs # !~.|r |- !~.
+    .....equal regex:eq univset rhs rhs # r|!~. |- !~.
+    .....equal regex:eq emptyset lhs rhs # ~.|r |- r
+    .....equal regex:eq emptyset rhs lhs # r|~. |- r
+    regex
+  \lhs ...uncompl lhs id # !!r |- r
+    regex
+  \lhs \rhs
+    .....equal regex:eq emptyset lhs lhs # ~.r |- ~.
+    .....equal regex:eq emptyset rhs rhs # r~. |- ~.
+    .....equal regex:eq epsilon lhs rhs # ~.*r |- r
+    .....equal regex:eq epsilon rhs lhs # r~.* |- r
+    regex
+  \lhs ...unstar lhs star # r** |- r*
+    regex
+  \lo \hi \neg regex
+\simplify
+# nullable :: Regex -> Bool
+..def ..cata regexf:ftor
+  .....regex or not and mrk \lo \hi \neg false
+\nullable
+# note that this is a rather naive implementation: without structural sharing or
+# derivative caching there will be duplicate work.
+# differentiate :: U8 -> Regex -> Regex
+..def \chr ..para regexf:ftor .....regex
+  .unpair \lhs \lhsacc .unpair \rhs \rhsacc
+    .simplify ..union lhsacc rhsacc
+  .unpair \lhs \lhsacc
+    .simplify .compl lhsacc
+  .unpair \lhs \lhsacc .unpair \rhs \rhsacc
+    .simplify ....nullable lhs .union rhsacc id
+      .simplify ..concat lhsacc rhs
+  .unpair \lhs \lhsacc
+    .simplify ..concat lhsacc .star lhs
+  \lo \hi \neg
+    ...bool epsilon emptyset
+      ..bne neg ....clamped u8:ord lo hi chr
+\differentiate
+
+..def
+  .:\ .:- .:. .:~ .:% .:* .:+ .:? .:| .:& .:! .:( .:) nil
+\metachars
+..def ...alt parser:altv
+  .satp \chr .isnone ...elem u8:eq chr metachars
+  ...seqr parser:aptv .chrp '\'
+    .satp \chr .issome ...elem u8:eq chr metachars
+\symbolp
+..def \regexp
+  ...alt parser:altv ...fmapk parser:ftor univset .chrp '%'
+  ...alt parser:altv ....between parser:aptv .chrp '(' .chrp ')' regexp
+  ...alt parser:altv ...rapply parser:aptv
+    ...fmap parser:ftor issome ..option parser:altv .chrp '~'
+    ...alt parser:altv ...fmapk parser:ftor ..range $00 $ff .chrp '.'
+      ...cardinal .fmap parser:ftor
+        ...rapply parser:aptv symbolp
+          ...fmap parser:ftor ..opt pair .warbler pair
+            ..option parser:altv ...seqr parser:aptv .chrp '-' symbolp
+        .unpair \hi \lo ...islt ...compare u8:ord lo hi
+          ..bluebird ..range .u8.inc hi .u8.dec lo not
+          ..range lo hi
+  .empty parser:altv
+\atomp
+..def \regexp
+  ....lifta2 parser:aptv .quixoticbird simplify .atomp regexp
+    ...alt parser:altv ...fmapk parser:ftor star .chrp '*'
+    ...alt parser:altv ...fmapk parser:ftor ..starling concat star .chrp '+'
+    ...alt parser:altv ...fmapk parser:ftor .union epsilon .chrp '?'
+    ..pure parser:aptv id
+\factorp
+..def \regexp
+  ...cardinal .fmap parser:ftor ..many parser:altv .factorp regexp
+    ..cata listf:ftor ..list ..blackbird simplify concat epsilon
+\termp
+..def .fix \regexp
+  ...rapply parser:aptv
+    ....lifta2 parser:aptv
+      ..opt .kestrel compl id
+      ..option parser:altv .chrp '!'
+      .termp regexp
+    ...alt parser:altv
+      ...apply parser:aptv
+        ...alt parser:altv
+          ...cardinal .fmapk parser:ftor .chrp '&'
+            \regex \term .compl ..union
+              .simplify .compl term
+              .simplify .compl regex
+          ...fmapk parser:ftor .cardinal union .chrp '|'
+        regexp
+      ..pure parser:aptv id
+\regexp
+
+# run :: Regex -> IO ()
+..def \regex .fix \run
+  ...bind io:mnad .getto '\n' \line
+    ...cardinal .rev line ..pure io:aptv unit \head \tail
+      ..def ......equal u8:eq '\n' head id .cons head tail \word
+      # .\alg ...bindk io:mnad ...cata listf:ftor alg word run
+      # ...cardinal list ..pure io:aptv regex
+      #   \head \acc ...bind io:mnad acc \regex
+      #     ...fmapk io:ftor ..differentiate head regex
+      #       ..putd ..before:dbg :\n regex:dbg regex
+      .\output ...bindk io:mnad output run
+      ...bool .puts line ..pure io:aptv unit
+        .nullable ...cata listf:ftor ..list differentiate regex word
+\run
+
+# read characters from stdin until a '\n'. we use the character '\n' to end the
+# regular expression string and begin matching
+.main
+  ...bind io:mnad .getsep '\n' \str
+    ......seql parser:aptv regexp eofp str
+      # .unpair \regex \inp ..putd regex:dbg regex
+      .unpair \regex \inp .run regex
+      .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

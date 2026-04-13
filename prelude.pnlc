@@ -21,7 +21,6 @@
 ..def \f .f f \mockingbird
 ..def \f \x ..f x x \warbler
 ..def \f \x \y ..f y x \cardinal
-..def \f \x \y \z ...f x z y \cardinalstar
 ..def \g \f \x .f .g x \queerbird
 ..def \f \x \g .f .g x \quixoticbird
 ..def \x \f \g .f .g x \quizzicalbird

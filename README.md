@@ -71,6 +71,15 @@ cat examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnl
 cat io\ hook.pnlc examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
 cat io\ hook.pnlc examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
 
+# regex engine demos
+bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/comment.re pnlc.c | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/strlit.re pnlc.c | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/utf-8.re README.md | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/divby3.re examples/rule\ 110.pnlc | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/ipv4.re examples/regex.pnlc | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/hexrgb.re examples/regex.pnlc | bin/pnlc prelude.pnlc examples/regex.pnlc
+
 # Brainfuck interpreter demos
 bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/pnlc.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
