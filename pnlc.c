@@ -314,7 +314,7 @@ void parse_ws(char **prog) {
 
 char *parse_var(char **prog, char **error) {
   if (!**prog || isspace(**prog)) {
-    *error = "expected var";
+    *error = "expected variable";
     return NULL;
   }
 
@@ -335,11 +335,17 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
 
   switch (*(*prog)++) {
   case '.': {
+    char *app = *prog - 1;
     parse_ws(prog);
 
     struct term *lhs = parse_term(prog, error, env);
     if (*error)
       return NULL;
+
+    if (!**prog) {
+      *error = "application without an argument", *prog = app;
+      return term_decref(lhs), NULL;
+    }
 
     struct term *rhs = parse_term(prog, error, env);
     if (*error)
@@ -434,13 +440,18 @@ int main(int argc, char **argv) {
       perror("ftell"), exit(EXIT_FAILURE);
     rewind(fp);
 
-    buf = realloc(buf, len + *size + 1);
+    buf = realloc(buf, len + *size);
     if (fread(buf + len, 1, *size, fp) != *size)
       perror("fread"), exit(EXIT_FAILURE);
-    buf[len += *size] = '\0';
     if (fclose(fp) == EOF)
       perror("fclose"), exit(EXIT_FAILURE);
+    len += *size;
   }
+
+  // a dummy unnamed file of size 1 containing the terminating null byte
+  *size = 1;
+  buf = realloc(buf, len + *size);
+  buf[len] = '\0';
 
   char *error = NULL, *loc = buf;
   struct term *term = parse(&loc, &error);
