@@ -1,0 +1,15 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+..def .fix \ack \m \n
+  ...cardinal m .some n \m
+  ...cardinal n ..ack m .some none \n
+                ..ack m ..ack .some m n
+\ack
+
+..def .some .some .some .some .some .some .some .some none \inner
+
+.main # `sequence` accumulates junk
+  ...cata listf:ftor ..list .bindk io:mnad ..pure io:aptv unit
+    ...fmap list:ftor .putd ..before:dbg :\n nat:dbg
+      ....lifta2 list:aptv ack ..tolist stream:fldb iota ..stake inner iota

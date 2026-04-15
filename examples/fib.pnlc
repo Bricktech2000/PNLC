@@ -1,0 +1,59 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# data Dig = D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 0 \d0
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 1 \d1
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 2 \d2
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 3 \d3
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 4 \d4
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 5 \d5
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 6 \d6
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 7 \d7
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 8 \d8
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 9 \d9
+# type Digs = List Dig
+..def
+  ..para listf:ftor ...cardinal list ..cons d1 nil
+    \head .unpair \tail \acc ..cons
+      ..........head d1   d2   d3   d4   d5   d6   d7   d8   d9   d0
+      ..........head tail tail tail tail tail tail tail tail tail acc
+\digs.inc
+..def .fix \digs.add \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+    ...cardinal lhs rhs \lhshead \lhstail
+      ..\head \carry ..cons head ...carry digs.inc id
+        ..digs.add rhstail lhstail
+      ..........rhshead
+        ..........lhshead d0 d1 d2 d3 d4 d5 d6 d7 d8 d9
+        ..........lhshead d1 d2 d3 d4 d5 d6 d7 d8 d9 d0
+        ..........lhshead d2 d3 d4 d5 d6 d7 d8 d9 d0 d1
+        ..........lhshead d3 d4 d5 d6 d7 d8 d9 d0 d1 d2
+        ..........lhshead d4 d5 d6 d7 d8 d9 d0 d1 d2 d3
+        ..........lhshead d5 d6 d7 d8 d9 d0 d1 d2 d3 d4
+        ..........lhshead d6 d7 d8 d9 d0 d1 d2 d3 d4 d5
+        ..........lhshead d7 d8 d9 d0 d1 d2 d3 d4 d5 d6
+        ..........lhshead d8 d9 d0 d1 d2 d3 d4 d5 d6 d7
+        ..........lhshead d9 d0 d1 d2 d3 d4 d5 d6 d7 d8
+      \c1 \c0 ..........rhshead
+        ..........lhshead c0 c0 c0 c0 c0 c0 c0 c0 c0 c0
+        ..........lhshead c0 c0 c0 c0 c0 c0 c0 c0 c0 c1
+        ..........lhshead c0 c0 c0 c0 c0 c0 c0 c0 c1 c1
+        ..........lhshead c0 c0 c0 c0 c0 c0 c0 c1 c1 c1
+        ..........lhshead c0 c0 c0 c0 c0 c0 c1 c1 c1 c1
+        ..........lhshead c0 c0 c0 c0 c0 c1 c1 c1 c1 c1
+        ..........lhshead c0 c0 c0 c0 c1 c1 c1 c1 c1 c1
+        ..........lhshead c0 c0 c0 c1 c1 c1 c1 c1 c1 c1
+        ..........lhshead c0 c0 c1 c1 c1 c1 c1 c1 c1 c1
+        ..........lhshead c0 c1 c1 c1 c1 c1 c1 c1 c1 c1
+\digs.add
+..def .dbg
+  ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
+    ..........head :0 :1 :2 :3 :4 :5 :6 :7 :8 :9
+\digs:dbg
+
+.main
+  ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
+    ...fmap stream:ftor .putd ..before:dbg :\n digs:dbg
+      ...ana streamf:ftor .unpair \a \b ..pair a ..pair b ..digs.add a b
+        ..pair ..cons d0 nil ..cons d1 nil

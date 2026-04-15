@@ -2,7 +2,7 @@
 # inc:../prelude.pnlc
 
 .main
-  ...bind io:mnad getc ..list
+  ...bind io:mnad getc ..opt
     \chr .....equal u8:eq '1' chr
       .fix ..bindk io:mnad .putc '1'
       .putc '0'
