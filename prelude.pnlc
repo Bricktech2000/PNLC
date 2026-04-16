@@ -124,41 +124,41 @@
 ..def ...cmp tptb tbuf tntb \tnles # unless, priority right
 
 ..def \val \some \none .some val \some
-..def \some \none none \none
+..def      \some \none none      \none
 ..def \some \none \opt ..opt some none \opt
-..def ..opt .kestrel true false \issome
-..def ..opt .kestrel false true \isnone
+..def ..opt \val true false \issome
+..def ..opt \val false true \isnone
 
 ..def \fst \snd \pair ..pair fst snd \pair
 ..def \unpair \pair .pair unpair \unpair
 ..def .unpair \fst \snd fst \fst
 ..def .unpair \fst \snd snd \snd
 
-..def \okval \ok \err .ok okval \ok
+..def \okval  \ok \err .ok okval   \ok
 ..def \errval \ok \err .err errval \err
 ..def \ok \err \res ..res ok err \res
-..def ..res .kestrel true .kestrel false \isok
-..def ..res .kestrel false .kestrel true \iserr
-..def ..res some .kestrel none \okval
-..def ..res .kestrel none some \errval
+..def ..res \okval true \errval false \isok
+..def ..res \okval false \errval true \iserr
+..def ..res some \errval none \okval
+..def ..res \okval none some \errval
 
 ..def \head \tail \cons \nil ..cons head tail \cons
-..def \cons \nil nil \nil
+..def             \cons \nil nil              \nil
 ..def \cons \nil \list ..list cons nil \list
-..def ..list .kestrel .kestrel true false \iscons
-..def ..list .kestrel .kestrel false true \isnil
+..def ..list \head \tail true false \iscons
+..def ..list \head \tail false true \isnil
 ..def ..list \head \tail .some head none \head
 ..def ..list \head \tail .some tail none \tail
 
 # the free monad
 # data Free f a = Roll (f (Free f a)) | Return a
-..def \term \roll \return .roll term \roll
-..def \var \roll \return .return var \return
+..def \term \roll \return .roll term  \roll
+..def \var  \roll \return .return var \return
 ..def \roll \return \free ..free roll return \free
-..def ..free .kestrel true .kestrel false \isroll
-..def ..free .kestrel false .kestrel true \isreturn
-..def ..free some .kestrel none \term
-..def ..free .kestrel none some \var
+..def ..free \term true \var false \isroll
+..def ..free \term false \var true \isreturn
+..def ..free some \var none \term
+..def ..free \term none some \var
 
 # the cofree comonad
 # data Cofree f a = Cofree (f (Cofree f a)) a

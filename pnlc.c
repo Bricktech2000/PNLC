@@ -13,10 +13,10 @@ enum { TYPE_APP, TYPE_LAM, TYPE_VAR };
 // type < 0`, the term is an IO, and `~term.type` will be one of the following:
 // clang-format off
 enum {IO_EXIT, IO_ERR, IO_GET, IO_PUT, IO_EPUT,
-      IO_DUMP, IO_TRU, IO_FALS, IO_LEN};
+      IO_DUMP, IO_ONE, IO_ZERO, IO_LEN};
 // clang-format on
-char *ios[] = {"$exit", "$err",  "$get",   "$put", "$eput",
-               "$dump", "#true", "#false", NULL};
+char *ios[] = {"$exit", "$err", "$get",  "$put", "$eput",
+               "$dump", "#one", "#zero", NULL};
 
 // a `struct term` is a node in a directed acyclic graph. `refcount` is the
 // in-degree. `beta` is a borrow, and together with `visited` it forms a cache
@@ -63,18 +63,25 @@ struct term *term_alloc(struct term fields) {
 }
 
 struct term *term_dump(struct term *term, long long visited) {
-  // uncomment to dump already-dumped terms as single '#' characters. the dump
+  if (term->visited < 0 != visited < 0)
+    visited = -visited; // preserve terms marked as closed
+
+  // uncomment to dump already-dumped terms as single '@' characters. the dump
   // will be ambiguous but its length will be linear, not exponential, in the
   // amount of memory `term` uses
   // if (term->visited == visited)
   //   switch (term->type)
   //   case TYPE_APP:
   //   case TYPE_LAM:
-  //     return fputs("# ", stderr), term;
+  //     return fputs("@ ", stderr), term;
 
   // uncomment to dump refcounts. can make the dump harder to read
   // for (int i = 1; i < NREFS(term); i++)
   //   fputc(term->visited == visited ? '<' : '>', stderr);
+
+  // uncomment to dump whether terms are marked as closed
+  // if (term->visited < 0)
+  //   fputc('#', stderr);
 
   term->visited = visited;
   switch (term->type) {
@@ -132,10 +139,16 @@ struct term *term_decref(struct term *term) {
 struct term *beta(struct term *term, struct term *var, struct term *arg,
                   long long visited) {
   // returns the result of substituting `var` for `arg` in `term`. moves in
-  // `term` but borrows `var` and `arg`. we cache intermediate results in
+  // `term` but borrows `var` and `arg`. subterms whose `visited` is set to a
+  // negative value are not recursed into. we cache intermediate results in
   // `beta` fields to ensure the graph doesn't degenerate to a tree. `beta`
   // fields hold weak references, which is safe because this function only
   // ever calls `term_decref` on terms whose `refcount > 1`
+
+  // it can be good to test user programs with these two lines commented out
+  // because then space leaks become gradual performance degradation
+  if (term->visited < 0)
+    return term->beta = term;
 
   if (term->visited == visited) {
     struct term *beta = term_incref(term->beta);
@@ -146,9 +159,9 @@ struct term *beta(struct term *term, struct term *var, struct term *arg,
   case TYPE_APP: {
     struct term *lhs = beta(term_incref(term->lhs), var, arg, visited);
     struct term *rhs = beta(term_incref(term->rhs), var, arg, visited);
-    if (lhs == term->lhs && rhs == term->rhs) {
+    if (lhs == term->lhs && rhs == term->rhs)
       term_decref(lhs), term_decref(rhs), term->beta = term;
-    } else if (term->refcount == 1) {
+    else if (term->refcount == 1) {
       term_decref(term->lhs), term->lhs = lhs;
       term_decref(term->rhs), term->rhs = rhs;
       term->beta = term;
@@ -181,20 +194,38 @@ struct term *beta(struct term *term, struct term *var, struct term *arg,
   return term->beta; // move out
 }
 
+// beta-reduction searches the body of an abstraction for occurrences of the
+// variable it binds, so the larger the functions being called, the slower
+// things get. this is an important problem because Scott-encoded data is
+// functions and projections on the data is calling those functions, so the
+// larger the data structures in a user program the slower it runs, regardless
+// of how much of that data it processes. the solution is as follows. reduction
+// to weak normal form or to weak head normal form only ever beta-reduces
+// applications whose argument is closed, because the top-level term is always
+// closed and neither algorithm recurses into abstractions. so before calling
+// into beta-reduction we can mark the argument as closed. then, we amend beta-
+// reduction to skip searching terms marked as closed, because no substitutions
+// would take place there anyway. since variables are only ever substituted for
+// marked terms, beta-reduction doesn't slow down as functions increase in size
+
 struct term *whnf(struct term *term, long long *visited) {
   // reduce to weak head normal form using normal-order semantics. this means we
   // reduce the leftmost outermost redex first and ignore any redexes inside
   // abstractions or in the argument position of applications. the resulting
   // beta-reduction of `term` is written into `*term` itself so the computation
   // is shared across pointees. returns a borrow to the head term and stores the
-  // negation of its depth in its `visited` field
+  // bitwise complement of its depth in its `visited` field
 
   if (term->type != TYPE_APP)
-    return term->visited = 0, term;
+    return term->visited = ~0, term; // head, closed
+
+  // the head term and its arguments are always closed. set their `visited` to a
+  // negative value so `beta` skips searching them
+  term->rhs->visited = -1; // closed
 
   struct term *head = whnf(term->lhs, visited);
   if (term->lhs->type != TYPE_LAM)
-    return head->visited--, head;
+    return head->visited--, head; // increment depth
 
   // we do some gymnastics to make sure `term` doesn't hold a reference to
   // `body` because `beta` can avoid an allocation when its `refcount` is 1.
@@ -210,12 +241,14 @@ struct term *whnf(struct term *term, long long *visited) {
     (var->type = arg->type) == TYPE_LAM ? BIND(arg->lhs) : 0;
     var->lhs = arg->lhs ? term_incref(arg->lhs) : NULL;
     var->rhs = arg->rhs ? term_incref(arg->rhs) : NULL;
+    var->visited = arg->visited;
   } else
     body = beta(body, var, arg, ++*visited);
   term_decref(var), term_decref(arg);
   (term->type = body->type) == TYPE_LAM ? BIND(body->lhs) : 0;
   term->lhs = body->lhs ? term_incref(body->lhs) : NULL;
   term->rhs = body->rhs ? term_incref(body->rhs) : NULL;
+  term->visited = body->visited;
   term_decref(body);
   return whnf(term, visited);
 }
@@ -239,8 +272,6 @@ void bs_put(struct bs *bs, bool bit) {
   bs->c |= bit << bs->n++;
   if (bs->n == CHAR_BIT)
     bs->n = 0, fputc(bs->c, bs->fp), bs->c = 0;
-  // uncomment to disable buffering of user program output
-  // fflush(bs->fp);
 }
 
 char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
@@ -255,48 +286,51 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
     case IO_ERR:
       return "hit $err at top level";
     case IO_EXIT:
-      if (-head->visited != 0)
+      if (~head->visited != 0)
         return "$exit expects 0 arguments";
       *term = term_decref(*term);
       return NULL;
     case IO_DUMP:
-      if (-head->visited != 2)
+      if (~head->visited != 2)
         return "$dump expects 2 arguments";
       whnf((*term)->lhs->rhs, visited);
       term_dump((*term)->lhs->rhs, ++*visited), fputc('\n', stderr);
       cont = term_incref((*term)->rhs);
       break;
     case IO_GET: {
-      if (-head->visited != 1)
+      if (~head->visited != 1)
         return "$get expects 1 argument";
+      fflush(bs_out->fp), fflush(bs_err->fp);
       bool bit = bs_get(bs_in), eof = bs_eof(bs_in);
-      struct term *some, *none, *tru, *fals;
+      struct term *some, *none, *one, *zero;
       // clang-format off
       struct term *arg =
           (some = VAR(), LAM(some,
           (none = VAR(), LAM(none,
               eof ? term_incref(none)
                   : APP(term_incref(some),
-                        (tru = VAR(), LAM(tru,
-                        (fals = VAR(), LAM(fals,
-                            term_incref(bit ? tru : fals))))))))));
+                        (one = VAR(), LAM(one,
+                        (zero = VAR(), LAM(zero,
+                            term_incref(bit ? one : zero))))))))));
       // clang-format on
       cont = APP(term_incref((*term)->rhs), arg);
     } break;
     case IO_PUT:
     case IO_EPUT: {
       bool isput = ~head->type == IO_PUT;
-      if (-head->visited != 2)
+      if (~head->visited != 2)
         return isput ? "$put expects 2 arguments" : "$eput expects 2 arguments";
       struct term *bit =
-          APP(APP(term_incref((*term)->lhs->rhs), IO(IO_TRU)), IO(IO_FALS));
+          APP(APP(term_incref((*term)->lhs->rhs), IO(IO_ONE)), IO(IO_ZERO));
       if (~whnf(bit, visited)->type == IO_ERR)
         return term_decref(bit), isput ? "hit $err in $put argument"
                                        : "hit $err in $eput argument";
-      if (~bit->type != IO_TRU && ~bit->type != IO_FALS)
+      if (~bit->type != IO_ONE && ~bit->type != IO_ZERO)
         return term_decref(bit), isput ? "$put argument is malformed"
                                        : "$eput argument is malformed";
-      bs_put(isput ? bs_out : bs_err, ~bit->type == IO_TRU), term_decref(bit);
+      bs_put(isput ? bs_out : bs_err, ~bit->type == IO_ONE), term_decref(bit);
+      // uncomment to disable buffering of user program output
+      // fflush(bs_out->fp), fflush(bs_err->fp);
       cont = term_incref((*term)->rhs);
     } break;
     default:

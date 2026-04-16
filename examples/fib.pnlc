@@ -22,6 +22,9 @@
 ..def .fix \digs.add \rhs \lhs
   ...cardinal rhs lhs \rhshead \rhstail
     ...cardinal lhs rhs \lhshead \lhstail
+      # applying carries by retroactively incrementing the working sum might
+      # appear naive, but in fact each place of the final sum is updated by
+      # increment at most once, so the time complexity remains linear.
       ..\head \carry ..cons head ...carry digs.inc id
         ..digs.add rhstail lhstail
       ..........rhshead

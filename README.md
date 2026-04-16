@@ -70,6 +70,14 @@ bin/pnlc prelude.pnlc examples/pnlc.pnlc
 cat examples/no-op\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
 cat examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
 cat examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/ack.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/fib.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/hanoi.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/fizzbuzz.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/greeting.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/pnlc.pnlc nul examples/no-op\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/pnlc.pnlc nul examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+cat prelude.pnlc examples/pnlc.pnlc nul examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
 cat io\ hook.pnlc examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
 cat io\ hook.pnlc examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
 

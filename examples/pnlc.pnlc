@@ -3,17 +3,17 @@
 
 # keep in sync with ../pnlc.c
 
-# data Typ = Exit | Err | Get | Put | Eput | Dump | Tru | Fals
-..def \exit \err \get \put \eput \dump \tru \fals exit \mkexit
-..def \exit \err \get \put \eput \dump \tru \fals err  \mkerr
-..def \exit \err \get \put \eput \dump \tru \fals get  \mkget
-..def \exit \err \get \put \eput \dump \tru \fals put  \mkput
-..def \exit \err \get \put \eput \dump \tru \fals eput \mkeput
-..def \exit \err \get \put \eput \dump \tru \fals dump \mkdump
-..def \exit \err \get \put \eput \dump \tru \fals tru  \mktru
-..def \exit \err \get \put \eput \dump \tru \fals fals \mkfals
-..def \exit \err \get \put \eput \dump \tru \fals
-  \typ ........typ exit err get put eput dump tru fals
+# data Typ = Exit | Err | Get | Put | Eput | Dump | One | Zero
+..def \exit \err \get \put \eput \dump \one \zero exit \mkexit
+..def \exit \err \get \put \eput \dump \one \zero err  \mkerr
+..def \exit \err \get \put \eput \dump \one \zero get  \mkget
+..def \exit \err \get \put \eput \dump \one \zero put  \mkput
+..def \exit \err \get \put \eput \dump \one \zero eput \mkeput
+..def \exit \err \get \put \eput \dump \one \zero dump \mkdump
+..def \exit \err \get \put \eput \dump \one \zero one  \mkone
+..def \exit \err \get \put \eput \dump \one \zero zero \mkzero
+..def \exit \err \get \put \eput \dump \one \zero
+  \typ ........typ exit err get put eput dump one zero
 \typ
 ..def ........typ true false false false false false false false \isexit
 ..def ........typ false true false false false false false false \iserr
@@ -21,13 +21,13 @@
 ..def ........typ false false false true false false false false \isput
 ..def ........typ false false false false true false false false \iseput
 ..def ........typ false false false false false true false false \isdump
-..def ........typ false false false false false false true false \istru
-..def ........typ false false false false false false false true \isfals
-..def .dbg ........typ :X :E :G :P :R :D :T :F \typ:dbg
+..def ........typ false false false false false false true false \isone
+..def ........typ false false false false false false false true \iszero
+..def .dbg ........typ :X :R :G :P :E :D :O :Z \typ:dbg
 ..def .seq ........typ id id id id id id id id \typ:seq
 ..def .enum
-  ..cons mkfals
-  ..cons mktru
+  ..cons mkzero
+  ..cons mkone
   ..cons mkdump
   ..cons mkeput
   ..cons mkput
@@ -43,53 +43,63 @@
   ..cons .:$ .:p .:u .:t     nil
   ..cons .:$ .:e .:p .:u .:t nil
   ..cons .:$ .:d .:u .:m .:p nil
-  ..cons .:# .:t .:r .:u     nil
-  ..cons .:# .:f .:a .:l .:s nil
+  ..cons .:# .:o .:n .:e     nil
+  ..cons .:# .:z .:e .:r .:o nil
   nil
 \ios
 
-# data Term = App Term Term | Lam Term | Var Nat | Io Typ
-..def \func \arg \app \lam \var \io ..app func arg \app
-..def \body \app \lam \var \io .lam body \lam
-..def \idx \app \lam \var \io .var idx \var
-..def \typ \app \lam \var \io .io typ \io
-..def \app \lam \var \io \term ....term app lam var io \term
-..def ....term \func \arg .some func \body none \idx none \typ none \func
-..def ....term \func \arg .some arg  \body none \idx none \typ none \arg
-..def ....term \func \arg none \body .some body \idx none \typ none \body
-..def ....term \func \arg none \body none \idx .some idx  \typ none \idx
-..def ....term \func \arg none \body none \idx none \typ .some typ  \typ
-..def ....term cons \body nil \idx nil \typ nil \unapp # listf
+# data Term = Mrk Term | App Term Term | Lam Term | Var Nat | Io Typ
+..def \mrkd      \mrk \app \lam \var \io .mrk mrkd      \mrk
+..def \func \arg \mrk \app \lam \var \io ..app func arg \app
+..def \body      \mrk \app \lam \var \io .lam body      \lam
+..def \idx       \mrk \app \lam \var \io .var idx       \var
+..def \typ       \mrk \app \lam \var \io .io typ        \io
+..def \mrk \app \lam \var \io \term .....term mrk app lam var io \term
+..def .....term some     \func \arg none \body none \idx none \typ none \mrkd
+..def .....term \mrkd nil  cons          \body nil  \idx nil  \typ nil  \unapp
+..def .....term \mrkd none \f \a .some f \body none \idx none \typ none \func
+..def .....term \mrkd none \f \a .some a \body none \idx none \typ none \arg
+..def .....term \mrkd none \func \arg none some     \idx none \typ none \body
+..def .....term \mrkd none \func \arg none \body none some    \typ none \idx
+..def .....term \mrkd none \func \arg none \body none \idx none some    \typ
 # the "base" functor for `Term`, with the property `Fix TermF = Term`.
 # `data TermF a = App a a | Lam a | Var Nat | Io Typ deriving Functor`
 ..def .ftor
-  \func ....term ..psi app func ..bluebird lam func var io
+  \func .....term ..bluebird mrk func ..psi app func ..bluebird lam func var io
 \termf:ftor
 ..def .dbg
   ..cata termf:ftor
-    ....term .becard :. .bluebird :\ .debug nat:dbg .debug typ:dbg
+    .....term .bluebird :# .becard :. .bluebird :\ .debug nat:dbg .debug typ:dbg
 \term:dbg
+# forcing appears to have become unnecessary.
 ..def .seq
   ..cata termf:ftor
-    ....term bluebird id .force nat:seq .force typ:seq
+    .....term id bluebird id .force nat:seq .force typ:seq
 \term:seq
 
+..def \term ...mrkd term id term \unmark
+..def ..bluebird mrk unmark \mark
+
 # beta :: Term -> Nat -> Term -> Term
-..def \arg .fix \beta \lvl \term ....term
+..def \arg .fix \beta \lvl \term .....term
+  mrk
   ..psi app .beta lvl
   ..bluebird lam .beta .some lvl
-  ..bluebird ..bool arg term ..equal nat:eq lvl
+  ..bluebird
+    ..bool .mark arg term
+    ..equal nat:eq lvl
   io
 \beta
 
+# the left spine and head of the term returned have no `Mrk`s
 # whnf :: Term -> Term
-..def .fix \whnf \term ...force term:seq term
-  ...unapp term
+..def .fix \whnf \term
+  ...unapp .unmark term
     \func \arg ..def .whnf func \func
       ...body func
         ..bluebird whnf ..beta arg none
         ..app func arg
-    term
+    .unmark term
 \whnf
 
 # run :: Term -> IO Bool
@@ -102,9 +112,9 @@
           ...debug term:dbg .whnf arg .:\n nil
         ......phi or isput iseput type
           ..def ...isput type put eput \put
-          ...typ .whnf ..app ..app arg .io mktru .io mkfals \type
-            ...istru  type ...bindk io:mnad .put true  .run cont
-            ...isfals type ...bindk io:mnad .put false .run cont
+          ...typ .whnf ..app ..app arg .io mkone .io mkzero \type
+            ...isone  type ...bindk io:mnad .put true  .run cont
+            ...iszero type ...bindk io:mnad .put false .run cont
             ..pure io:aptv false
           ..pure io:aptv false
         ..pure io:aptv false
