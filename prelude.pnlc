@@ -713,6 +713,10 @@
   ..ap:sgrp aptv inner:sgrp
   ..pure aptv innermempty
 \ap:mnid
+# `type Rap f a = Dual (Ap f (Dual a))`
+# the monoid given by `Ap` but where effects compose in reverse
+..def \inner:sgrp .dual:sgrp .ap:sgrp .dual:sgrp inner:sgrp \rap:sgrp
+..def \inner:mnid .dual:mnid .ap:mnid .dual:mnid inner:mnid \rap:mnid
 
 ..def \aptv \bind \mnad ..mnad aptv bind \mnad
 ..def \unmnad \mnad .mnad unmnad \unmnad
@@ -978,7 +982,9 @@
     ..pure elem:aptv none
 \opt:tvsb
 # `Semigroup a => Monoid (Maybe a)` by adjoining `Nothing` as neutral element
-..def .unsgrp \innersappend .sgrp ..lifta2 opt:aptv innersappend \optsgrp:sgrp
+..def .unsgrp \innersappend .sgrp
+  \lhs \rhs ..rhs ..lhs innersappend some lhs
+\optsgrp:sgrp
 ..def \inner:sgrp ..mnid .optsgrp:sgrp inner:sgrp none \optsgrp:mnid
 # no need for `Data.Monoid.First a`, it'd be isomorphic to `Alt Maybe a` and to
 # `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.First a`.
@@ -1064,7 +1070,8 @@ none lhs \divmod
     ...fmap list:ftor err errenumerate
     ...fmap list:ftor ok  okenumerate
 \res:enum
-..def .sgrp \lhs \rhs ..lhs ok rhs \res:sgrp
+# ideally this would be a `res:altv` but we don't have an identity
+..def .sgrp \lhs \rhs ..lhs ok .kestrel rhs \res:sgrp
 ..def .ftor
   \okfunc ..res ..bluebird ok okfunc err
 \resb:ftor
@@ -1241,6 +1248,7 @@ none lhs \divmod
   ..pair:sgrp .mnid:sgrp fst:mnid .mnid:sgrp snd:mnid
   ..pair .mempty fst:mnid .mempty snd:mnid
 \pair:mnid
+# the writer monad, models values that carry mergeable auxiliary data
 ..def .ftor
   \sndfunc .unpair \fstarg \sndarg
     ..pair fstarg .sndfunc sndarg
@@ -1259,6 +1267,11 @@ none lhs \divmod
       ..sndfunc sndarg \fstret \sndret
         ..pair ..fstsappend fstarg fstret sndret
 \paira:mnad
+..def \fstval ..pair fstval unit \tell
+..def .unpair \fst \snd ..pair fst ..pair fst snd \listen
+..def .unpair \fst .unpair \fstfunc \snd ..pair .fstfunc fst snd \pass
+..def \fstfunc .unpair \fst \snd ..pair fst ..pair .fstfunc fst snd \listens
+..def \fstfunc .unpair \fst \snd ..pair .fstfunc fst snd \censor
 ..def ...cmnd
   paira:ftor
   \pairval .snd pairval
@@ -1324,6 +1337,25 @@ none lhs \divmod
       .swap pairarg
       ..bluebird swap fstfunc
 \swapa:mnad
+..def \sndval .swap
+  .tell sndval
+\stell
+..def \pair ...fmap swapa:ftor swap .swap
+  .listen
+    .swap pair
+\slisten
+..def \pair .swap
+  .pass
+    ...fmap swapa:ftor swap .swap pair
+\spass
+..def \sndfunc \pair ...fmap swapa:ftor swap .swap
+  ..listens sndfunc
+    .swap pair
+\slistens
+..def \sndfunc \pair .swap
+  ..censor sndfunc
+    .swap pair
+\scensor
 ..def ...cmnd
   swapa:ftor
   \pairval ..extract paira:cmnd
@@ -2422,7 +2454,7 @@ none lhs \divmod
 
 # type Fn a b = a -> b
 #
-# the environment monad, models computations that depend on a shared environment
+# the environment monad, models values that depend on a shared environment
 ..def .ftor bluebird \fna:ftor
 ..def ...aptv fna:ftor kestrel starling \fna:aptv # liftA2 = phi
 ..def ..mnad fna:aptv .cardinal violet \fna:mnad # join = warbler
@@ -2486,13 +2518,33 @@ none lhs \divmod
   ...sequence ..fna:tvsb arg:eq arg:enum list:aptv
     .kestrel retenumerate
 \fn:enum
-..def .unsgrp \retsappend .sgrp
-  \lhs \rhs ...phi retsappend lhs rhs
-\fna:sgrp
-..def .unmnid \ret:sgrp \retmempty ..mnid
-  .fna:sgrp ret:sgrp
-  retmempty
-\fna:mnid
+# no need for `Monoid b => Monoid (Fn a b)`, it'd be isomorphic to
+# `(Applicative f, Monoid b) => Monoid (Ap f b)` for `f ~ Fn a`
+
+# type State a b = a -> Pair b a
+#
+# the state monad, models values that mutate shared state
+..def .ftor
+  \func \stateaarg ...fmap fna:ftor ..fmap swapa:ftor func stateaarg
+\statea:ftor
+..def ...aptv
+  statea:ftor
+  \val .pair val
+  \stateafunc \stateaarg
+    \st ..stateafunc st \func ...fmap statea:ftor func stateaarg
+\statea:aptv
+..def ..mnad
+  statea:aptv
+  \stateaarg \func \st ..stateaarg st func
+\statea:mnad
+# no need for `Monoid b => Monoid (State a b)`, it'd be isomorphic to
+# `(Applicative f, Monoid b) => Monoid (Ap f b)` for `f ~ State a`
+..def \st ..pair st st \sget
+..def \newst \st ..pair unit newst \sput
+..def \func \st ..pair .func st st \sgets
+..def \func \st ..pair unit .func st \smodify
+..def ..fmap fna:ftor fst \seval
+..def ..fmap fna:ftor snd \sexec
 
 # type String = List U8
 # type Parser a = String -> Maybe (Pair a String)
@@ -2514,7 +2566,7 @@ none lhs \divmod
 \parser:mnad
 ..def ...altv
   parser:aptv
-  \inp .pure opt:altv
+  \inp .empty opt:altv
   ..lifta2 fna:aptv .alt opt:altv
 \parser:altv
 ..def \pred ...cardinal list none
