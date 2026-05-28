@@ -50,9 +50,9 @@
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '<'
     ..bluebird .pure io:aptv ...phi .force u8:seq fst rightshift
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '+'
-    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.inc
+    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8::inc
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '-'
-    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8.dec
+    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8::dec
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '.'
     \tape ...fmapk io:ftor tape .putc .fst tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp ','
@@ -60,7 +60,7 @@
       \optchr ...fmapk swapa:ftor ..optchr id '\0' tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '#'
     \tape ...fmapk io:ftor tape
-      ..eputd ..before:dbg :\n ..tape:dbg radius u8.hex:dbg tape
+      ..eputd ..before:dbg :\n ..tape:dbg radius u8::hex:dbg tape
   ...alt parser:altv ...cardinal .fmap parser:ftor
     ....between parser:aptv .chrp '[' .chrp ']' bfp
     \bf .fix \rec \tape

@@ -18,15 +18,15 @@
     \head .unpair \tail \acc ..cons
       ..........head d1   d2   d3   d4   d5   d6   d7   d8   d9   d0
       ..........head tail tail tail tail tail tail tail tail tail acc
-\digs.inc
-..def .fix \digs.add \rhs \lhs
+\digs::inc
+..def .fix \digs::add \rhs \lhs
   ...cardinal rhs lhs \rhshead \rhstail
     ...cardinal lhs rhs \lhshead \lhstail
       # applying carries by retroactively incrementing the working sum might
       # appear naive, but in fact each place of the final sum is updated by
       # increment at most once, so the time complexity remains linear.
-      ..\head \carry ..cons head ...carry digs.inc id
-        ..digs.add rhstail lhstail
+      ..\head \carry ..cons head ...carry digs::inc id
+        ..digs::add rhstail lhstail
       ..........rhshead
         ..........lhshead d0 d1 d2 d3 d4 d5 d6 d7 d8 d9
         ..........lhshead d1 d2 d3 d4 d5 d6 d7 d8 d9 d0
@@ -49,7 +49,7 @@
         ..........lhshead c0 c0 c0 c1 c1 c1 c1 c1 c1 c1
         ..........lhshead c0 c0 c1 c1 c1 c1 c1 c1 c1 c1
         ..........lhshead c0 c1 c1 c1 c1 c1 c1 c1 c1 c1
-\digs.add
+\digs::add
 ..def .dbg
   ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
     ..........head :0 :1 :2 :3 :4 :5 :6 :7 :8 :9
@@ -58,5 +58,5 @@
 .main
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
     ...fmap stream:ftor .putd ..before:dbg :\n digs:dbg
-      ...ana streamf:ftor .unpair \a \b ..pair a ..pair b ..digs.add a b
+      ...ana streamf:ftor .unpair \a \b ..pair a ..pair b ..digs::add a b
         ..pair ..cons d0 nil ..cons d1 nil

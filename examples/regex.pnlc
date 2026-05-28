@@ -52,8 +52,8 @@
   ..cata regexf:ftor
     .....regex .becard :| .bluebird :! .becard :. .bluebird :*
       \lo \hi \neg ...becard ..neg :~ :-
-        ..debug u8.hex:dbg lo
-        ..debug u8.hex:dbg hi
+        ..debug u8::hex:dbg lo
+        ..debug u8::hex:dbg hi
 \regex:dbg
 # forcing hasn't been needed so far.
 ..def .seq
@@ -139,7 +139,7 @@
           ...fmap parser:ftor ..opt pair .warbler pair
             ..option parser:altv ...seqr parser:aptv .chrp '-' symbolp
         .unpair \hi \lo ...islt ...compare u8:ord lo hi
-          ..bluebird ..range .u8.inc hi .u8.dec lo not
+          ..bluebird ..range .u8::inc hi .u8::dec lo not
           ..range lo hi
   .empty parser:altv
 \atomp

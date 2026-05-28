@@ -1,3 +1,4 @@
+setlocal iskeyword+=:
 setlocal commentstring=#\ %s
 setlocal comments=b:#
 setlocal indentexpr=-1 indentkeys=

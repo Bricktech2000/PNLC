@@ -18,7 +18,7 @@
     \head .unpair \tail \acc ..cons
       ..........head d1   d2   d3   d4   d5   d6   d7   d8   d9   d0
       ..........head tail tail tail tail tail tail tail tail tail acc
-\digs.inc
+\digs::inc
 ..def .dbg
   ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
     ..........head :0 :1 :2 :3 :4 :5 :6 :7 :8 :9
@@ -28,7 +28,7 @@
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
     ...fmap stream:ftor \dstr .puts .dstr .:\n nil
       ....\numstr \fizz \buzz \fizzbuzz
-        ...rapply stream:aptv ..iterate digs.inc nil .cycle
+        ...rapply stream:aptv ..iterate digs::inc nil .cycle
           .fizzbuzz .numstr .numstr .fizz .numstr .buzz .fizz .numstr
           .numstr .fizz .buzz .numstr .fizz .numstr .numstr nil
       .cons \num ..debug digs:dbg num

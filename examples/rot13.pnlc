@@ -18,4 +18,4 @@
 .main .fix \main
   ...bind io:mnad getc ...cardinal opt ..pure io:aptv unit \chr
     .\chr ...bindk io:mnad .putc chr main
-    ...not .isalpha chr chr .....a-m chr u8.add u8.sub '\r' chr
+    ...not .isalpha chr chr .....a-m chr u8::add u8::sub '\r' chr

@@ -170,14 +170,14 @@
 # data Oct a = Oct a a a a a a a a
 ..def \0 \1 \2 \3 \4 \5 \6 \7 \oct ........oct 0 1 2 3 4 5 6 7 \oct
 ..def \unoct \oct .oct unoct \unoct
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 0 \oct.0
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 1 \oct.1
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 2 \oct.2
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 3 \oct.3
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 4 \oct.4
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 5 \oct.5
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 6 \oct.6
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 7 \oct.7
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 0 \oct::0
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 1 \oct::1
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 2 \oct::2
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 3 \oct::3
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 4 \oct::4
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 5 \oct::5
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 6 \oct::6
+..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 7 \oct::7
 
 # def:u8
 # type U8 = Oct Bool
@@ -1159,8 +1159,8 @@ none lhs \divmod
 # type Dbl a = Either a a
 # `a+a = 2*a` so `Dbl a ~= Pair Bool a`. the type class instances for `Dbl` are
 # given by the corresponding instances for `Pair Bool` under the isomorphism
-..def \dbl ..pair ..psi dbl kestrel ..dbl id id \dbl.iso
-..def .unpair ..res ok err \pairbool.iso
+..def \dbl ..pair ..psi dbl kestrel ..dbl id id \dbl::iso
+..def .unpair ..res ok err \pairbool::iso
 ..def .warbler res:eq \dbl:eq
 ..def .warbler res:ord \dbl:ord
 ..def .warbler res:bndd \dbl:bndd
@@ -1378,12 +1378,12 @@ none lhs \divmod
 # type Sqr a = Pair a a
 # `a*a = a^2` so `Sqr a ~= Fn Bool a`. the type class instances for `Sqr` are
 # given by the corresponding instances for `Fn Bool` under the isomorphism.
-# note that while `sqr.iso` is the identity function, `fnbool.iso` is not.
+# note that while `sqr::iso` is the identity function, `fnbool::iso` is not.
 # that's because you can always invoke a `Sqr a ~ (a -> a -> b) -> b` with
 # a `Bool ~ a -> a -> a`, but you can't always destructure a `Fn Bool a ~
 # (a -> a -> a) -> a` by invoking it with an `a -> a -> b`.
-..def \sqr \arg .sqr arg \sqr.iso
-..def \fnbool ....psi pair fnbool true false \fnbool.iso
+..def \sqr \arg .sqr arg \sqr::iso
+..def \fnbool ....psi pair fnbool true false \fnbool::iso
 ..def .warbler pair:eq \sqr:eq
 ..def .warbler pair:ord \sqr:ord
 ..def .warbler pair:bndd \sqr:bndd
@@ -1427,9 +1427,9 @@ none lhs \divmod
   #       .func ..pair
   #         .arg ..boolsappend false true
   #         .arg ..boolsappend false false
-  # we compress the logic using `fnbool.iso` and end up with something eerily
+  # we compress the logic using `fnbool::iso` and end up with something eerily
   # similar to `.extend fna:cmnd`:
-  \func \arg .fnbool.iso ...becard func fnbool.iso ..blackbird arg boolsappend
+  \func \arg .fnbool::iso ...becard func fnbool::iso ..blackbird arg boolsappend
 \sqr:cmnd
 ..def .fldb
   .unpair \fst \snd ..cons fst ..cons snd nil
@@ -2195,14 +2195,14 @@ none lhs \divmod
   oct:aptv
   .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7 \func
     ........oct
-      .oct.0 .func a0
-      .oct.1 .func a1
-      .oct.2 .func a2
-      .oct.3 .func a3
-      .oct.4 .func a4
-      .oct.5 .func a5
-      .oct.6 .func a6
-      .oct.7 .func a7
+      .oct::0 .func a0
+      .oct::1 .func a1
+      .oct::2 .func a2
+      .oct::3 .func a3
+      .oct::4 .func a4
+      .oct::5 .func a5
+      .oct::6 .func a6
+      .oct::7 .func a7
 \oct:mnad
 ..def .fldb
   .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
@@ -2235,14 +2235,14 @@ none lhs \divmod
   oct:ftor
   .unftor \outerfmap \ftoroct
     ........oct
-      ..outerfmap oct.0 ftoroct
-      ..outerfmap oct.1 ftoroct
-      ..outerfmap oct.2 ftoroct
-      ..outerfmap oct.3 ftoroct
-      ..outerfmap oct.4 ftoroct
-      ..outerfmap oct.5 ftoroct
-      ..outerfmap oct.6 ftoroct
-      ..outerfmap oct.7 ftoroct
+      ..outerfmap oct::0 ftoroct
+      ..outerfmap oct::1 ftoroct
+      ..outerfmap oct::2 ftoroct
+      ..outerfmap oct::3 ftoroct
+      ..outerfmap oct::4 ftoroct
+      ..outerfmap oct::5 ftoroct
+      ..outerfmap oct::6 ftoroct
+      ..outerfmap oct::7 ftoroct
 \oct:dstv
 ..def \func \zero .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
   ..func
@@ -2262,7 +2262,7 @@ none lhs \divmod
         a5
       a6
     a7
-\oct.foldl
+\oct::foldl
 ..def \func \zero .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
   ..func a0
     ..func a1
@@ -2273,10 +2273,10 @@ none lhs \divmod
               ..func a6
                 ..func a7
                   zero
-\oct.foldr
+\oct::foldr
 ..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
   ........oct a7 a6 a5 a4 a3 a2 a1 a0
-\oct.rev
+\oct::rev
 ..def .uneq \elemequal .eq
   \rhs \lhs ..fold and:mnid ..tolist oct:fldb
     ....lifta2 oct:aptv elemequal rhs lhs
@@ -2299,7 +2299,7 @@ none lhs \divmod
     ...fmap oct:ftor elemforce oct
 \oct:seq
 ..def .unenum \elemenumerate .enum
-  ...fmap list:ftor oct.rev
+  ...fmap list:ftor oct::rev
     ...sequence oct:tvsb list:aptv
       ..pure oct:aptv elemenumerate
 \oct:enum
@@ -2318,7 +2318,7 @@ none lhs \divmod
     \n3 \n2 \n1 \n0 ..n3
       ..n2 ..n1 ..n0 :f :e ..n0 :d :c ..n1 ..n0 :b :a ..n0 :9 :8
       ..n2 ..n1 ..n0 :7 :6 ..n0 :5 :4 ..n1 ..n0 :3 :2 ..n0 :1 :0
-\u8.hex:dbg
+\u8::hex:dbg
 # perform case analysis on each bit, examining any bit at most once. `and`,
 # `or`, `blt` and `ble` are special cases of case analysis where one branch
 # short-circuits, so we allow those too. memory aid:
@@ -2412,45 +2412,45 @@ none lhs \divmod
 ..def \chr ...isupper chr .mklower chr chr \tolower
 ..def \chr ...islower chr .mkupper chr chr \toupper
 ..def \c \rhs \lhs
-  ...oct.foldl
+  ...oct::foldl
     .unpair \c \oct .unpair \rhs \lhs ..pair
       ..or ..and c ..bne rhs lhs ..and rhs lhs
       .oct ..bne c ..bne rhs lhs
     ..pair c oct
     # ...sequence sqr:tvsb oct:aptv ..pair rhs lhs # works too
     ....lifta2 oct:aptv pair rhs lhs
-\u8.addc
+\u8::addc
 ..def \b \rhs \lhs
-  ...oct.foldl
+  ...oct::foldl
     .unpair \b \oct .unpair \rhs \lhs ..pair
       ..or ..and b ..bne rhs .not lhs ..and rhs .not lhs
       .oct ..bne b ..bne rhs lhs
     ..pair b oct
     # ...sequence sqr:tvsb oct:aptv ..pair rhs lhs # works too
     ....lifta2 oct:aptv pair rhs lhs
-\u8.subb
+\u8::subb
 ..def \c \arg
-  ...oct.foldl
+  ...oct::foldl
     .unpair \c \oct \cur ..pair
       ..and c cur
       .oct ..bne c cur
     ..pair c oct
     arg
-\u8.incc
+\u8::incc
 ..def \b \arg
-  ...oct.foldl
+  ...oct::foldl
     .unpair \b \oct \cur ..pair
       ..and b .not cur
       .oct ..bne b cur
     ..pair b oct
     arg
-\u8.decb
-..def ..blackbird snd .u8.addc false \u8.add
-..def ..blackbird snd .u8.subb false \u8.sub
-..def ..bluebird snd .u8.incc true \u8.inc
-..def ..bluebird snd .u8.decb true \u8.dec
-..def .sgrp u8.add \u8.add:sgrp
-..def ..mnid u8.add:sgrp $00 \u8.add:mnid
+\u8::decb
+..def ..blackbird snd .u8::addc false \u8::add
+..def ..blackbird snd .u8::subb false \u8::sub
+..def ..bluebird snd .u8::incc true \u8::inc
+..def ..bluebird snd .u8::decb true \u8::dec
+..def .sgrp u8::add \u8::add:sgrp
+..def ..mnid u8::add:sgrp $00 \u8::add:mnid
 
 # type Fn a b = a -> b
 #
