@@ -293,7 +293,6 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
     case IO_DUMP:
       if (~head->visited != 2)
         return "$dump expects 2 arguments";
-      whnf((*term)->lhs->rhs, visited);
       term_dump((*term)->lhs->rhs, ++*visited), fputc('\n', stderr);
       cont = term_incref((*term)->rhs);
       break;
@@ -319,7 +318,8 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
     case IO_EPUT: {
       bool isput = ~head->type == IO_PUT;
       if (~head->visited != 2)
-        return isput ? "$put expects 2 arguments" : "$eput expects 2 arguments";
+        return isput ? "$put expects 2 arguments" //
+                     : "$eput expects 2 arguments";
       struct term *bit =
           APP(APP(term_incref((*term)->lhs->rhs), IO(IO_ONE)), IO(IO_ZERO));
       if (~whnf(bit, visited)->type == IO_ERR)

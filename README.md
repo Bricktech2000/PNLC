@@ -26,7 +26,7 @@ I/O is based on continuations. During execution, the top-level term is expected 
 | `.$get cont`        | Read one bit from `stdin`, invoke `cont` with it. `\s \n n` means EOF, `\s \n .s \t \f t` means one, `\s \n .s \t \f f` means zero. |
 | `..$put bit cont`   | Write `bit` to `stdout`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
 | `..$eput bit cont`  | Write `bit` to `stderr`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
-| `..$dump term cont` | Reduce `term` to weak head normal form, dump it to `stderr`, invoke `cont` without arguments.                                       |
+| `..$dump term cont` | Dump `term` to `stderr`, invoke `cont` without arguments.                                                                           |
 
 ## The Prelude
 

@@ -109,7 +109,7 @@
       ...typ func \type
         ...isdump type
           .\dump ...bindk io:mnad .eputs dump .run cont
-          ...debug term:dbg .whnf arg .:\n nil
+          ...debug term:dbg arg .:\n nil
         ......phi or isput iseput type
           ..def ...isput type put eput \put
           ...typ .whnf ..app ..app arg .io mkone .io mkzero \type
