@@ -1,0 +1,76 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# data Dig = D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 0 \d0
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 1 \d1
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 2 \d2
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 3 \d3
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 4 \d4
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 5 \d5
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 6 \d6
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 7 \d7
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 8 \d8
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 9 \d9
+# type Digs = List Dig
+..def
+  ..para listf:ftor ...cardinal list ..cons d1 nil
+    \head .unpair \tail \acc ..cons
+      ..........head d1   d2   d3   d4   d5   d6   d7   d8   d9   d0
+      ..........head tail tail tail tail tail tail tail tail tail acc
+\digs::inc
+..def
+  ..cata listf:ftor ...cardinal list nil \head \acc
+    .....iscons acc cons
+      ..........head kite cons cons cons cons cons cons cons cons cons
+        head acc
+\digs::norm
+..def
+  ..cata listf:ftor ...cardinal list nil \head \acc
+    ...\c2 \c1 \c0 ..cons
+      ..........head d0 d3 d6 d9 d2 d5 d8 d1 d4 d7
+      ..........head c0 c0 c0 c0 c1 c1 c1 c2 c2 c2
+    # applying carries by retroactively incrementing the working sum might
+    # appear naive, but in fact each place of the final sum is updated by
+    # increment at most once, so the time complexity remains linear.
+    .digs::inc .digs::inc acc .digs::inc acc acc
+\digs::triple
+..def ..bluebird ..fmap swapa:ftor digs::norm
+  ..cata listf:ftor ...cardinal list ..pair nil false
+    \head .unpair \acc \rem
+      ..\head \rem ..pair ..cons head acc rem
+      ..rem   ..........head d5 d5 d6 d6 d7 d7 d8 d8 d9 d9
+              ..........head d0 d0 d1 d1 d2 d2 d3 d3 d4 d4
+      \r1 \r0 ..........head r0 r1 r0 r1 r0 r1 r0 r1 r0 r1
+\digs::halve
+..def .dbg
+  ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
+    ..........head :0 :1 :2 :3 :4 :5 :6 :7 :8 :9
+\digs:dbg
+
+# parsedigs :: String -> Maybe Digs
+..def \str .\parsedig
+  ...fmap opt:ftor digs::norm
+    ...sequence list:tvsb opt:aptv
+      ...fmap list:ftor parsedig
+        .rev str
+  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    ..a7 none ..a6 none ...not a5 none ...not a4 none ..a3
+      ..a2 none ..a1 none .some ..a0 d9 d8
+      .some ..a2 ..a1 ..a0 d7 d6 ..a0 d5 d4 ..a1 ..a0 d3 d2 ..a0 d1 d0
+\parsedigs
+
+# collatz :: Digs -> List Digs
+..def
+  ..ana listf:ftor \seed ..digs::halve seed \quot \rem
+    ...isnil quot ....rem cons kite seed nil
+      ..cons seed ..rem .digs::inc .digs::triple seed quot
+\collatz
+
+.main
+  ...bind io:mnad .getsep '\n' \str
+    ...parsedigs str \digs # `sequence` accumulates junk
+      ...cata listf:ftor ..list .bindk io:mnad ..pure io:aptv unit
+        ...fmap list:ftor .putd ..before:dbg :\n digs:dbg
+          .collatz digs
+      ..pure io:aptv unit
