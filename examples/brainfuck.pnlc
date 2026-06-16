@@ -63,12 +63,8 @@
       ..eputd ..before:dbg :\n ..tape:dbg radius u8::hex:dbg tape
   ...alt parser:altv ...cardinal .fmap parser:ftor
     ....between parser:aptv .chrp '[' .chrp ']' bfp
-    \bf .fix \rec \tape
-      # without `..kite tape`, truth-machine.bf slows down over time because
-      # its lambda-term grows over time, and I'm not sure why
-      ..thrush tape .....unequal u8:eq '\0' .fst tape
-        ...kleisli io:mnad bf ..kite tape rec
-        .pure io:aptv
+    \body .callccs \break ..kforever io:mnad
+      \tape ......equal u8:eq '\0' .fst tape break body tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor
     .satp ...phi and ..unequal u8:eq '[' ..unequal u8:eq ']'
     .pure io:aptv

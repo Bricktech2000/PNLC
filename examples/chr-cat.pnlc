@@ -1,7 +1,5 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-.main .fix \main
-  ...bind io:mnad getc ..opt
-    \chr ...bindk io:mnad .putc chr main
-    ..pure io:aptv unit
+.main .callcc \break ..mforever io:mnad
+  ...bind io:mnad getc ..opt putc .break unit

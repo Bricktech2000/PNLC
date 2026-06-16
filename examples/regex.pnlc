@@ -173,17 +173,17 @@
 \regexp
 
 # run :: Regex -> IO ()
-..def \regex .fix \run
-  ...bind io:mnad .getto '\n' \line
-    ...cardinal .rev line ..pure io:aptv unit \head \tail
-      ..def ......equal u8:eq '\n' head id .cons head tail \word
-      # .\alg ...bindk io:mnad ...cata listf:ftor alg word run
-      # ...cardinal list ..pure io:aptv regex
-      #   \head \acc ...bind io:mnad acc \regex
-      #     ...fmapk io:ftor ..differentiate head regex
-      #       ..putd ..before:dbg :\n regex:dbg regex
-      .\output ...bindk io:mnad output run
-      ...bool .puts line ..pure io:aptv unit
+..def \regex
+  .callcc \break ..mforever io:mnad
+    ...bind io:mnad .getto '\n' \line
+      ...cardinal .rev line .break unit \head \tail
+        ..def .......equal u8:eq '\n' head kite cons head tail \word
+        # .\alg ...cata listf:ftor alg word
+        # ...cardinal list ..pure io:aptv regex
+        #   \head \acc ...bind io:mnad acc \regex
+        #     ...fmapk io:ftor ..differentiate head regex
+        #       ..putd ..before:dbg :\n regex:dbg regex
+        .\matches ...when io:aptv matches .puts line
         .nullable ...cata listf:ftor ..list differentiate regex word
 \run
 

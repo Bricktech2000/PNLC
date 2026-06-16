@@ -1,0 +1,16 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# in 1999 David Madore accidentally stumbled upon the Unlambda program
+#     ``r`ci`.*`ci
+# in Scheme one would write
+#     (((lambda (cc) (newline)        cc) (call/cc (lambda (cc) cc)))
+#      ((lambda (cc) (write-char #\*) cc) (call/cc (lambda (cc) cc))))
+# each line of output is a string of asterisks, the `n`th line consisting
+# of `n` asterisks. what follows is a translation of the program to PNLC.
+# it's much noisier because we have to use the continuation monad to reify
+# continuations
+
+.main ..join io:mnad ...apply io:aptv
+  ...bind io:mnad .callcc .pure io:aptv \cc ...fmapk io:ftor cc .putc '\n'
+  ...bind io:mnad .callcc .pure io:aptv \cc ...fmapk io:ftor cc .putc '*'

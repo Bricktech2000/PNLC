@@ -1,9 +1,7 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-.main .fix \main
-  ...bind io:mnad .getto '\n' \str
-    ...unless io:aptv .isnil str
-      ...bindk io:mnad
-        .puts ...rev .:\n str kite nil
-        main
+.main .callcc \break ..mforever io:mnad
+  ...bind  io:mnad .getto '\n' \str
+  ...bindk io:mnad .puts ...rev .:\n str kite nil
+  ...when  io:aptv .isnil str .break unit

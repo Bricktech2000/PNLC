@@ -15,7 +15,6 @@
   ..blt a4 ..ble a3 ..ble a2 ..ble a1 false
 \a-m
 
-.main .fix \main
-  ...bind io:mnad getc ...cardinal opt ..pure io:aptv unit \chr
-    .\chr ...bindk io:mnad .putc chr main
-    ...not .isalpha chr chr .....a-m chr u8::add u8::sub '\r' chr
+.main .callcc \break ..mforever io:mnad
+  ...bind io:mnad getc ...cardinal opt .break unit \chr
+    .putc ...not .isalpha chr chr .....a-m chr u8::add u8::sub '\r' chr

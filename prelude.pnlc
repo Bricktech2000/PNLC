@@ -42,7 +42,7 @@
 ..def \f \g \x \y ..f .g x .g y \psi
 ..def \f .\x .f .x x \x .f .x x \fix
 
- # constructors and eliminators
+ # constructors and destructors
 
 ..def $err \void
 ..def \x x \unit
@@ -703,6 +703,7 @@
 ..def \aptv \left \right \inner
   ...seqr aptv left ...seql aptv inner right
 \between
+..def \aptv ..bluebird fix .seqr aptv \forever
 ..def \aptv ..bool id .kestrel ..pure aptv unit \when
 ..def \aptv ..bool .kestrel ..pure aptv unit id \unless
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` by lifting the monoid pointwise
@@ -722,9 +723,11 @@
 ..def \unmnad \mnad .mnad unmnad \unmnad
 ..def .unmnad \aptv \bind aptv \mnad:aptv
 ..def .unmnad \aptv \bind bind \bind
-..def \mnad \x \f ...bind mnad x .kestrel f \bindk
 ..def \mnad ..cardinal .bind mnad id \join
+..def \mnad \x \f ...bind mnad x .kestrel f \bindk
 ..def \mnad \f \g \x ...bind mnad .f x g \kleisli
+..def \mnad ..bluebird fix .bindk mnad \mforever
+..def \mnad ..bluebird fix .kleisli mnad \kforever
 # the monoid of Kleisli endomorphisms under Kleisli composition
 ..def \mnad .sgrp .kleisli mnad \kendo:sgrp
 ..def \mnad ..mnid .kendo:sgrp mnad .pure .mnad:aptv mnad \kendo:mnid
@@ -972,7 +975,7 @@
   \optlhs \optrhs ..optlhs some optrhs
 \opt:altv
 ..def .fldb
-  ...opt cons id nil
+  \optarg ...optarg cons id nil
 \opt:fldb
 ..def ...tvsb
   opt:ftor
@@ -1086,7 +1089,7 @@ none lhs \divmod
   \resarg \func ..resarg func err
 \resb:mnad
 ..def .fldb
-  ...res cons id .kestrel nil
+  \resval ...resval cons kite nil
 \resb:fldb
 ..def ...tvsb
   resb:ftor
@@ -1595,7 +1598,7 @@ none lhs \divmod
   \fst \acc ...pred fst none .some acc
 \sfindindex
 ..def \pred ..cata streamf:ftor .unpair
-  \fst \acc ....pred head .pair none id ...fmap stream:ftor some acc
+  \fst \acc .....pred head pair kite none ...fmap stream:ftor some acc
 \sfindindices
 ..def .uneq .bluebird sfind \selem
 ..def .uneq .bluebird sfindindex \selemindex
@@ -1620,7 +1623,7 @@ none lhs \divmod
   \fst \snd ..pair ..pair fst snd snd
 \stails1
 ..def \pred ..cata streamf:ftor .unpair
-  \fst \acc ....pred fst .pair fst id acc
+  \fst \acc .....pred fst pair kite fst acc
 \sfilter
 ..def \aptv \predm ..cata streamf:ftor .unpair
   \fst \acc ....lifta2 aptv ..bool .pair fst id .predm fst acc
@@ -1675,7 +1678,7 @@ none lhs \divmod
 \sisinfix
 ..def .uneq \elemequal .cardinal ..cata streamf:ftor
   .unpair \elem \acc ...cardinal list true
-    \head \tail .acc .....elemequal elem head id .cons head tail
+    \head \tail .acc ......elemequal elem head kite cons head tail
 \sissubsequence
 ..def \width \stream
   ...fmap stream:ftor .stake width .stails stream
@@ -1743,10 +1746,10 @@ none lhs \divmod
   \head \acc ...pred head .some head acc
 \find
 ..def \pred ..cata listf:ftor ...cardinal list none
-  \head \acc ...pred head .some none ...fmap opt:ftor some acc
+  \head \acc ...pred head .some none .some acc
 \findindex
 ..def \pred ..cata listf:ftor ...cardinal list nil
-  \head \acc ....pred head .cons none id ...fmap list:ftor some acc
+  \head \acc .....pred head cons kite none ...fmap list:ftor some acc
 \findindices
 ..def .uneq .bluebird find \elem
 ..def .uneq .bluebird findindex \elemindex
@@ -1767,7 +1770,7 @@ none lhs \divmod
   \head \tail ..cons ..cons head tail tail
 \tails1
 ..def \pred ..cata listf:ftor ...cardinal list nil
-  \head \acc ....pred head .cons head id acc
+  \head \acc .....pred head cons kite head acc
 \filter
 ..def \aptv \predm ..cata listf:ftor ...cardinal list ..pure aptv nil
   \head \acc ....lifta2 aptv ..bool .cons head id .predm head acc
@@ -1826,7 +1829,7 @@ none lhs \divmod
 \isinfix
 ..def .uneq \elemequal .cardinal ..cata listf:ftor ...cardinal list isnil
   \elem \acc ...cardinal list true
-    \head \tail .acc .....elemequal elem head id .cons head tail
+    \head \tail .acc ......elemequal elem head kite cons head tail
 \issubsequence
 ..def \width \list
   ...bind list:mnad .tails list ..bluebird .tolist opt:fldb .take width
@@ -2060,7 +2063,7 @@ none lhs \divmod
 # retract :: Monad f => Free f a -> f a
 # hoistFree :: Functor f => (forall a. f a -> g a) -> Free f b -> Free g b
 ..def .unftor \termfmap
-  ..bluebird roll .termfmap pure
+  ..bluebird roll .termfmap return
 \liftf
 ..def \term:mnad
   # in the `Roll` case we receive an `f r` where `r` is the carrier type, and
@@ -2452,6 +2455,18 @@ none lhs \divmod
 ..def .sgrp u8::add \u8::add:sgrp
 ..def ..mnid u8::add:sgrp $00 \u8::add:mnid
 
+# type String = List u8
+..def .list:eq u8:eq \str:eq
+..def .list:ord u8:ord \str:ord
+..def .list:bndd u8:bndd \str:bndd
+..def .list:dbg u8:dbg \str:dbg
+..def .list:dbg chr:dbg \str::chr:dbg
+..def .list:dbg u8::hex:dbg \str::hex:dbg
+..def .list:seq u8:seq \str:seq
+..def .list:enum u8:enum \str:enum
+..def .sgrp .alt list:altv \str:sgrp
+..def ..mnid str:sgrp .empty list:altv \str:mnid
+
 # type Fn a b = a -> b
 #
 # the environment monad, models values that depend on a shared environment
@@ -2546,7 +2561,6 @@ none lhs \divmod
 ..def ..fmap fna:ftor fst \seval
 ..def ..fmap fna:ftor snd \sexec
 
-# type String = List U8
 # type Parser a = String -> Maybe (Pair a String)
 ..def .ftor
   \func \parserarg
@@ -2586,23 +2600,69 @@ none lhs \divmod
   ..fmap list:ftor chrp
 \strp
 
+# type Cont a b = (b -> a) -> a
+#
+# the continuation monad, models interruptable and resumable computations.
+# any monad can be embedded into the continuation monad by partially applying
+# `bind` to obtain a `Cont`
+..def .ftor
+  \func \contaarg \cont .contaarg \arg .cont .func arg
+\conta:ftor
+..def ...aptv
+  conta:ftor
+  \val \cont .cont val
+  \contafunc \contaarg
+    \cont .contafunc \func ....fmap conta:ftor func contaarg cont
+\conta:aptv
+..def ..mnad
+  conta:aptv
+  \contaarg \func \cont .contaarg \arg ..func arg cont
+\conta:mnad
+# no need for `Monoid b => Monoid (Cont a b)`, it'd be isomorphic to
+# `(Applicative f, Monoid b) => Monoid (Ap f b)` for `f ~ Cont a`.
+# no need for `Monoid a => Monoid (Cont a b)`, it'd be isomorphic to
+# `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Fn (b -> a)`
+#
+# in `.callcc \cc .use cc`, if `use` doesn't "call" `cc` and instead "returns"
+# a value, that value will, in turn, be "returned" from `callcc`, which means
+# continuations can "escape out" of calls to `callcc` and are "granted first-
+# class citizenship". the words in quotes are to be interpreted as if inside
+# the monad.
+# `callCCS` is like `callCC` but for Kleisli arrows `s -> Cont a c` instead
+# of objects `Cont a c`.
+#
+#  E[abort v] ==> v
+# E[callCC f] ==> E[f (x. abort E[x])]
+#  E[label f] ==> E[f (abort E[label f])]
+# abort :: a -> Cont a b
+# callCC :: ((c -> Cont a b) -> Cont a c) -> Cont a c
+# callCCS :: ((c -> Cont a b) -> s -> Cont a c) -> s -> Cont a c
+# label :: Cont a (Cont a b)
+# labelS :: s -> Cont a (Pair s (s -> Cont a b))
+..def \val \cont val \abort
+..def \usecc \cont ..usecc \val .abort .cont val cont \callcc
+..def \usecc \state .callcc \cc ..usecc cc state \callccs
+..def .callcc \cc ..pure conta:aptv .fix cc \label
+..def \state .callcc \cc ..pure conta:aptv ..pair state
+  .fix \rec \state .cc ..pair state rec
+\labels
+# delimited-control operators. in truth you can also use `shift` undelimited and
+# use `reset` to delimit `abort` and `callCC`.
+# E[reset C[shift f]] ==> E[reset (f (x. reset C[x]))]
+#          E[reset v] ==> E[v]
+# reset :: Cont b b -> Cont a b
+# shift :: ((b -> a) -> Cont a a) -> Cont a b
+..def \contaval \cont .cont .contaval id \reset
+..def \usecc \cont ..usecc \val .cont val id \shift
+
 # an `IO a` is a function that takes a continuation and returns "$" functions
 # wrapping the application of the continuation to a value of type `a`.
 #
 # no need for `Monoid a => Monoid (IO a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ IO`
-..def .ftor
-  \func \ioarg \cont .ioarg \arg .cont .func arg
-\io:ftor
-..def ...aptv
-  io:ftor
-  \val \cont .cont val
-  \iofunc \ioarg \cont .iofunc \func ....fmap io:ftor func ioarg cont
-\io:aptv
-..def ..mnad
-  io:aptv
-  \ioarg \func \cont .ioarg \arg ..func arg cont
-\io:mnad
+..def conta:ftor \io:ftor
+..def conta:aptv \io:aptv
+..def conta:mnad \io:mnad
 # "$" functions like `$put` expect a continuation that takes no arguments, so
 # we make wrappers of type `IO ()` that expect continuations that take a `unit`.
 # similarly, functions like `$exit` expect no continuation, so we make wrappers

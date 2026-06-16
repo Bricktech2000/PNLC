@@ -57,6 +57,7 @@ bin/pnlc prelude.pnlc examples/truth-machine.pnlc
 bin/pnlc prelude.pnlc examples/reverse.pnlc
 bin/pnlc prelude.pnlc examples/rot13.pnlc
 bin/pnlc prelude.pnlc examples/quine.pnlc
+bin/pnlc prelude.pnlc examples/yin-yang.pnlc
 bin/pnlc prelude.pnlc examples/rule\ 110.pnlc
 bin/pnlc prelude.pnlc examples/fizzbuzz.pnlc
 bin/pnlc prelude.pnlc examples/hanoi.pnlc
