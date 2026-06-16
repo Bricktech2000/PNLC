@@ -32,16 +32,6 @@ struct term {
   struct term *beta;
 };
 
-// keep track of the nubmer of abstraction nodes binding each variable node.
-// whenever we allocate or free an abstraction node, we call BIND() or UNBIND()
-// on the variable node it binds. of course a variable node's in-degree can be
-// greater than 0x100, so NBINDS() is really an upper bound on the true number
-// of binders and NREFS() is really a lower bound on the true in-degree
-#define BIND(VAR) ((VAR)->refcount += 0x100, VAR)
-#define UNBIND(VAR) ((VAR)->refcount -= 0x100, VAR)
-#define NBINDS(VAR) ((VAR)->refcount / 0x100) // upper bound
-#define NREFS(VAR) ((VAR)->refcount % 0x100)  // lower bound
-
 #define APP(LHS, RHS)                                                          \
   term_alloc((struct term){TYPE_APP, .lhs = LHS, .rhs = RHS})
 #define LAM(LHS, RHS)                                                          \
@@ -57,7 +47,6 @@ struct term {
 
 struct term *term_alloc(struct term fields) {
   struct term *term = malloc(sizeof *term);
-  fields.type == TYPE_LAM ? BIND(fields.lhs) : 0;
   fields.refcount = 1;
   return *term = fields, term;
 }
@@ -76,7 +65,7 @@ struct term *term_dump(struct term *term, long long visited) {
   //     return fputs("@ ", stderr), term;
 
   // uncomment to dump refcounts. can make the dump harder to read
-  // for (int i = 1; i < NREFS(term); i++)
+  // for (int i = 1; i < term->refcount; i++)
   //   fputc(term->visited == visited ? '<' : '>', stderr);
 
   // uncomment to dump whether terms are marked as closed
@@ -107,20 +96,35 @@ struct term *term_dump(struct term *term, long long visited) {
   return term;
 }
 
-struct term *term_incref(struct term *term) { return term->refcount++, term; }
+struct term *term_incref(struct term *term) {
+  return term->refcount++, term; //
+}
+
 struct term *term_decref(struct term *term) {
   // always returns `NULL` so you can go `term = term_decref(term);`
+
+again:
   if (--term->refcount)
     return NULL;
+
   switch (term->type) {
-  case TYPE_LAM:
-    UNBIND(term->lhs);
   case TYPE_APP:
-    term_decref(term->lhs), term_decref(term->rhs);
+    term_decref(term->lhs);
+    break;
+  case TYPE_LAM:
+    if (!--term->lhs->refcount)
+      free(term->lhs); // fast path; always a `TYPE_VAR`
+    break;
   case TYPE_VAR:
-  default:; // IO
+  default: // IO
+    return free(term), NULL;
   }
-  return free(term), NULL;
+
+  // manual tail call optimization, otherwise GCC doesn't see it and we overflow
+  // the stack when trying to free terms that are several gigabytes in size
+  struct term *rhs = term->rhs;
+  free(term), term = rhs;
+  goto again;
 }
 
 // reduction to weak normal form or to weak head normal form only ever beta-
@@ -233,19 +237,9 @@ struct term *whnf(struct term *term, long long *visited) {
               *body = term_incref(term->lhs->rhs),
               *arg = term_incref(term->rhs);
   term_decref(term->lhs), term_decref(term->rhs); // move out
-  // small optimization: if `term` held the only reference to the abstraction
-  // node and the abstraction node was the only binder of `var`, we can just
-  // memcpy `*arg` into `*var` and skip calling `beta`. we only do so when we
-  // hold the only reference to `arg`, else we might induce duplicate work
-  if (NBINDS(var) == 0 && arg->refcount == 1) {
-    (var->type = arg->type) == TYPE_LAM ? BIND(arg->lhs) : 0;
-    var->lhs = arg->lhs ? term_incref(arg->lhs) : NULL;
-    var->rhs = arg->rhs ? term_incref(arg->rhs) : NULL;
-    var->visited = arg->visited;
-  } else
-    body = beta(body, var, arg, ++*visited);
+  body = beta(body, var, arg, ++*visited);
   term_decref(var), term_decref(arg);
-  (term->type = body->type) == TYPE_LAM ? BIND(body->lhs) : 0;
+  term->type = body->type;
   term->lhs = body->lhs ? term_incref(body->lhs) : NULL;
   term->rhs = body->rhs ? term_incref(body->rhs) : NULL;
   term->visited = body->visited;
