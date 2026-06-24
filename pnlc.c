@@ -7,7 +7,7 @@
 
 // keep in sync with examples/pnlc.pnlc
 
-enum { TYPE_APP, TYPE_LAM, TYPE_VAR };
+enum { TYPE_APP, TYPE_LAM, TYPE_VAR, TYPE_MVAR };
 
 // "IO"s are opaque lambda-terms that are handled in special ways. when `term.
 // type < 0`, the term is an IO, and `~term.type` will be one of the following:
@@ -23,7 +23,7 @@ char *ios[] = {"$exit", "$err", "$get",  "$put", "$eput",
 // for beta-reduction. for applications, when `type = TYPE_APP`, `lhs` is the
 // function and `rhs` is the argument. for abstractions, when `type = TYPE_LAM`,
 // `lhs` is the variable and `rhs` is the body. several abstraction nodes might
-// bind the same variable node
+// bind the same variable node, in which case its `type = TYPE_MVAR`
 struct term {
   int type;
   unsigned refcount;
@@ -83,13 +83,14 @@ struct term *term_dump(struct term *term, long long visited) {
     term_dump(term->lhs, visited), term_dump(term->rhs, visited);
     break;
   case TYPE_VAR:
+  case TYPE_MVAR:
     if (term->lhs && term->rhs) {
       char *begin = (char *)term->lhs, *end = (char *)term->rhs;
       fprintf(stderr, "%.*s ", (int)(end - begin), begin);
     } else
       fprintf(stderr, "%p ", (void *)term);
     break;
-  default: // IO
+  default /* IO */:
     fprintf(stderr, "%s ", ios[~term->type]);
     break;
   }
@@ -113,10 +114,11 @@ again:
     break;
   case TYPE_LAM:
     if (!--term->lhs->refcount)
-      free(term->lhs); // fast path; always a `TYPE_VAR`
+      free(term->lhs); // fast path; always a `TYPE_VAR` or `TYPE_MVAR`
     break;
   case TYPE_VAR:
-  default: // IO
+  case TYPE_MVAR:
+  default /* IO */:
     return free(term), NULL;
   }
 
@@ -161,35 +163,39 @@ struct term *beta(struct term *term, struct term *var, struct term *arg,
 
   switch (term->type) {
   case TYPE_APP: {
+    if (term->refcount == 1) {
+      term->lhs = beta(term->lhs, var, arg, visited);
+      term->rhs = beta(term->rhs, var, arg, visited);
+      term->beta = term;
+      break;
+    }
     struct term *lhs = beta(term_incref(term->lhs), var, arg, visited);
     struct term *rhs = beta(term_incref(term->rhs), var, arg, visited);
     if (lhs == term->lhs && rhs == term->rhs)
       term_decref(lhs), term_decref(rhs), term->beta = term;
-    else if (term->refcount == 1) {
-      term_decref(term->lhs), term->lhs = lhs;
-      term_decref(term->rhs), term->rhs = rhs;
-      term->beta = term;
-    } else
+    else
       term_decref(term), term->beta = APP(lhs, rhs);
   } break;
   case TYPE_LAM: {
     if (term->lhs == var ? term->beta = term : 0)
       break; // stop recursing, this abstraction shadows the top-level one
+    if (term->refcount == 1) {
+      term->rhs = beta(term->rhs, var, arg, visited);
+      term->beta = term;
+      break;
+    }
     struct term *rhs = beta(term_incref(term->rhs), var, arg, visited);
     if (rhs == term->rhs)
       term_decref(rhs), term->beta = term;
-    else if (term->refcount == 1) {
-      term_decref(term->rhs), term->rhs = rhs;
-      term->beta = term;
-    } else {
-      struct term *lhs = term_incref(term->lhs);
-      term_decref(term), term->beta = LAM(lhs, rhs);
-    }
+    // we're binding a bound variable, so set it as multiply-bound
+    else if (term->lhs->type = TYPE_MVAR)
+      term_decref(term), term->beta = LAM(term_incref(term->lhs), rhs);
   } break;
   case TYPE_VAR:
+  case TYPE_MVAR:
     term->beta = term == var ? term_decref(term), term_incref(arg) : term;
     break;
-  default: // IO
+  default /* IO */:
     term->beta = term;
     break;
   }
@@ -236,13 +242,33 @@ struct term *whnf(struct term *term, long long *visited) {
   struct term *var = term_incref(term->lhs->lhs),
               *body = term_incref(term->lhs->rhs),
               *arg = term_incref(term->rhs);
+  unsigned lam_refcount = term->lhs->refcount;
   term_decref(term->lhs), term_decref(term->rhs); // move out
-  body = beta(body, var, arg, ++*visited);
+  // small optimization: if `term` held the only reference to the abstraction
+  // node and the abstraction node was the only binder of `var`, we can just
+  // memcpy `*arg` into `*var` and skip calling `beta`. we only do so when we
+  // hold the only reference to `arg`, else we might induce duplicate work.
+  // this speeds up the evaluation of top-level definitions, and the prelude
+  // is nothing but top-level definitions, so it also noticeably improves the
+  // start-up time of user programs
+  if (lam_refcount == 1 && var->type != TYPE_MVAR && arg->refcount == 1) {
+    // uncomment and you should see all prelude definitions
+    // term_dump(var, ++*visited);
+    // no need to ever set `arg->lhs` as a multiply-bound variable because
+    // `arg->refcount == 1` and we're about to `term_decref(arg)`
+    var->lhs = arg->lhs ? term_incref(arg->lhs) : NULL;
+    var->rhs = arg->rhs ? term_incref(arg->rhs) : NULL;
+    var->type = arg->type, var->visited = arg->visited;
+  } else
+    body = beta(body, var, arg, ++*visited);
   term_decref(var), term_decref(arg);
-  term->type = body->type;
+  // only set `var` as a multiply-bound variable when `body->refcount > 1`
+  // because we're about to `term_decref(body)`
+  if (body->type == TYPE_LAM && body->refcount > 1)
+    body->lhs->type = TYPE_MVAR;
   term->lhs = body->lhs ? term_incref(body->lhs) : NULL;
   term->rhs = body->rhs ? term_incref(body->rhs) : NULL;
-  term->visited = body->visited;
+  term->type = body->type, term->visited = body->visited;
   term_decref(body);
   return whnf(term, visited);
 }
