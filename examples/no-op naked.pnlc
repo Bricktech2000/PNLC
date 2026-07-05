@@ -1,3 +1,6 @@
 # vim:tw=80:ft=pnlc:
 
+# a no-op that does not depend on the prelude.
+# see also no-op.pnlc
+
 $exit

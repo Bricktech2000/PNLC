@@ -1,5 +1,7 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
+# see also no-op\ naked.pnlc
+
 .main
   ..pure io:aptv unit

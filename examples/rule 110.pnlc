@@ -1,6 +1,8 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
+# elementary celullar automata using comonads. the tape has unbounded length
+
 # decode :: U8 -> Tape Bool -> Bool
 # decode a Wolfram code into a function that maps an infinite neighborhood of a
 # cell to the cell's next state
@@ -28,7 +30,8 @@ none \radius
   .cycle ...bind list:mnad .:E .:? .:& .:* .:e .:( .:n .:, nil .tolist oct:fldb
 \random
 
-# no duplicates up to reflection and complement
+# no duplicates up to reflection and complement.
+# keep in sync with Atto-8
 ...vireo
   # $1a random # rule 26
   # $1e single # rule 30

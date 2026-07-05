@@ -1,5 +1,8 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
+# pipe `stdin` to `stdout` bitwise.
+# see also bit-cat\ naked.pnlc, chr-cat.pnlc
+
 .main .callcc \break ..mforever io:mnad
   ...bind io:mnad get ..opt put .break unit

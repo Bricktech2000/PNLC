@@ -3,6 +3,10 @@
 
 # keep in sync with NU-RE
 
+# a small grep based on regular expression derivatives (Brzozowski, 1964). this
+# is a near-exact port of my regex engine NU-RE, so refer to that project for
+# information.
+
 # type Regex = Union Regex Regex | Compl Regex | Concat Regex Regex | Star Regex
 #            | Range U8 U8 Bool
 ..def \lhs \rhs    \union \compl \concat \star \range ..union lhs rhs    \union

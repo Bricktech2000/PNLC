@@ -1,5 +1,8 @@
 # vim:tw=80:ft=pnlc:
 
+# a "hello world" that does not deped on the prelude.
+# see also hello\ world.pnlc
+
 .\p .p .$put \1 \0 0 \0
 .\p .p .$put \1 \0 1 \1
 

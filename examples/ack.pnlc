@@ -1,6 +1,18 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
+# Ackermann function evaluated over a range of values: for `m = [0..)`, for
+# `n = [0..inner)`, print `ack m n`. the function is evaluated over `Nat`s and
+# so program output is correspondingly unary. the program gets OOM-killed at
+# `ack 4 2 = 2^^5 - 3` (where ^^ is tetration). storing numbers in positional
+# notation would not affect time complexity but would improve space complexity;
+# still, it wouldn't get us very far: the program would get OOM-killed one step
+# later at `ack 4 3 = 2^^6 - 3`
+
+# ack :: Nat -> Nat -> Nat
+# ack 0 n = n+1
+# ack (m+1) 0 = ack m 1
+# ack (m+1) (n+1) = ack m (ack (m+1) n)
 ..def .fix \ack \m \n
   ...cardinal m .some n \m
   ...cardinal n ..ack m .some none \n

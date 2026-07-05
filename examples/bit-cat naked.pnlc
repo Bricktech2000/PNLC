@@ -1,5 +1,8 @@
 # vim:tw=80:ft=pnlc:
 
+# pipe `stdin` to `stdout` bitwise. does not depend on the prelude.
+# see also bit-cat.pnlc, chr-cat.pnlc
+
 .\f .\x .f .x x \x .f .x x \rec
   .$get \optbit ..optbit
     \bit ..$put bit rec

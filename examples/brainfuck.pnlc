@@ -1,6 +1,9 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
+# we also support a '#' instruction that outputs a neighborhood of the head to
+# `stderr`. cells wrap at 256. the tape has unbounded length in both directions
+
 # equivalent to the prelude implementations but unrolled for higher performance
 ..def .eq
   .unoct \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7

@@ -621,7 +621,7 @@
 # for example, forcing a list is case analysis for forcing either a `nil` or a
 # `cons`, forcing a `nil` is the identity function, and forcing a `cons` is the
 # composition of forcing the head and recursively forcing the tail.
-# force :: a -> b -> b
+# force :: Seq a => a -> b -> b
 ..def \force \seq .seq force \seq
 ..def \unseq \seq .seq unseq \unseq
 ..def .unseq \force force \force
@@ -819,12 +819,12 @@
 # histomorphisms and futumorphisms.
 # data Fix f = Fix (f (Fix f))
 # cata :: Functor f => (f a -> a) -> Fix f -> a
-# ana :: Functor f => (a -> f a) -> a -> Fix f
+# ana  :: Functor f => (a -> f a) -> a -> Fix f
 # hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
-# para :: Functor f => (f (Pair (Fix f) a) -> a) -> Fix f -> a
-# apo :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
+# para :: Functor f => (f (Pair (Fix f) a)  ->  a) -> Fix f -> a
+# apo  :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
 # histo :: Functor f => (f (Cofree f a) -> a) -> Fix f -> a
-# futu :: Functor f => (a -> f (Free f a)) -> a -> Fix f
+# futu  :: Functor f => (a  ->  f (Free f a)) -> a -> Fix f
 # `..fmap ftor cata` doesn't depend on `init`, so when it gets unrolled during
 # evaluation with a concrete `init`, it also gets unrolled in this definition,
 # causing a space leak (more correctly, it gets unrolled not in this definition
@@ -1644,10 +1644,10 @@ none lhs \divmod
 # splitAt :: Nat -> Stream a -> Pair (List a) (Stream a)
 # drop :: Nat -> Stream a -> Stream a
 # (!?) :: Nat -> Stream a -> a
-# stripPrefix :: List a -> Stream a -> Maybe (Stream a)
-# isPrefix :: List a -> Stream a -> Bool
-# isInfix :: List a -> Stream a -> Bool
-# isSubsequence :: List a -> Stream a -> Bool
+# stripPrefix :: Eq a => List a -> Stream a -> Maybe (Stream a)
+# isPrefix :: Eq a => List a -> Stream a -> Bool
+# isInfix :: Eq a => List a -> Stream a -> Bool
+# isSubsequence :: Eq a => List a -> Stream a -> Bool
 # windows :: Nat -> Stream a -> Stream (List a)
 ..def \pred ..cata streamf:ftor .unpair
   \fst \acc ...pred fst ..cons fst acc nil
@@ -1793,10 +1793,10 @@ none lhs \divmod
 # splitAt :: Nat -> List a -> Maybe (Pair (List a) (List a))
 # drop :: Nat -> List a -> Maybe (List a)
 # (!?) :: Nat -> List a -> Maybe a
-# stripPrefix :: List a -> List a -> Maybe (List a)
-# isPrefix :: List a -> List a -> Bool
-# isInfix :: List a -> List a -> Bool
-# isSubsequence :: List a -> List a -> Bool
+# stripPrefix :: Eq a => List a -> List a -> Maybe (List a)
+# isPrefix :: Eq a => List a -> List a -> Bool
+# isInfix :: Eq a => List a -> List a -> Bool
+# isSubsequence :: Eq a => List a -> List a -> Bool
 # windows :: Nat -> List a -> List (List a)
 ..def \pred ..cata listf:ftor ...cardinal list nil
   \head \acc ...pred head ..cons head acc nil

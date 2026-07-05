@@ -17,7 +17,7 @@ A PNLC program is a λ‑term written in prefix notation. Prefix notation simpli
          | <var>             ; variable
 ```
 
-I/O is based on continuations. During execution, the top-level term is expected to β‑reduce to one of the following forms, at which point the corresponding effect is performed.
+I/O is based on continuations. At startup, the interpreter populates the environment with bindings for the variables `$exit`, `$err`, `$get`, `$put`, `$eput`, `$dump`. During execution, the top-level term is expected to β‑reduce to one of the following forms, at which point the corresponding effect is performed:
 
 | Form                | Effect                                                                                                                              |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
