@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-// keep in sync with examples/pnlc.pnlc
+// keep in sync with 'examples/pnlc definitional.pnlc',
+// 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
 
 enum { TYPE_APP, TYPE_LAM, TYPE_VAR, TYPE_MVAR };
 
@@ -359,7 +360,8 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
   }
 }
 
-// keep in sync with examples/pnlc.pnlc, pnlc.vim and grammar.bnf
+// keep in sync with pnlc.vim, grammar.bnf, 'examples/pnlc definitional.pnlc',
+// 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
 
 void parse_ws(char **prog) {
   while (isspace(**prog))

@@ -1,0 +1,106 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# keep in sync with ../pnlc.c, 'pnlc definitional.pnlc' and
+# 'pnlc metacircular.pnlc'
+
+# a PNLC self-interpreter, sort of. it can execute itself. I'm not sure what to
+# call it. it's a parser followed by a shallow embedding into the host calculus.
+# we interpret programs by constructing in the host runtime a lambda-term that's
+# beta-equivalent to the program, then evaluating to it. substitution, beta-
+# reduction, evaluation order, structural sharing, runtime errors are all stolen
+# from the host interpreter
+
+..def
+  ..cons ..pair .:$ .:e .:x .:i .:t nil $exit
+  ..cons ..pair .:$ .:e .:r .:r     nil $err
+  ..cons ..pair .:$ .:g .:e .:t     nil $get
+  ..cons ..pair .:$ .:p .:u .:t     nil $put
+  ..cons ..pair .:$ .:e .:p .:u .:t nil $eput
+  ..cons ..pair .:$ .:d .:u .:m .:p nil $dump
+  nil
+\ios
+
+..def .unpair \funcenv \func .unpair \argenv \arg
+  # union the child environments and forward variables accordingly
+  ..def ...union str:ord funcenv argenv \appenv
+  ..pair appenv
+    .....cata listf:ftor ...cardinal list id
+      \head \acc \func \arg \var ..acc
+        .....elem str:eq head funcenv .kestrel .func var func
+        .....elem str:eq head argenv  .kestrel .arg  var arg
+      appenv func arg
+\app
+..def \name .unpair \bodyenv \body ..pair
+  ...delete str:ord name bodyenv
+  # we need to reorder the free variables of `body` so as to move the variable
+  # bound by this lambda-abstraction to the front. we assume that the parameter
+  # to the carrier type `acc` is a term that takes as its first argument the
+  # variable bound by this lambda-abstraction. of course that's not true of
+  # `body`, so we use `\bound body` as a base case. we fold over the body's
+  # environment and when we hit the variable bound by this lambda-abstraction,
+  # we eliminate the dummy `bound` parameter, and from then on the term's first
+  # argument truly is the variable bound by this lambda-abstraction
+  ....cata listf:ftor ...cardinal list id
+    \head \acc \term
+      .....equal str:eq name head
+        # eliminate the dummy `bound` parameter by passing it `$err`
+        .acc .term $err
+        # forward a variable from the environment while preserving the first
+        # parameter by sending it to the second parameter instead. notice that
+        # the following line is equivalent to `\var .acc ..cardinal term var`.
+        \var .acc \bound ..term bound var
+    bodyenv \bound body # dummy `bound` parameter
+\lam
+..def \name
+  ..pair ..cons name nil id
+\var
+
+# type Term = <opaque>
+# type Env = List String
+# wsp :: Parser String
+# varp :: Parser String
+# termp :: Parser (Pair Env Term)
+..def ..many parser:altv .satp isspace \wsp
+..def ...cardinal .seql parser:aptv wsp
+  ..many1 parser:altv .satp ..bluebird not isspace
+\varp
+..def .fix \termp
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '.'
+    ...seqr parser:aptv wsp
+    ....lifta2 parser:aptv app termp termp
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '\'
+    ...seqr parser:aptv wsp
+    ....lifta2 parser:aptv lam varp termp
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '#'
+    ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
+    ...seqr parser:aptv .chrp '\n'
+    ...seqr parser:aptv wsp termp
+  ...alt parser:altv
+    ...bind parser:mnad varp \name
+    .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
+      .kestrel .empty parser:altv
+      ..pure parser:aptv .var name
+  .empty parser:altv
+\termp
+
+# parse :: Parser (IO Void)
+..def ...bind parser:mnad
+  ....between parser:aptv wsp eofp termp .unpair \env \term
+    # `\cont` here is noteworthy. it reshapes the parsed value from an opaque
+    # `Term` to an `IO Void` so it's compatible with the prelude's IO monad.
+    ...opt \term ..pure parser:aptv \cont term .empty parser:altv
+      ...cata listf:ftor ...cardinal list .some term
+        \head \acc ...apply opt:aptv acc ...lookup str:eq head ios
+        .rev env
+\parse
+
+# read characters from stdin until a '\0'. we use the character '\0' to end the
+# program string and begin its execution
+.main
+  ...bind io:mnad .getsep '\0' \str ...parse str
+    .unpair \prog \inp prog
+    .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

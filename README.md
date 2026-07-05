@@ -68,47 +68,49 @@ bin/pnlc io\ hook.pnlc prelude.pnlc examples/hello\ world.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/bit-cat.pnlc
 
 # PNLC self-interpreter demos
-bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat examples/no-op\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/ack.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/fib.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/hanoi.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/fizzbuzz.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/greeting.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/pnlc.pnlc nul examples/no-op\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/pnlc.pnlc nul examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat prelude.pnlc examples/pnlc.pnlc nul examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat io\ hook.pnlc examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc.pnlc
-cat io\ hook.pnlc examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc.pnlc
+bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+bin/pnlc prelude.pnlc examples/pnlc\ metacircular.pnlc
+bin/pnlc prelude.pnlc examples/pnlc\ shallow.pnlc
+cat examples/no-op\ naked.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/ack.pnlc            | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/fib.pnlc            | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/hanoi.pnlc          | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/fizzbuzz.pnlc       | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/greeting.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/pnlc\ definitional.pnlc nul examples/no-op\ naked.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/pnlc\ definitional.pnlc nul examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/pnlc\ definitional.pnlc nul examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat io\ hook.pnlc examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat io\ hook.pnlc examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 
 # regex engine demos
 bin/pnlc prelude.pnlc examples/regex.pnlc
-cat examples/re/comment.re pnlc.c | bin/pnlc prelude.pnlc examples/regex.pnlc
-cat examples/re/strlit.re pnlc.c | bin/pnlc prelude.pnlc examples/regex.pnlc
-cat examples/re/utf-8.re README.md | bin/pnlc prelude.pnlc examples/regex.pnlc
-cat examples/re/divby3.re examples/rule\ 110.pnlc | bin/pnlc prelude.pnlc examples/regex.pnlc
-cat examples/re/ipv4.re examples/regex.pnlc | bin/pnlc prelude.pnlc examples/regex.pnlc
-cat examples/re/hexrgb.re examples/regex.pnlc | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/comment.re pnlc.c                  | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/strlit.re  pnlc.c                  | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/utf-8.re   README.md               | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/divby3.re  examples/rule\ 110.pnlc | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/ipv4.re    examples/regex.pnlc     | bin/pnlc prelude.pnlc examples/regex.pnlc
+cat examples/re/hexrgb.re  examples/regex.pnlc     | bin/pnlc prelude.pnlc examples/regex.pnlc
 
 # Brainfuck interpreter demos
 bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/pnlc.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/bell.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/ascii.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/cat.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/reverse.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/beaver.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/clear.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/head.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/strip.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/pnlc.bf                 | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/bell.bf                 | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/ascii.bf                | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/cat.bf bang -           | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/reverse.bf bang -       | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/beaver.bf               | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/clear.bf                | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/head.bf bang -          | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/strip.bf bang -         | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/truth-machine.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/bin2text.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/text2bf.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/fib.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/squares.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/thuemorse.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/sierpinski.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/siercarpet.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/bin2text.bf bang -      | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/text2bf.bf bang -       | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/fib.bf                  | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/squares.bf              | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/thuemorse.bf            | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/sierpinski.bf           | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/siercarpet.bf           | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 ```

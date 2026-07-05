@@ -1,4 +1,5 @@
-; keep in sync with pnlc.c, examples/pnlc.pnlc and pnlc.vim
+; keep in sync with pnlc.c, pnlc.vim, 'examples/pnlc definitional.pnlc',
+; 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
 <term> ::= "." <ws> <term> <term>            ; application
          | "\\" <ws> <var> <term>            ; abstraction
          | "#" <line> <ws> <term>            ; comment

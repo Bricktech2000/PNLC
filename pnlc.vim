@@ -5,7 +5,8 @@ setlocal indentexpr=-1 indentkeys=
 let &l:define = '\sdef:' . '\|^\(\S\+\s\+\)\{-}\\\ze\S\+\(\s\+\(#.*\)\?\)\?$'
 let &l:include = '\sinc:'
 
-" keep in sync with pnlc.c, examples/pnlc.pnlc and grammar.bnf
+" keep in sync with pnlc.c, grammar.bnf, 'examples/pnlc definitional.pnlc',
+" 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
 
 syntax match pnlcLam '\\\_[[:space:]]*[^[:space:]]\+\_[[:space:]]\+'
 syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[^[:space:]]\+\_[[:space:]]\+'

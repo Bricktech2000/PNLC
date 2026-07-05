@@ -1,7 +1,12 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-# keep in sync with ../pnlc.c
+# keep in sync with ../pnlc.c, 'pnlc metacircular.pnlc' and 'pnlc shallow.pnlc'
+
+# PNLC self-interpreter. it can interpret itself, if you're patient enough. it
+# is a close port of pnlc.c and in principle a complete specification of the
+# object language with no semantic leakage from the host interpreter. it stores
+# lambda-terms as trees rather than directed graphs so there is duplicate work
 
 # data Typ = Exit | Err | Get | Put | Eput | Dump | One | Zero
 ..def \exit \err \get \put \eput \dump \one \zero exit \mkexit
@@ -77,6 +82,7 @@
     .....term id bluebird id .force nat:seq .force typ:seq
 \term:seq
 
+# we maintain the invariant that the child of a `Mrk` is never another `Mrk`
 ..def \term ...mrkd term id term \unmark
 ..def ..bluebird mrk unmark \mark
 
@@ -142,28 +148,29 @@
 ..def .fix \termp \env
   ...alt parser:altv
     ...seqr parser:aptv .chrp '.'
-      ...seqr parser:aptv wsp
-        ....lifta2 parser:aptv app .termp env .termp env
+    ...seqr parser:aptv wsp
+    ....lifta2 parser:aptv app .termp env .termp env
   ...alt parser:altv
     ...seqr parser:aptv .chrp '\'
-      ...seqr parser:aptv wsp
-        ...bind parser:mnad varp \name
-          ...fmap parser:ftor lam .termp ..cons name env
+    ...seqr parser:aptv wsp
+    ...bind parser:mnad varp \name
+    ...fmap parser:ftor lam .termp ..cons name env
   ...alt parser:altv
     ...seqr parser:aptv .chrp '#'
-      ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
-        ...seqr parser:aptv .chrp '\n'
-          ...seqr parser:aptv wsp .termp env
+    ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
+    ...seqr parser:aptv .chrp '\n'
+    ...seqr parser:aptv wsp .termp env
   ...alt parser:altv
     ...bind parser:mnad varp \name
-      .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
-        .kestrel .empty parser:altv
-        .....elemindex .list:eq u8:eq name env
-          ..bluebird .pure parser:aptv var
-          .empty parser:altv
+    .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
+      .kestrel .empty parser:altv
+      .....elemindex str:eq name env
+        ..bluebird .pure parser:aptv var
+        .empty parser:altv
   .empty parser:altv
 \termp
 
+# parse :: Parser Term
 ..def ...fmap parser:ftor
   \term ...cata listf:ftor
     ..list \typ \acc ..app .lam acc .io typ term

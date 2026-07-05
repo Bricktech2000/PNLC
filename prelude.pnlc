@@ -844,7 +844,7 @@
   .ralg ...fmap ftor ..kite init ..starling pair para init
 \para
 ..def \ftor \rcoalg .fix \apo \seed
-  ...fmap ftor ..kite seed ..res ana id .rcoalg seed
+  ...fmap ftor ..kite seed ..res apo id .rcoalg seed
 \apo
 ..def \ftor \cvalg ..bluebird ann .fix \histo \init
   ...starling cofree cvalg ...fmap ftor ..kite init histo init
@@ -1595,12 +1595,16 @@ none lhs \divmod
   \fst \acc ...pred fst fst acc
 \sfind
 ..def \pred ..cata streamf:ftor .unpair
+  \fst \acc .....pred fst pair kite fst acc
+\sfinds
+..def \pred ..cata streamf:ftor .unpair
   \fst \acc ...pred fst none .some acc
 \sfindindex
 ..def \pred ..cata streamf:ftor .unpair
   \fst \acc .....pred head pair kite none ...fmap stream:ftor some acc
 \sfindindices
 ..def .uneq .bluebird sfind \selem
+..def .uneq .bluebird sfinds \selems
 ..def .uneq .bluebird sfindindex \selemindex
 ..def .uneq .bluebird sfindindices \selemindices
 ..def .uneq \keyequal \key
@@ -1683,6 +1687,93 @@ none lhs \divmod
 ..def \width \stream
   ...fmap stream:ftor .stake width .stails stream
 \swindows
+# "multiset" operations. they operate on sorted streams. if your streams have no
+# duplicates, they become "set" operations (unless you call `merge`, of course).
+# when choosing between two equal elements, we take the left-hand-side element.
+# lmerge :: Ord a => List a -> Stream a -> Stream a
+# lunion :: Ord a => List a -> Stream a -> Stream a
+# lsubtract :: Ord a => List a -> Stream a -> Stream a
+# lannihilate :: Ord a => List a -> Stream a -> Stream a
+#
+# these two are omitted on purpose. their outputs are `List`s, so you can use
+# the `List` versions instead, after calling `tolist` on any `Stream` arguments.
+# lsubtract' :: Ord a => Stream a -> List a -> List a
+# lintersect :: Ord a => List a -> Stream a -> List a
+..def \elem:ord .fix \smerge \rhs \lhs
+  .rhs \rhsfst \rhssnd
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhsfst lhsfst
+    ..pair rhsfst ..smerge rhssnd lhs
+    ..pair lhsfst ..smerge rhs    lhssnd
+    ..pair lhsfst ..smerge rhs    lhssnd
+\smerge
+..def \elem:ord .fix \lmerge \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhshead lhsfst
+    ..pair rhshead ..lmerge rhstail lhs
+    ..pair lhsfst  ..lmerge rhs     lhssnd
+    ..pair lhsfst  ..lmerge rhs     lhssnd
+\lmerge
+..def \elem:ord .fix \sunion \rhs \lhs
+  .rhs \rhsfst \rhssnd
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhsfst lhsfst
+    ..pair rhsfst ..sunion rhssnd lhs
+    ..pair lhsfst ..sunion rhssnd lhssnd
+    ..pair lhsfst ..sunion rhs    lhssnd
+\sunion
+..def \elem:ord .fix \lunion \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhshead lhsfst
+    ..pair rhshead ..lunion rhstail lhs
+    ..pair lhsfst  ..lunion rhstail lhssnd
+    ..pair lhsfst  ..lunion rhs     lhssnd
+\lunion
+..def \elem:ord .fix \ssubtract \rhs \lhs
+  .rhs \rhsfst \rhssnd
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhsfst lhsfst
+                  ..ssubtract rhssnd lhs
+                  ..ssubtract rhssnd lhssnd
+    ..pair lhsfst ..ssubtract rhs    lhssnd
+\ssubtract
+..def \elem:ord .fix \lsubtract \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhshead lhsfst
+                  ..lsubtract rhstail lhs
+                  ..lsubtract rhstail lhssnd
+    ..pair lhsfst ..lsubtract rhs     lhssnd
+\lsubtract
+..def \elem:ord .fix \sintersect \rhs \lhs
+  .rhs \rhsfst \rhssnd
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhsfst lhsfst
+                  ..sintersect rhssnd lhs
+    ..pair lhsfst ..sintersect rhssnd lhssnd
+                  ..sintersect rhs    lhssnd
+\sintersect
+..def \elem:ord .fix \sannihilate \rhs \lhs
+  .rhs \rhsfst \rhssnd
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhsfst lhsfst
+    ..pair rhsfst ..sannihilate rhssnd lhs
+                  ..sannihilate rhssnd lhssnd
+    ..pair lhsfst ..sannihilate rhs    lhssnd
+\sannihilate
+..def \elem:ord .fix \lannihilate \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  .lhs \lhsfst \lhssnd
+  ......compare elem:ord rhshead lhsfst
+    ..pair rhshead ..lannihilate rhstail lhs
+                   ..lannihilate rhstail lhssnd
+    ..pair lhsfst  ..lannihilate rhs     lhssnd
+\lannihilate
+..def \elem:ord \elem ..lmerge    elem:ord ..cons elem nil \sinsert
+..def \elem:ord \elem ..lunion    elem:ord ..cons elem nil \sinclude
+..def \elem:ord \elem ..lsubtract elem:ord ..cons elem nil \sdelete
 ..def ..iterate some none \iota
 
 # the missing instances are located at the beginning of the section because many
@@ -1732,19 +1823,12 @@ none lhs \divmod
 # rev list = appEndo (getDual (foldMap (Dual . Endo . cons) list)) nil
 ..def \list ...fold .dual:mnid endo:mnid ...fmap list:ftor cons list nil \rev
 ..def \elem ..ana natf:ftor ..opt .cons elem nil \replicate
-# cons the element onto the sorted list and `insert` will scooch it over
-..def \elem:ord ..apo listf:ftor ...cardinal list nil
-  \head \tail ..tail
-    \headtail \tailtail
-      ...isgt ...compare elem:ord headtail head
-        ..cons headtail .ok ..cons head tailtail
-        ..cons head .err tail
-    ..cons head .err tail
-\insert
-..def ..cata listf:ftor insert \inssort
 ..def \pred ..cata listf:ftor ...cardinal list none
   \head \acc ...pred head .some head acc
 \find
+..def \pred ..cata listf:ftor ...cardinal list nil
+  \head \acc .....pred head cons kite head acc
+\finds
 ..def \pred ..cata listf:ftor ...cardinal list none
   \head \acc ...pred head .some none .some acc
 \findindex
@@ -1752,6 +1836,7 @@ none lhs \divmod
   \head \acc .....pred head cons kite none ...fmap list:ftor some acc
 \findindices
 ..def .uneq .bluebird find \elem
+..def .uneq .bluebird finds \elems
 ..def .uneq .bluebird findindex \elemindex
 ..def .uneq .bluebird findindices \elemindices
 ..def .uneq \keyequal \key
@@ -1834,6 +1919,54 @@ none lhs \divmod
 ..def \width \list
   ...bind list:mnad .tails list ..bluebird .tolist opt:fldb .take width
 \windows
+# "multiset" operations. they operate on sorted lists. if your lists have no
+# duplicates, they become "set" operations (unless you call `merge`, of course).
+# when choosing between two equal elements, we take the left-hand-side element.
+..def \elem:ord .fix \merge \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  ...cardinal lhs rhs \lhshead \lhstail
+  ......compare elem:ord rhshead lhshead
+    ..cons rhshead ..merge rhstail lhs
+    ..cons lhshead ..merge rhs     lhstail
+    ..cons lhshead ..merge rhs     lhstail
+\merge
+..def \elem:ord .fix \union \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  ...cardinal lhs rhs \lhshead \lhstail
+  ......compare elem:ord rhshead lhshead
+    ..cons rhshead ..union rhstail lhs
+    ..cons lhshead ..union rhstail lhstail
+    ..cons lhshead ..union rhs     lhstail
+\union
+..def \elem:ord .fix \subtract \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  ...cardinal lhs lhs \lhshead \lhstail
+  ......compare elem:ord rhshead lhshead
+                   ..subtract rhstail lhs
+                   ..subtract rhstail lhstail
+    ..cons lhshead ..subtract rhs     lhstail
+\subtract
+..def \elem:ord .fix \intersect \rhs \lhs
+  ...cardinal rhs rhs \rhshead \rhstail
+  ...cardinal lhs lhs \lhshead \lhstail
+  ......compare elem:ord rhshead lhshead
+                   ..intersect rhstail lhs
+    ..cons lhshead ..intersect rhstail lhstail
+                   ..intersect rhs     lhstail
+\intersect
+..def \elem:ord .fix \annihilate \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+  ...cardinal lhs rhs \lhshead \lhstail
+  ......compare elem:ord rhshead lhshead
+    ..cons rhshead ..annihilate rhstail lhs
+                   ..annihilate rhstail lhstail
+    ..cons lhshead ..annihilate rhs     lhstail
+\annihilate
+..def \elem:ord \elem ..merge    elem:ord ..cons elem nil \insert
+..def \elem:ord \elem ..union    elem:ord ..cons elem nil \include
+..def \elem:ord \elem ..subtract elem:ord ..cons elem nil \delete
+..def ..cata listf:ftor ..list insert  nil \sort
+..def ..cata listf:ftor ..list include nil \nubsort
 
 # `type DList a = List a -> List a`
 # difference lists. a difference list is a function which, when given a tail,
@@ -2077,6 +2210,10 @@ none lhs \divmod
     ..bluebird roll func
     return
 \hoistfree
+# tofree :: Functor f => Fix f -> Free f Void
+# fromfree :: Functor f => Free f Void -> Fix f
+..def \term:ftor ..cata term:ftor roll \tofree
+..def \term:ftor ..ana term:ftor ..free id void \fromfree
 # no need for `foldFree`, it'd be equivalent to `.cata freef:ftor`.
 # no need for `unfoldFree`, it'd be equivalent to `.ana freef:ftor`.
 # no need for `iter` and `iterA`, they'd be trivial wrappers around the above
@@ -2166,6 +2303,28 @@ none lhs \divmod
       ..tracedistribute outer:ftor ..outerfmap trace seed
       ..outerfmap ann seed
 \cofree:dstv
+# lowerF :: Functor f => Cofree f a -> f a
+# section :: Comonad f => f a -> Cofree f a
+# hoistCofree :: Functor f => (forall a. g a -> f a) -> Cofree g b -> Cofree f b
+..def .unftor \tracefmap
+  ..bluebird .tracefmap ann trace
+\lowerf
+..def \trace:cmnd
+  # for the `Trace` field we have to produce an `f r` where `r` is the
+  # carrier type, and the carrier type itself is an `f a`, so we call
+  # `duplicate :: f a -> f (f a)`
+  ..ana .cofreef:ftor .cmnd:ftor trace:cmnd \seed ..cofree
+    ..duplicate trace:cmnd seed
+    ..extract trace:cmnd seed
+\section
+..def \trace:ftor \func
+  ..ana .cofreef:ftor trace:ftor .uncofree \trace \ann
+    ..cofree .func trace ann
+\hoistcofree
+# fromcofree :: Functor f => Cofree f Unit -> Fix f
+# tocofree :: Functor f => Fix f -> Cofree f Unit
+..def \term:ftor ..ana term:ftor trace \fromcofree
+..def \term:ftor ..cata term:ftor ..cardinal cofree unit \tocofree
 
 ..def .ftor
   \func .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7

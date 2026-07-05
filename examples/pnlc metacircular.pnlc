@@ -1,0 +1,73 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# keep in sync with ../pnlc.c, 'pnlc definitional.pnlc' and 'pnlc shallow.pnlc'
+
+# meta-circular PNLC self-interpreter. 'meta-circular' in the sense that each
+# feature of the object language is defined by using the corresponding feature
+# of the host language (Reynolds, 1972). it can interpret itself. function
+# application, lambda-abstraction, evaluation order, runtime errors are all
+# stolen from the host interpreter
+
+..def
+  ..cons ..pair .:$ .:e .:x .:i .:t nil $exit
+  ..cons ..pair .:$ .:e .:r .:r     nil $err
+  ..cons ..pair .:$ .:g .:e .:t     nil $get
+  ..cons ..pair .:$ .:p .:u .:t     nil $put
+  ..cons ..pair .:$ .:e .:p .:u .:t nil $eput
+  ..cons ..pair .:$ .:d .:u .:m .:p nil $dump
+  nil
+\ios
+
+..def \func \arg \env ..func env .arg env \app
+..def \body      \env \arg .body ..cons arg env \lam
+..def \idx       \env ....at idx env id $err \var
+
+# type Term = <opaque>
+# type Env = List String
+# wsp :: Parser String
+# varp :: Parser String
+# termp :: Env -> Parser Term
+..def ..many parser:altv .satp isspace \wsp
+..def ...cardinal .seql parser:aptv wsp
+  ..many1 parser:altv .satp ..bluebird not isspace
+\varp
+..def .fix \termp \env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '.'
+    ...seqr parser:aptv wsp
+    ....lifta2 parser:aptv app .termp env .termp env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '\'
+    ...seqr parser:aptv wsp
+    ...bind parser:mnad varp \name
+    ...fmap parser:ftor lam .termp ..cons name env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '#'
+    ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
+    ...seqr parser:aptv .chrp '\n'
+    ...seqr parser:aptv wsp .termp env
+  ...alt parser:altv
+    ...bind parser:mnad varp \name
+    .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
+      .kestrel .empty parser:altv
+      .....elemindex str:eq name env
+        ..bluebird .pure parser:aptv var
+        .empty parser:altv
+  .empty parser:altv
+\termp
+
+# parse :: Parser (IO Void)
+..def ...fmap parser:ftor
+  # `\cont` here is noteworthy. it reshapes the parsed value from an opaque
+  # `Term` to an `IO Void` so it's compatible with the prelude's IO monad.
+  \term \cont .term ...fmap list:ftor snd ios
+  ....between parser:aptv wsp eofp .termp ...fmap list:ftor fst ios
+\parse
+
+# read characters from stdin until a '\0'. we use the character '\0' to end the
+# program string and begin its execution
+.main
+  ...bind io:mnad .getsep '\0' \str ...parse str
+    .unpair \prog \inp prog
+    .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
