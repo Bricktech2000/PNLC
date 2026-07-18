@@ -4,44 +4,11 @@
 # we also support a '#' instruction that outputs a neighborhood of the head to
 # `stderr`. cells wrap at 256. the tape has unbounded length in both directions
 
-# equivalent to the prelude implementations but unrolled for higher performance
-..def .eq
-  .unoct \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
-    .unoct \l0 \l1 \l2 \l3 \l4 \l5 \l6 \l7
-      ..and ..bet r0 l0
-      ..and ..bet r1 l1
-      ..and ..bet r2 l2
-      ..and ..bet r3 l3
-      ..and ..bet r4 l4
-      ..and ..bet r5 l5
-      ..and ..bet r6 l6
-      ..and ..bet r7 l7
-      true
-\u8:eq
-..def .seq
-  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-    \x
-      ...a0 id id
-      ...a1 id id
-      ...a2 id id
-      ...a3 id id
-      ...a4 id id
-      ...a5 id id
-      ...a6 id id
-      ...a7 id id
-    x
-\u8:seq
-..def .ftor
-  \fstfunc .unpair \fstarg \sndarg
-    ..pair .fstfunc fstarg sndarg
-\swapa:ftor
-
 # bfp :: Parser (Tape U8 -> IO (Tape U8))
 # all the component parsers also have this type. this way, juxtaposition of
 # Brainfuck program strings corresponds to `liftA2 (>=>)`, that is, penetration
 # of parsers with Kleisli composition
 ..def .fix \bfp
-  ..def .some .some .some .some .some .some .some .some none \radius
   # bfp = liftA2 (>=>) atomp bfp <|> pure pure
   .\atomp ...alt parser:altv
     ....lifta2 parser:aptv .kleisli io:mnad atomp bfp
@@ -63,13 +30,13 @@
       \optchr ...fmapk swapa:ftor ..optchr id '\0' tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '#'
     \tape ...fmapk io:ftor tape
-      ..eputd ..before:dbg :\n ..tape:dbg radius u8::hex:dbg tape
+      ..eputd ..before:dbg :\n ..tape:dbg eight u8::hex:dbg tape
   ...alt parser:altv ...cardinal .fmap parser:ftor
     ....between parser:aptv .chrp '[' .chrp ']' bfp
     \body .callccs \break ..kforever io:mnad
       \tape ......equal u8:eq '\0' .fst tape break body tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor
-    .satp ...phi and ..unequal u8:eq '[' ..unequal u8:eq ']'
+    .unsatp ..memb u8:eq .:[ .:] nil
     .pure io:aptv
   .empty parser:altv
 \bfp

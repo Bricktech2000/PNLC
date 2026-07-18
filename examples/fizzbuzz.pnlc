@@ -1,39 +1,13 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-# keeps going forever. we perform increments in base ten for performance
-
-# data Dig = D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 0 \d0
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 1 \d1
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 2 \d2
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 3 \d3
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 4 \d4
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 5 \d5
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 6 \d6
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 7 \d7
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 8 \d8
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 9 \d9
-# type Digs = List Dig
-..def
-  ..para listf:ftor ...cardinal list ..cons d1 nil
-    \head .unpair \tail \acc ..cons
-      ..........head d1   d2   d3   d4   d5   d6   d7   d8   d9   d0
-      ..........head tail tail tail tail tail tail tail tail tail acc
-\digs::inc
-..def .dbg
-  ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
-    ..........head :0 :1 :2 :3 :4 :5 :6 :7 :8 :9
-\digs:dbg
+..def .:0 .:1 .:2 .:3 .:4 .:5 .:6 .:7 .:8 .:9 nil \decimal
 
 .main
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
-    ...fmap stream:ftor \dstr .puts .dstr .:\n nil
-      ....\numstr \fizz \buzz \fizzbuzz
-        ...rapply stream:aptv ..iterate digs::inc nil .cycle
-          .fizzbuzz .numstr .numstr .fizz .numstr .buzz .fizz .numstr
-          .numstr .fizz .buzz .numstr .fizz .numstr .numstr nil
-      .cons \num ..debug digs:dbg num
-      .cons \num \nil .:F .:i .:z .:z nil
-      .cons \num \nil .:B .:u .:z .:z nil
-      .cons \num \nil .:F .:i .:z .:z .:B .:u .:z .:z nil
+    ...fmap stream:ftor \str ...bindk io:mnad .puts str .putc '\n'
+      ...cardinal .fmap stream:ftor ..iterate binc nil \bin
+        ...isnil ..bmod bfifteen bin .:F .:i .:z .:z .:B .:u .:z .:z nil
+        ...isnil ..bmod bthree   bin .:F .:i .:z .:z nil
+        ...isnil ..bmod bfive    bin .:B .:u .:z .:z nil
+        .rev ..todigs decimal bin

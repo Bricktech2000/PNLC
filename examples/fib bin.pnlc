@@ -1,0 +1,36 @@
+# vim:tw=80:ft=pnlc:
+# inc:prelude.pnlc
+
+# reads in n, outputs fib(n).
+
+# | F(n) |   |0 1| |F(n-1)|              |0 1|n   |F(n-1)  F(n) |
+# |F(n+1)| = |1 1| | F(n) |, and in fact |1 1|  = | F(n)  F(n+1)|, which is of
+#          |a  b |
+# the form |b a+b|; we can use this to derive efficient *2 and +1 operations for
+#                                                                  |a  b |
+# binary exponentiation that operate under the bijection (a,b) <-> |b a+b|:
+#     |a  b |2   | a2+b2   b(2a+b) |
+#   - |b a+b|  = |b(2a+b) (a+b)2+b2|, thus (a,b)*2 = (a2+b2,b(2a+b)).
+#     |a  b | |0 1|   | b  a+b |
+#   - |b a+b| |1 1| = |a+b a+2b|, thus (a,b)+1 = (b,a+b).
+#
+# so each bit of n requires three multiplications and two or three additions.
+
+..def ..bluebird snd
+  ..cata listf:ftor ..list
+    \head .unpair \a \b
+      ..\a \b ..head ..pair b ..badd a b ..pair a b
+      ..badd ..bmul a a ..bmul b b
+      ..bmul b ..badd b ..bmul btwo a
+    ..pair bone nil # (1,0)*2 = (1,0) so we tolerate leading zeroes in the input
+\fib
+
+..def .:0 .:1 .:2 .:3 .:4 .:5 .:6 .:7 .:8 .:9 nil \decimal
+
+.main
+  ...bind  io:mnad .getsep '\n' \str
+    .....fromdigs u8:eq decimal .rev str
+      \bin .puts .rev .:\n ..todigs decimal .fib bin
+      # \bin ..putd ..before:dbg :\n bin:dbg .fib bin
+      # \bin ..putd ..before:dbg :\n bin::hex:dbg .fib bin
+      .eputs .:i .:n .:v .:a .:l .:i .:d .:  .:n .:u .:m .:b .:e .:r .:\n nil

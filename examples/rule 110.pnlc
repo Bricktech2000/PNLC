@@ -16,11 +16,6 @@
 
 ..def .dbg ..bool :@ :_ \cell:dbg
 
-..def
-  .some .some .some .some .some .some .some .some .some .some .some .some
-  .some .some .some .some .some .some .some .some .some .some .some .some
-none \radius
-
 ..def ..pair true ..pair   # head
   ..pure stream:aptv false # left
   ..pure stream:aptv false # right
@@ -49,6 +44,8 @@ none \radius
   # $96 random # rule 150
   # $a6 random # rule 166
 \rule \config
+
+..def ..mul three eight \radius
 
 .main
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk

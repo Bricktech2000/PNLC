@@ -1,6 +1,6 @@
 # PNLC
 
-_A toy functional language_
+_A small functional language_
 
 PNLC consists of two components:
 
@@ -9,7 +9,7 @@ PNLC consists of two components:
 
 ## The Interpreter
 
-A PNLC program is a λ‑term written in prefix notation. Prefix notation simplifies parsing and obviates a syntax for `let` bindings. The grammar is specified in [grammar.bnf](grammar.bnf). Roughly speaking,
+A PNLC program is a λ‑term written in prefix notation. Prefix notation simplifies parsing and obviates syntax for `let` bindings or `where` clauses. The grammar is specified in [grammar.bnf](grammar.bnf). Roughly speaking,
 
 ```bnf
 <term> ::= "." <term> <term> ; application
@@ -17,16 +17,29 @@ A PNLC program is a λ‑term written in prefix notation. Prefix notation simpli
          | <var>             ; variable
 ```
 
-I/O is based on continuations. At startup, the interpreter populates the environment with bindings for the variables `$exit`, `$err`, `$get`, `$put`, `$eput`, `$dump`. During execution, the top-level term is expected to β‑reduce to one of the following forms, at which point the corresponding effect is performed:
+For example, _λf.(λx.f(xx))(λx.f(xx))_ is written `\f .\x .f .x x \x .f .x x`. There is no syntactic sugar apart from `#` comments. Binders shadow in the usual way, so `\x \x x` is α‑equivalent to `\x \y y`.
 
-| Form                | Effect                                                                                                                              |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `$exit`             | Terminate the program normally.                                                                                                     |
-| `$err …`            | Ignore any arguments, crash the program.                                                                                            |
-| `.$get cont`        | Read one bit from `stdin`, invoke `cont` with it. `\s \n n` means EOF, `\s \n .s \t \f t` means one, `\s \n .s \t \f f` means zero. |
-| `..$put bit cont`   | Write `bit` to `stdout`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
-| `..$eput bit cont`  | Write `bit` to `stderr`, invoke `cont` without arguments. A bit of `\t \f t` means one, `\t \f f` means zero.                       |
-| `..$dump term cont` | Dump `term` to `stderr`, invoke `cont` without arguments.                                                                           |
+A well-formed program evaluates to a data structure that describes its I/O behavior, which the runtime then interprets. Conceptually it has the following shape:
+
+```haskell
+data Prog = Exit
+          | Err
+          | Get (Maybe Bool -> Prog)
+          | Put Bool Prog
+          | Eput Bool Prog
+          | Dump Term Prog
+```
+
+Operationally, the variables `$exit`, `$err`, `$get`, `$put`, `$eput`, `$dump` may occur free in a program’s λ‑term and are given the following reduction semantics:
+
+| Top-Level Term      | Reduction                                                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$exit`             | Terminate normally.                                                                                                                             |
+| `$err …`            | Discard any arguments and abort execution.                                                                                                      |
+| `.$get cont`        | Read `bit` from `stdin` and reduce to `.cont bit`. A `bit` of `\s \n n` means EOF, `\s \n .s \t \f t` means one, `\s \n .s \t \f f` means zero. |
+| `..$put bit cont`   | Write `bit` to `stdout` and reduce to `cont`. A `bit` of `\t \f t` means one, `\t \f f` means zero.                                             |
+| `..$eput bit cont`  | Write `bit` to `stderr` and reduce to `cont`. A `bit` of `\t \f t` means one, `\t \f f` means zero.                                             |
+| `..$dump term cont` | Dump an implementation-defined representation of `term` to `stderr` and reduce to `cont`.                                                       |
 
 ## The Prelude
 
@@ -61,9 +74,11 @@ bin/pnlc prelude.pnlc examples/yin-yang.pnlc
 bin/pnlc prelude.pnlc examples/rule\ 110.pnlc
 bin/pnlc prelude.pnlc examples/fizzbuzz.pnlc
 bin/pnlc prelude.pnlc examples/hanoi.pnlc
-bin/pnlc prelude.pnlc examples/fib.pnlc
 bin/pnlc prelude.pnlc examples/ack.pnlc
-bin/pnlc prelude.pnlc examples/collatz.pnlc
+bin/pnlc prelude.pnlc examples/fib\ dec.pnlc
+bin/pnlc prelude.pnlc examples/fib\ bin.pnlc
+bin/pnlc prelude.pnlc examples/collatz\ dec.pnlc
+bin/pnlc prelude.pnlc examples/collatz\ bin.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/hello\ world.pnlc
 bin/pnlc io\ hook.pnlc prelude.pnlc examples/bit-cat.pnlc
 
@@ -74,8 +89,8 @@ bin/pnlc prelude.pnlc examples/pnlc\ shallow.pnlc
 cat examples/no-op\ naked.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/fib\ dec.pnlc       | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/ack.pnlc            | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
-cat prelude.pnlc examples/fib.pnlc            | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/hanoi.pnlc          | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/fizzbuzz.pnlc       | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/greeting.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc

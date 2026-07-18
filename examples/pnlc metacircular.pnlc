@@ -21,7 +21,7 @@
 
 ..def \func \arg \env ..func env .arg env \app
 ..def \body      \env \arg .body ..cons arg env \lam
-..def \idx       \env ....at idx env id $err \var
+..def \idx       \env ....index idx env id $err \var
 
 # type Term = <opaque>
 # type Env = List String
@@ -29,9 +29,7 @@
 # varp :: Parser String
 # termp :: Env -> Parser Term
 ..def ..many parser:altv .satp isspace \wsp
-..def ...cardinal .seql parser:aptv wsp
-  ..many1 parser:altv .satp ..bluebird not isspace
-\varp
+..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp
 ..def .fix \termp \env
   ...alt parser:altv
     ...seqr parser:aptv .chrp '.'
@@ -49,8 +47,8 @@
     ...seqr parser:aptv wsp .termp env
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
-      .kestrel .empty parser:altv
+    .....memb u8:eq .:. .:\ .:# nil ...head name id '\0'
+      .empty parser:altv
       .....elemindex str:eq name env
         ..bluebird .pure parser:aptv var
         .empty parser:altv

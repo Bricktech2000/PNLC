@@ -101,7 +101,7 @@
 # whnf :: Term -> Term
 ..def .fix \whnf \term
   ...unapp .unmark term
-    \func \arg ..def .whnf func \func
+    ..queerbird whnf \func \arg
       ...body func
         ..bluebird whnf ..beta arg none
         ..app func arg
@@ -109,7 +109,7 @@
 \whnf
 
 # run :: Term -> IO Bool
-..def .fix \run \term ..def .whnf term \term
+..def .fix \run ..queerbird whnf \term
   ...unapp term \func \cont
     ...unapp func \func \arg
       ...typ func \type
@@ -130,7 +130,7 @@
         ...bind io:mnad get \optbit
           .\arg .run ..app cont arg
           .lam .lam ..optbit
-            \bit ..app .var .some none .lam .lam .var ...bit some id none
+            \bit ..app .var one .lam .lam .var ..bit one none
             .var none
       ..pure io:aptv false
     ..pure io:aptv false
@@ -142,9 +142,7 @@
 # varp :: Parser String
 # termp :: Env -> Parser Term
 ..def ..many parser:altv .satp isspace \wsp
-..def ...cardinal .seql parser:aptv wsp
-  ..many1 parser:altv .satp ..bluebird not isspace
-\varp
+..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp
 ..def .fix \termp \env
   ...alt parser:altv
     ...seqr parser:aptv .chrp '.'
@@ -162,8 +160,8 @@
     ...seqr parser:aptv wsp .termp env
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
-      .kestrel .empty parser:altv
+    .....memb u8:eq .:. .:\ .:# nil ...head name id '\0'
+      .empty parser:altv
       .....elemindex str:eq name env
         ..bluebird .pure parser:aptv var
         .empty parser:altv

@@ -127,10 +127,8 @@
 ..def
   .:\ .:- .:. .:~ .:% .:* .:+ .:? .:| .:& .:! .:( .:) nil
 \metachars
-..def ...alt parser:altv
-  .satp \chr .isnone ...elem u8:eq chr metachars
-  ...seqr parser:aptv .chrp '\'
-    .satp \chr .issome ...elem u8:eq chr metachars
+..def ...alt parser:altv .unsatp ..memb u8:eq metachars
+  ...seqr parser:aptv .chrp '\' .satp ..memb u8:eq metachars
 \symbolp
 ..def \regexp
   ...alt parser:altv ...fmapk parser:ftor univset .chrp '%'

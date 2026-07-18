@@ -5,8 +5,8 @@
 
 .\p .p \term ..$dump term term \$hook
 .\p .p .$hook $exit \$exit
-.\p .p .$hook $err \$err
+.\p .p .$hook $err  \$err
 .\p .p \cont .$hook .$get cont \$get
-.\p .p \bit \cont .$hook ..$put bit cont \$put
-.\p .p \bit \cont .$hook ..$eput bit cont \$eput
+.\p .p \bit  \cont .$hook ..$put  bit  cont \$put
+.\p .p \bit  \cont .$hook ..$eput bit  cont \$eput
 .\p .p \term \cont .$hook ..$dump term cont \$dump

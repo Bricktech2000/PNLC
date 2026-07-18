@@ -76,4 +76,4 @@
       ...cata listf:ftor ..list .bindk io:mnad ..pure io:aptv unit
         ...fmap list:ftor .putd ..before:dbg :\n digs:dbg
           .collatz digs
-      ..pure io:aptv unit
+      .eputs .:i .:n .:v .:a .:l .:i .:d .:  .:n .:u .:m .:b .:e .:r .:\n nil

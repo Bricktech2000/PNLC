@@ -1,9 +1,11 @@
 # vim:tw=80:ft=pnlc:
 .\p .p \x \f .f x \def
 
-# this file is organized into a few sections separated by form feeds. sum
-# types and product types are Scott encoded. type classes are product types and
-# instances thereof inhabit those types. we keep their names short, at most four
+# this file is organized into a few sections separated by form feeds then
+# further into chunks separated by empty lines. in Vim you can navigate
+# sections with [[ and ]] and chunks with { and }. sum types and product types
+# are Scott encoded. type classes are product types and instances thereof
+# inhabit those types. we keep the names of type classes short, at most four
 # characters, because resolution is done manually; when you see a colon in an
 # identifier, think type class instance. when defining binary operators, we
 # order the parameters so as to be maximally lazy in the second argument;
@@ -120,6 +122,8 @@
 ..def ...cmp tnot trdc tbuf \txor  # exclusive or
 ..def ...cmp tbuf trdc tnot \tmul  # multiplication
 ..def ...cmp tinc tbuf tdec \tsum  # addition
+..def ...cmp tdec tbuf tinc \tcsub # converse subtraction
+..def ...cmp tnpi tnot tppi \tsub  # subtraction
 ..def ...cmp tmrk tbuf tclr \telse # else, priority left
 ..def ...cmp tptb tbuf tntb \tnles # unless, priority right
 
@@ -900,13 +904,13 @@
 
 ..def .eq \rhs \lhs true \unit:eq
 ..def .eq \rhs \lhs void \void:eq
-..def ..ord unit:eq \rhs \lhs et \unit:ord
+..def ..ord unit:eq \rhs \lhs et   \unit:ord
 ..def ..ord void:eq \rhs \lhs void \void:ord
 ..def ..bndd unit unit \unit:bndd
 ..def ..bndd void void \void:bndd
-..def .dbg \unit id \unit:dbg
+..def .dbg \unit id   \unit:dbg
 ..def .dbg \void $err \void:dbg
-..def .seq \unit id \unit:seq
+..def .seq \unit id   \unit:seq
 ..def .seq \void $err \void:seq
 ..def .enum ..cons unit nil \unit:enum
 ..def .enum nil \void:enum
@@ -1017,24 +1021,49 @@
 \opt:enum
 # `type Every a = Down (Maybe (Down a))`
 # the ordering where `Nothing` is the top element instead of the bottom element
-..def \elem:ord .down:ord .opt:ord .down:ord elem:ord \every:ord
+..def \elem:ord  .down:ord  .opt:ord  .down:ord  elem:ord  \every:ord
 ..def \elem:bndd .down:bndd .opt:bndd .down:bndd elem:bndd \every:bndd
 ..def \elem:enum .down:enum .opt:enum .down:enum elem:enum \every:enum
 
 # def:nat
 # type Nat = Fix Maybe
 # a natural is an optional predecessor; when it's missing, you've hit zero
+..def .some none     \one
+..def .some one      \two
+..def .some two      \three
+..def .some three    \four
+..def .some four     \five
+..def .some five     \six
+..def .some six      \seven
+..def .some seven    \eight
+..def .some eight    \nine
+..def .some nine     \ten
+..def .some ten      \eleven
+..def .some eleven   \twelve
+..def .some twelve   \thirteen
+..def .some thirteen \fourteen
+..def .some fourteen \fifteen
+..def .some fifteen  \sixteen
 ..def opt:ftor \natf:ftor
-..def .fix opt:eq \nat:eq
-..def .fix opt:ord \nat:ord
+..def .fix opt:eq   \nat:eq
+..def .fix opt:ord  \nat:ord
 ..def .fix opt:bndd \nat:bndd # none (zero), fix some (infinity)
-..def .fix opt:dbg \nat:dbg # S = some = succ, N = none = naught
-..def .fix opt:seq \nat:seq
+..def .fix opt:dbg  \nat:dbg # S = some = succ, N = none = naught
+..def .fix opt:seq  \nat:seq
 ..def .fix opt:enum \nat:enum
 ..def \rhs \lhs ...cata natf:ftor ..opt some lhs rhs \add
+# the laziness is tricky here. what we're doing is we're wrapping `lhs` around
+# `none`, `rhs` times. what this means is:
+#   - if `rhs` is `none` then `none` is returned without examining `lhs`.
+#   - if `rhs` is `some` then iteratively decrementing the product will force
+#     `lhs` all the way to zero before decrementing `rhs` again.
+# the latter case is noteworthy because `mul` becomes more strict in `lhs` than
+# in `rhs`---more strict in its second argument than in its first.
 ..def \rhs \lhs ...cata natf:ftor ..opt .add lhs none rhs \mul
-..def \rhs \lhs ...cata natf:ftor ..opt .mul lhs .some none rhs \exp
-..def \rhs \lhs ...cata natf:ftor ..opt ..cardinal exp lhs .some none rhs \tet
+# here `..cardinal mul lhs` is more performant than `.mul lhs` because it is
+# lazier in the accumulator, assuming neither factor is zero
+..def \rhs \lhs ...cata natf:ftor ..opt ..cardinal mul lhs one rhs \pow
+..def \rhs \lhs ...cata natf:ftor ..opt ..cardinal pow lhs one rhs \tet
 ..def .join opt:mnad \satpred
 ..def ..cata natf:ftor ..opt .cardinal .bind opt:mnad id \satsub
 ..def ..cata natf:ftor ..opt .cardinal .bind opt:mnad some \sub
@@ -1044,11 +1073,12 @@ none lhs \divmod
 ..def ..blackbird fst divmod \div
 ..def ..blackbird snd divmod \mod
 ..def ..cata natf:ftor ..opt not true \even
-..def ..cata natf:ftor ..opt not false \odd
+..def ..cata natf:ftor ..opt not false \odd # bit in unit's place
+..def ..cata natf:ftor ..opt tinc et \tup  # trit in unit's place
 ..def .sgrp add \add:sgrp
 ..def .sgrp mul \mul:sgrp
 ..def ..mnid add:sgrp none \add:mnid
-..def ..mnid mul:sgrp .some none \mul:mnid
+..def ..mnid mul:sgrp one  \mul:mnid
 
 ..def .uneq \okequal .uneq \errequal .eq
   \rhs \lhs ..rhs
@@ -1071,10 +1101,8 @@ none lhs \divmod
 ..def .unenum \okenumerate .unenum \errenumerate .enum
   ...alt list:altv
     ...fmap list:ftor err errenumerate
-    ...fmap list:ftor ok  okenumerate
+    ...fmap list:ftor  ok  okenumerate
 \res:enum
-# ideally this would be a `res:altv` but we don't have an identity
-..def .sgrp \lhs \rhs ..lhs ok .kestrel rhs \res:sgrp
 ..def .ftor
   \okfunc ..res ..bluebird ok okfunc err
 \resb:ftor
@@ -1088,6 +1116,11 @@ none lhs \divmod
   resb:aptv
   \resarg \func ..resarg func err
 \resb:mnad
+..def \empty ...altv
+  resb:aptv
+  empty
+  \reslhs \resrhs ..reslhs ok .kestrel resrhs
+\resb:altv
 ..def .fldb
   \resval ...resval cons kite nil
 \resb:fldb
@@ -1164,11 +1197,11 @@ none lhs \divmod
 # given by the corresponding instances for `Pair Bool` under the isomorphism
 ..def \dbl ..pair ..psi dbl kestrel ..dbl id id \dbl::iso
 ..def .unpair ..res ok err \pairbool::iso
-..def .warbler res:eq \dbl:eq
-..def .warbler res:ord \dbl:ord
+..def .warbler res:eq   \dbl:eq
+..def .warbler res:ord  \dbl:ord
 ..def .warbler res:bndd \dbl:bndd
-..def .warbler res:dbg \dbl:dbg
-..def .warbler res:seq \dbl:seq
+..def .warbler res:dbg  \dbl:dbg
+..def .warbler res:seq  \dbl:seq
 ..def .warbler res:enum \dbl:enum
 # no need for `Monoid a => Monoid (Dbl a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Dbl`
@@ -1387,11 +1420,11 @@ none lhs \divmod
 # (a -> a -> a) -> a` by invoking it with an `a -> a -> b`.
 ..def \sqr \arg .sqr arg \sqr::iso
 ..def \fnbool ....psi pair fnbool true false \fnbool::iso
-..def .warbler pair:eq \sqr:eq
-..def .warbler pair:ord \sqr:ord
+..def .warbler pair:eq   \sqr:eq
+..def .warbler pair:ord  \sqr:ord
 ..def .warbler pair:bndd \sqr:bndd
-..def .warbler pair:dbg \sqr:dbg
-..def .warbler pair:seq \sqr:seq
+..def .warbler pair:dbg  \sqr:dbg
+..def .warbler pair:seq  \sqr:seq
 ..def .warbler pair:enum \sqr:enum
 # no need for `Monoid a => Monoid (Sqr a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ Sqr`
@@ -1449,81 +1482,88 @@ none lhs \divmod
 
 # def:int
 # type Int = Sqr Nat
-..def ..pair none none \zzero
+# we keep integers unnormalized for laziness. for example,
+#     ...compare int:ord .pos two ..zsub .pos n .pos one
+# will evaluate to `lt` without ever examining `n`.
+..def ..pair none none \zero
 ..def \nat ..pair nat none \pos
 ..def \nat ..pair none nat \neg
-..def ...cmp pos .kestrel zzero neg \signed
+..def ...cmp pos .kestrel zero neg \signed
 ..def .fix \znorm \int ...opt znorm int .int ..lifta2 opt:aptv pair \znorm
-..def .eq
-  ..psi .equal .sqr:eq nat:eq znorm
-\int:eq
-..def ..ord
-  int:eq
-  ..psi .compare ..pair:ord nat:ord .down:ord nat:ord znorm
-\int:ord
+..def swap \zneg
+..def ..fmap swapa:ftor some \succ
+..def ..fmap paira:ftor some \pred
+..def ..lifta2 sqr:aptv add \zadd
+..def ..bluebird zadd zneg \zsub
+..def .eq \rhs \lhs ...zsub rhs lhs .equal nat:ord \int:eq
+..def ..ord int:eq \rhs \lhs ...zsub rhs lhs .cardinal .compare nat:ord \int:ord
 ..def ..pair:bndd nat:bndd .down:bndd nat:bndd \int:bndd
 ..def .nat:dbg \natdebug .dbg
   .unpair \pos \neg ...becard .natdebug pos :- .natdebug neg
 \int:dbg
 ..def .sqr:seq nat:seq \int:seq
 ..def .enum
-  ..cons zzero ...rapply list:aptv
+  ..cons zero ...rapply list:aptv
     ...fmap list:ftor some .enumerate nat:enum
     ..cons pos ..cons neg nil
 \int:enum
-..def \int ..znorm int .max nat:ord \abs
+..def ..cardinal znorm add \abs
 ..def ..bluebird pos abs \zabs
 ..def ..bluebird neg abs \znbs
-..def ..compare int:ord zzero \sign
-..def \int ..signed .sign int .some none \signum
-..def swap \zneg
-..def ..fmap swapa:ftor some \zsucc
-..def ..fmap paira:ftor some \zpred
-..def ..lifta2 sqr:aptv add \zadd
-..def ..bluebird zadd zneg \zsub
+..def ..compare int:ord zero \sign
+..def \int ..signed .sign int one \signum
+# multiply by rewriting (a-b)(c-d) |- (bd+ac)-(ad+bc). remember that addition
+# and multiplication on naturals is not commutative because of laziness. if you
+# don't care about laziness here, it can be a good idea to normalize the factors
+# before calling `mul` so the product doesn't get out of hand. when both factors
+# are in normal form, so is their product
 ..def \rhs \lhs
-  .\mul ..pair ...mul rhs lhs add ...mul rhs .swap lhs add
+  .\mul ..pair ...mul rhs lhs add ...mul rhs .zneg lhs add
   ..lifta2 sqr:aptv mul
 \zmul
+..def \rhs \lhs ...cata natf:ftor ..opt .zmul lhs .succ zero rhs \zpow
 # truncated division: round quotient toward zero and preserve
 # a/b*b + a%b = a and |a%b| < |b|.
 #      10 /  3 =  3     10 %  3 =  1
 #      10 / -3 = -3     10 % -3 =  1
 #     -10 /  3 = -3    -10 %  3 = -1
 #     -10 / -3 =  3    -10 % -3 = -1
-..def \rhs \lhs
+..def ...cardinal psi znorm \rhs \lhs
   ...divmod .abs rhs .abs lhs \quot \rem ..pair
     ..signed ..tmul .sign lhs .sign rhs quot
     ..signed .sign lhs rem
-\ztruncdivmod
-..def ..blackbird fst ztruncdivmod \ztruncdiv
-..def ..blackbird snd ztruncdivmod \ztruncmod
+\truncdivmod
+..def ..blackbird fst truncdivmod \truncdiv
+..def ..blackbird snd truncdivmod \truncmod
 # floored division: round quotient toward negative infinity and preserve
 # a/b*b + a%b = a and |a%b| < |b|.
 #      10 /  3 =  3     10 %  3 =  1
 #      10 / -3 = -4     10 % -3 = -2
 #     -10 /  3 = -4    -10 %  3 =  2
 #     -10 / -3 =  3    -10 % -3 = -1
-..def \rhs \lhs
-  ...ztruncdivmod rhs lhs \quot \rem
-    ...isgt ..tmul .sign rem .sign rhs
-      ..pair .zpred quot ..zadd rem rhs
+..def ...cardinal psi znorm \rhs \lhs
+  ...truncdivmod rhs lhs \quot \rem
+    ...islt ..tmul .sign rem .sign rhs
+      ..pair .pred quot ..zadd rem rhs
       ..pair quot rem
-\zfloordivmod
-..def ..blackbird fst zfloordivmod \zfloordiv
-..def ..blackbird snd zfloordivmod \zfloormod
+\floordivmod
+..def ..blackbird fst floordivmod \floordiv
+..def ..blackbird snd floordivmod \floormod
+..def ..cardinal ..lifta2 sqr:aptv odd bet \zeven
+..def ..cardinal ..lifta2 sqr:aptv odd bne \zodd
+..def ..cardinal ..lifta2 sqr:aptv tup tsub \ztup
 ..def .sgrp zadd \zadd:sgrp
 ..def .sgrp zmul \zmul:sgrp
-..def ..mnid zadd:sgrp zzero \zadd:mnid
-..def ..mnid zmul:sgrp .zsucc zzero \zmul:mnid
+..def ..mnid zadd:sgrp zero \zadd:mnid
+..def ..mnid zmul:sgrp .succ zero \zmul:mnid
 
 # type Stream a = Fix (Pair a)
 ..def paira:ftor \streamf:ftor
-..def ..bluebird fix pair:eq \stream:eq
-..def ..bluebird fix pair:ord \stream:ord
+..def ..bluebird fix pair:eq   \stream:eq
+..def ..bluebird fix pair:ord  \stream:ord
 ..def ..bluebird fix pair:bndd \stream:bndd
-..def ..bluebird fix pair:dbg \stream:dbg
-..def ..bluebird fix pair:seq \stream:seq # never terminates
+..def ..bluebird fix pair:dbg  \stream:dbg
+..def ..bluebird fix pair:seq  \stream:seq # never terminates
 # there is an uncountably infinite number of streams of a finite type. the best
 # we can do is ask for a finite list of infinite tails to append to the infinite
 # enumeration of finite lists of elements. if we tried to go
@@ -1603,13 +1643,18 @@ none lhs \divmod
 ..def \pred ..cata streamf:ftor .unpair
   \fst \acc .....pred head pair kite none ...fmap stream:ftor some acc
 \sfindindices
-..def .uneq .bluebird sfind \selem
+..def .uneq .bluebird sfind  \selem
 ..def .uneq .bluebird sfinds \selems
-..def .uneq .bluebird sfindindex \selemindex
+..def .uneq .bluebird sfindindex   \selemindex
 ..def .uneq .bluebird sfindindices \selemindices
-..def .uneq \keyequal \key
-  ..bluebird snd .sfind ..bluebird .keyequal key fst
-\slookup
+..def \pred ..bluebird snd
+  .sfind ..bluebird pred fst
+\sassoc
+..def \pred ..bluebird ..fmap stream:ftor snd
+  .sfind ..bluebird pred fst
+\sassocs
+..def .uneq .bluebird sassoc  \slookup
+..def .uneq .bluebird sassocs \slookups
 # sinits :: Stream a -> Stream (List a)
 # sinits1 :: Stream a -> Stream (List a)
 # stails :: Stream a -> Stream (Stream a)
@@ -1670,8 +1715,8 @@ none lhs \divmod
 ..def ..cata natf:ftor ...cardinal opt .pair nil
   \acc .unpair \fst \snd ...fmap swapa:ftor .cons fst .acc snd
 \ssplitat
-..def ..cata natf:ftor ..opt .queerbird snd id \sdrop
-..def ..cata natf:ftor ..opt .queerbird snd fst \sat
+..def ..cata natf:ftor ..opt .queerbird snd id  \sdrop
+..def ..cata natf:ftor ..opt .queerbird snd fst \sindex
 ..def .uneq \elemequal ..cata listf:ftor ...cardinal list some
   \elem \acc .unpair \fst \snd ....elemequal elem fst .acc snd none
 \sstripprefix
@@ -1774,7 +1819,6 @@ none lhs \divmod
 ..def \elem:ord \elem ..lmerge    elem:ord ..cons elem nil \sinsert
 ..def \elem:ord \elem ..lunion    elem:ord ..cons elem nil \sinclude
 ..def \elem:ord \elem ..lsubtract elem:ord ..cons elem nil \sdelete
-..def ..iterate some none \iota
 
 # the missing instances are located at the beginning of the section because many
 # `Enum` instances depend on them.
@@ -1814,7 +1858,7 @@ none lhs \divmod
 # `type Short a = Down (List (Down a))`
 # the ordering where shorter lists compare greater than longer lists and where
 # `Nil` is the top element instead of the bottom element
-..def \elem:ord .down:ord .list:ord .down:ord elem:ord \short:ord
+..def \elem:ord  .down:ord  .list:ord  .down:ord  elem:ord  \short:ord
 ..def \elem:bndd .down:bndd .list:bndd .down:bndd elem:bndd \short:bndd
 ..def \elem:enum .down:enum .list:enum .down:enum elem:enum \short:enum
 ..def ..cata listf:ftor ..list .kestrel some none \len
@@ -1830,18 +1874,21 @@ none lhs \divmod
   \head \acc .....pred head cons kite head acc
 \finds
 ..def \pred ..cata listf:ftor ...cardinal list none
-  \head \acc ...pred head .some none .some acc
+  \head \acc ...pred head .some none ...fmap opt:ftor some acc
 \findindex
 ..def \pred ..cata listf:ftor ...cardinal list nil
   \head \acc .....pred head cons kite none ...fmap list:ftor some acc
 \findindices
-..def .uneq .bluebird find \elem
+..def .uneq .bluebird find  \elem
 ..def .uneq .bluebird finds \elems
-..def .uneq .bluebird findindex \elemindex
+..def .uneq .bluebird findindex   \elemindex
 ..def .uneq .bluebird findindices \elemindices
-..def .uneq \keyequal \key
-  ..bluebird ..fmap opt:ftor snd .find ..bluebird .keyequal key fst
-\lookup
+..def \elem:eq \list \memb .issome ...elem elem:eq memb list \memb
+..def \elem:eq \list \memb .len   ...elems elem:eq memb list \membs
+..def \pred ..bluebird ..fmap  opt:ftor snd .find ..bluebird pred fst \assoc
+..def \pred ..bluebird ..fmap list:ftor snd .find ..bluebird pred fst \assocs
+..def .uneq .bluebird assoc  \lookup
+..def .uneq .bluebird assocs \lookups
 ..def ..cata listf:ftor ...cardinal list ..cons nil nil
   \head \acc ..cons nil ...fmap list:ftor .cons head acc
 \inits
@@ -1903,7 +1950,7 @@ none lhs \divmod
     \head \tail ...fmap opt:ftor ..fmap swapa:ftor .cons head .acc tail
 \splitat
 ..def ..cata natf:ftor ..opt ..kleisli opt:mnad tail some \drop
-..def ..cata natf:ftor ..opt ..kleisli opt:mnad tail head \at
+..def ..cata natf:ftor ..opt ..kleisli opt:mnad tail head \index # by Ethan Sue
 ..def .uneq \elemequal ..cata listf:ftor ...cardinal list some
   \elem \acc ...cardinal list none
     \head \tail ....elemequal elem head .acc tail none
@@ -2015,18 +2062,156 @@ none lhs \divmod
   \rhs \lhs ...compare .list:ord elem:ord .rhs nil .lhs nil
 \dlist:ord
 ..def \elem:bndd ..bndd .fix .dcons .top elem:bndd dnil \dlist:bndd
-..def \elem:dbg \dlist ..debug .list:dbg elem:dbg .dlist nil \dlist:dbg
-..def \elem:seq \dlist ..force .list:seq elem:seq .dlist nil \dlist:seq
+..def \elem:dbg .dbg
+  \dlist ..debug .list:dbg elem:dbg .dlist nil
+\dlist:dbg
+..def \elem:seq .seq
+  \dlist ..force .list:seq elem:seq .dlist nil
+\dlist:seq
 ..def .unenum \elemenumerate .enum
-  .fix \dlistenumerate ..dcons nil
+  .fix \dlistenumerate ..cons dnil
     ....lifta2 list:aptv .cardinal dcons dlistenumerate elemenumerate
 \dlist:enum
 # `type DShort a = Down (DList (Down a))`
 # the ordering where shorter dlists compare greater than longer dlists and where
 # `DNil` is the top element instead of the bottom element
-..def \elem:ord .down:ord .dlist:ord .down:ord elem:ord \dshort:ord
+..def \elem:ord  .down:ord  .dlist:ord  .down:ord  elem:ord  \dshort:ord
 ..def \elem:bndd .down:bndd .dlist:bndd .down:bndd elem:bndd \dshort:bndd
 ..def \elem:enum .down:enum .dlist:enum .down:enum elem:enum \dshort:enum
+
+# def:bin
+# type Bin = List Bool
+..def ..cons true  nil    \bone
+..def ..cons false bone   \btwo
+..def ..cons true  bone   \bthree
+..def ..cons false btwo   \bfour
+..def ..cons true  btwo   \bfive
+..def ..cons false bthree \bsix
+..def ..cons true  bthree \bseven
+..def ..cons false bfour  \beight
+..def ..cons true  bfour  \bnine
+..def ..cons false bfive  \bten
+..def ..cons true  bfive  \beleven
+..def ..cons false bsix   \btwelve
+..def ..cons true  bsix   \bthirteen
+..def ..cons false bseven \bfourteen
+..def ..cons true  bseven \bfifteen
+..def ..cons false beight \bsixteen
+# `Bin` differs from a plain `List Bool` in that when you hit `nil` you can
+# always conjure up a `.cons false` (a leading zero) without affecting the
+# numeric value. `bisnil`, `buncons`, `bhead`, `btail` and `bzip` are
+# witnesses of that.
+..def .fold or:mnid \bisnil
+..def ..list pair ..pair false nil \buncons
+..def ..list kestrel false \bhead
+..def ..list kite nil \btail
+..def \func .fix \bzip \lhs \rhs
+  ....and .isnil lhs .isnil rhs nil ..cons
+    ....psi func bhead lhs rhs
+    ....psi bzip btail lhs rhs
+\bzip
+# cons `head` onto `tail`, except when `tail` has no digits and `head` is zero,
+# so as to avoid creating a leading zero. `..bcons head tail` is numerically
+# equivalent to `..cons head tail`, but with the property that when `tail` is
+# in normal form, so will be `..bcons head tail`. careful: `bcons` is much less
+# lazy than `cons`, because each time you cons a zero, the tail is examined
+..def \head \tail ......or head .iscons tail cons kite head tail \bcons
+..def ..cata listf:ftor ..list bcons nil \bnorm # remove leading zeroes
+..def .eq
+  \rhs \lhs ..fold and:mnid
+    ...bzip .equal bool:eq rhs lhs
+\bin:eq
+..def ..ord
+  bin:eq
+  # using `.dual:mnid telse:mnid` instead of `tnles:mnid` for laziness
+  \rhs \lhs ..fold .dual:mnid telse:mnid
+    ...bzip .compare bool:ord rhs lhs
+\bin:ord
+..def .list:bndd bool:bndd \bin:bndd
+..def .dbg
+  # output least significant bits first for laziness
+  \bin ..fold endo:mnid
+    ...fmap list:ftor .debug bool:dbg bin
+\bin:dbg
+..def .dbg
+  # output least significant nibbles first for laziness
+  .fix \bindebug \bin ...isnil bin id
+    ..buncons bin \n0 \bin ..buncons bin \n1 \bin
+    ..buncons bin \n2 \bin ..buncons bin \n3 \bin
+    ..queerbird .bindebug bin ..n3
+      ..n2 ..n1 ..n0 :f :e ..n0 :d :c ..n1 ..n0 :b :a ..n0 :9 :8
+      ..n2 ..n1 ..n0 :7 :6 ..n0 :5 :4 ..n1 ..n0 :3 :2 ..n0 :1 :0
+\bin::hex:dbg
+..def .list:seq bool:seq \bin:seq
+..def .enum
+  ..cons nil ...fmap list:ftor .thrush bone
+    .enumerate .dlist:enum bool:enum
+\bin:enum
+..def ..para listf:ftor ...cardinal list bone
+  \head .unpair \tail \acc ..cons .not head ..head acc tail
+\binc
+..def ..para listf:ftor ...cardinal list none \head .unpair \tail \acc
+  ...fmap opt:ftor .cons .not head ..head .some tail acc
+\bdec
+..def .fix \badd \rhs \lhs
+  ...cardinal rhs lhs \rhshead \rhstail
+    ...cardinal lhs rhs \lhshead \lhstail
+      ..cons ..bne rhshead lhshead
+        .....and rhshead lhshead binc id ..badd rhstail lhstail
+\badd
+..def .fix \bsub \rhs \lhs
+  ...cardinal rhs .some lhs \rhshead \rhstail
+    ...cardinal lhs ...bisnil rhs none .some nil \lhshead \lhstail
+      ...fmap opt:ftor .cons ..bne rhshead lhshead
+        ..bsub .....bgt rhshead lhshead binc id rhstail lhstail
+\bsub
+..def \rhs \lhs
+  ...cata listf:ftor ...cardinal list nil \head \acc
+    ....head badd kite lhs ..cons false acc
+    rhs
+\bmul
+..def \rhs \lhs
+  ...cata listf:ftor ...cardinal list bone \head \acc
+    ....head bmul kite lhs ..bmul acc acc
+    rhs
+\bpow
+..def \rhs \lhs ...cata natf:ftor ..opt ..cardinal bpow lhs bone rhs \btet
+..def ..cata natf:ftor ..opt .cons false bone \exp2
+..def ..bluebird len bnorm \log2 # log2 :: Bin -> Maybe Nat
+..def \rhs \lhs
+  # for performance we keep `rem` and `quot` in normal form throughout
+  ...cata listf:ftor ...cardinal list ..pair nil nil
+    \head .unpair \quot ..queerbird .bcons head \rem
+      ....bsub rhs rem
+        ..bluebird .pair ..cons true quot bnorm
+        ..pair ..bcons false quot rem
+    lhs
+\bdivmod
+..def ..blackbird fst bdivmod \bdiv
+..def ..blackbird snd bdivmod \bmod
+..def ..cata listf:ftor ..list ..bool clr mrk true \beven
+..def ..cata listf:ftor ..list ..bool mrk clr false \bodd # bit in unit's place
+..def ..cata listf:ftor ..list ..bool tnpi tnot et \btup # trit in unit's place
+..def .sgrp badd \badd:sgrp
+..def .sgrp bmul \bmul:sgrp
+..def ..mnid badd:sgrp nil  \badd:mnid
+..def ..mnid bmul:sgrp bone \bmul:mnid
+..def ..cata listf:ftor ...cardinal list none
+  \head \acc ...head some id ..add acc acc
+\frombin
+..def ..cata natf:ftor ..opt binc nil \tobin
+..def \dig:eq \digs
+  ..def .tobin .len digs \radix
+  ..cata listf:ftor ...cardinal list .some nil \head \acc
+    .\rot ....lifta2 opt:aptv rot ...elemindex dig:eq head digs acc
+    \dig \acc ..badd .tobin dig ..bmul radix acc
+\fromdigs
+..def \digs
+  ..def .tobin .len digs \radix
+  ..ana listf:ftor \seed ...isnil seed nil
+    ...bdivmod radix seed \quot \rem
+      ..cons ....index .frombin rem digs id $err quot
+\todigs
 
 # type Tape a = Pair a (Sqr (Stream a))
 # pairs all the way down!
@@ -2440,25 +2625,61 @@ none lhs \divmod
   ........oct a7 a6 a5 a4 a3 a2 a1 a0
 \oct::rev
 ..def .uneq \elemequal .eq
-  \rhs \lhs ..fold and:mnid ..tolist oct:fldb
-    ....lifta2 oct:aptv elemequal rhs lhs
+  .unoct \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
+    .unoct \l0 \l1 \l2 \l3 \l4 \l5 \l6 \l7
+      ..and ..elemequal r0 l0
+      ..and ..elemequal r1 l1
+      ..and ..elemequal r2 l2
+      ..and ..elemequal r3 l3
+      ..and ..elemequal r4 l4
+      ..and ..elemequal r5 l5
+      ..and ..elemequal r6 l6
+      ..and ..elemequal r7 l7
+      true
 \oct:eq
 ..def .unord \elem:eq \elemcompare ..ord
   .oct:eq elem:eq
-  \rhs \lhs ..fold tnles:mnid ..tolist oct:fldb
-    ....lifta2 oct:aptv elemcompare rhs lhs
+  .unoct \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
+    .unoct \l0 \l1 \l2 \l3 \l4 \l5 \l6 \l7
+      ..telse ..elemcompare r7 l7
+      ..telse ..elemcompare r6 l6
+      ..telse ..elemcompare r5 l5
+      ..telse ..elemcompare r4 l4
+      ..telse ..elemcompare r3 l3
+      ..telse ..elemcompare r2 l2
+      ..telse ..elemcompare r1 l1
+      ..telse ..elemcompare r0 l0
+      et
 \oct:ord
 ..def .unbndd \elemtop \elembot ..bndd
   ..pure oct:aptv elemtop
   ..pure oct:aptv elembot
 \oct:bndd
 ..def .undbg \elemdebug .dbg
-  \oct ..fold .dual:mnid endo:mnid ..tolist oct:fldb
-    ...fmap oct:ftor elemdebug oct
+  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    \x
+      ..elemdebug a7
+      ..elemdebug a6
+      ..elemdebug a5
+      ..elemdebug a4
+      ..elemdebug a3
+      ..elemdebug a2
+      ..elemdebug a1
+      ..elemdebug a0
+    x
 \oct:dbg
 ..def .unseq \elemforce .seq
-  \oct ..fold endo:mnid ..tolist oct:fldb
-    ...fmap oct:ftor elemforce oct
+  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+    \x
+      ..elemforce a7
+      ..elemforce a6
+      ..elemforce a5
+      ..elemforce a4
+      ..elemforce a3
+      ..elemforce a2
+      ..elemforce a1
+      ..elemforce a0
+    x
 \oct:seq
 ..def .unenum \elemenumerate .enum
   ...fmap list:ftor oct::rev
@@ -2466,11 +2687,11 @@ none lhs \divmod
       ..pure oct:aptv elemenumerate
 \oct:enum
 
-..def .oct:eq bool:eq \u8:eq
-..def .oct:ord bool:ord \u8:ord
+..def .oct:eq   bool:eq   \u8:eq
+..def .oct:ord  bool:ord  \u8:ord
 ..def .oct:bndd bool:bndd \u8:bndd
-..def .oct:dbg bool:dbg \u8:dbg
-..def .oct:seq bool:seq \u8:seq
+..def .oct:dbg  bool:dbg  \u8:dbg
+..def .oct:seq  bool:seq  \u8:seq
 ..def .oct:enum bool:enum \u8:enum
 ..def .dbg
   .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
@@ -2609,22 +2830,22 @@ none lhs \divmod
 \u8::decb
 ..def ..blackbird snd .u8::addc false \u8::add
 ..def ..blackbird snd .u8::subb false \u8::sub
-..def ..bluebird snd .u8::incc true \u8::inc
-..def ..bluebird snd .u8::decb true \u8::dec
+..def ..bluebird  snd .u8::incc true  \u8::inc
+..def ..bluebird  snd .u8::decb true  \u8::dec
 ..def .sgrp u8::add \u8::add:sgrp
 ..def ..mnid u8::add:sgrp $00 \u8::add:mnid
 
 # type String = List u8
-..def .list:eq u8:eq \str:eq
-..def .list:ord u8:ord \str:ord
+..def .list:eq   u8:eq   \str:eq
+..def .list:ord  u8:ord  \str:ord
 ..def .list:bndd u8:bndd \str:bndd
-..def .list:dbg u8:dbg \str:dbg
-..def .list:dbg chr:dbg \str::chr:dbg
-..def .list:dbg u8::hex:dbg \str::hex:dbg
-..def .list:seq u8:seq \str:seq
+..def .list:dbg  u8:dbg  \str:dbg
+..def .list:dbg  chr:dbg \str::chr:dbg
+..def .list:dbg  u8::hex:dbg \str::hex:dbg
+..def .list:seq  u8:seq  \str:seq
 ..def .list:enum u8:enum \str:enum
-..def .sgrp .alt list:altv \str:sgrp
-..def ..mnid str:sgrp .empty list:altv \str:mnid
+# no need for `Monoid Str`, it'd be isomorphic to `Alternative f =>
+# Monoid (Alt f a)` for `f ~ List` and `a ~ U8`
 
 # type Fn a b = a -> b
 #
@@ -2827,10 +3048,10 @@ none lhs \divmod
 # similarly, functions like `$exit` expect no continuation, so we make wrappers
 # of type `IO Void` that throw away the continuation.
 ..def \cont $exit \exit
-..def \cont $err \#err # would shadow `err` the data constructor
+..def \cont $err  \#err # would shadow `err` the data constructor
 ..def $get \get
-..def \bit \cont ..$put bit .cont unit \put
-..def \bit \cont ..$eput bit .cont unit \eput
+..def \bit  \cont ..$put  bit  .cont unit \put
+..def \bit  \cont ..$eput bit  .cont unit \eput
 ..def \term \cont ..$dump term .cont unit \dump
 # we define a function `main` that takes an `IO ()` and invokes it with the
 # continuation `\unit $exit`, throwing away the `unit` and returninng `$exit`

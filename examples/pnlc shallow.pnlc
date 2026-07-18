@@ -27,8 +27,8 @@
   ..pair appenv
     .....cata listf:ftor ...cardinal list id
       \head \acc \func \arg \var ..acc
-        .....elem str:eq head funcenv .kestrel .func var func
-        .....elem str:eq head argenv  .kestrel .arg  var arg
+        .....memb str:eq funcenv head .func var func
+        .....memb str:eq argenv  head .arg  var arg
       appenv func arg
 \app
 ..def \name .unpair \bodyenv \body ..pair
@@ -62,9 +62,7 @@
 # varp :: Parser String
 # termp :: Parser (Pair Env Term)
 ..def ..many parser:altv .satp isspace \wsp
-..def ...cardinal .seql parser:aptv wsp
-  ..many1 parser:altv .satp ..bluebird not isspace
-\varp
+..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp
 ..def .fix \termp
   ...alt parser:altv
     ...seqr parser:aptv .chrp '.'
@@ -81,8 +79,8 @@
     ...seqr parser:aptv wsp termp
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....elem u8:eq ...head name id '\0' .:. .:\ .:# nil
-      .kestrel .empty parser:altv
+    .....memb u8:eq .:. .:\ .:# nil ...head name id '\0'
+      .empty parser:altv
       ..pure parser:aptv .var name
   .empty parser:altv
 \termp
