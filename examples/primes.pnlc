@@ -1,0 +1,58 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# type DStream a = Stream a -> Stream a
+# same idea as difference lists, `DList a`, but for streams
+..def \head \tail \nil ..pair head .tail nil \dpair
+..def \init \last \nil .init ..pair last nil \driap
+..def \nil nil \dnil
+
+# characteristic sequence of primes by the sieve of Eratosthenes. `mask` is a
+# `DStream Bool` of N `true`s followed by one `false`, so that `.fix mask` is
+# a `Stream Bool` of `true`s with every N+1st element set to `false`
+..def ..pair false ..pair false
+  ..fix \sieve \mask
+    ..pair true ....lifta2 stream:aptv and
+      .fix mask .sieve ..dpair true mask
+  ..dpair true ..dpair false dnil
+\primes
+
+# same as the previous definition, but with the optimization that only `mask`s
+# of prime period are applied. it's about 5x faster
+..def ..pair false ..pair false
+  ...fix \sieve \mask .unpair \prime \primes
+    ..pair prime ..sieve ..dpair true mask
+      ..prime ....lifta2 stream:aptv and .fix mask primes primes
+  ..dpair true ..dpair false dnil
+  ..pure stream:aptv true
+\primes
+
+# characteristic sequence of primes, adapted from John Tromp's. the idea is
+# that `.stream .fix filter`, where `filter` is the Nth `succ` of `zero`, sets
+# every N+1st element of `stream` to `false`. otherwise identical in principle
+# to the first definition, and about 7x faster
+..def
+  .\zero .\succ .\sieve ..pair false ..pair false .sieve .succ zero
+  .fix \sieve \filter ..pair true ..sieve .succ filter .fix filter
+  \filter \cont \fst \snd ..pair fst .snd .filter cont
+  \cont \fst \snd ..pair false .snd cont
+\primes
+
+# same as the previous definition, but with the optimization that only `filter`s
+# of prime period are applied. it's about 4x faster
+..def
+  .\zero .\succ .\sieve ..pair false ..pair false
+    ..sieve .succ zero .fix .pair true
+  .fix \sieve \filter .unpair \prime \primes ..pair prime
+    ..sieve .succ filter ..prime .primes .fix filter primes
+  \filter \cont \fst \snd ..pair fst .snd .filter cont
+  \cont \fst \snd ..pair false .snd cont
+\primes
+
+..def .:0 .:1 .:2 .:3 .:4 .:5 .:6 .:7 .:8 .:9 nil \decimal
+
+.main
+  ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
+    ...fmap stream:ftor \bin .puts .rev .:\n ..todigs decimal bin
+      ...fmap stream:ftor fst ..sfilter snd
+        ....lifta2 stream:aptv pair ..iterate binc nil primes

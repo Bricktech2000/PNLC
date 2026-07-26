@@ -75,6 +75,7 @@ bin/pnlc prelude.pnlc examples/rule\ 110.pnlc
 bin/pnlc prelude.pnlc examples/fizzbuzz.pnlc
 bin/pnlc prelude.pnlc examples/hanoi.pnlc
 bin/pnlc prelude.pnlc examples/ack.pnlc
+bin/pnlc prelude.pnlc examples/primes.pnlc
 bin/pnlc prelude.pnlc examples/fib\ dec.pnlc
 bin/pnlc prelude.pnlc examples/fib\ bin.pnlc
 bin/pnlc prelude.pnlc examples/collatz\ dec.pnlc
@@ -89,6 +90,7 @@ bin/pnlc prelude.pnlc examples/pnlc\ shallow.pnlc
 cat examples/no-op\ naked.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat prelude.pnlc examples/primes.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/fib\ dec.pnlc       | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/ack.pnlc            | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/hanoi.pnlc          | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
