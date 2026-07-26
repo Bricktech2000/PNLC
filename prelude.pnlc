@@ -167,7 +167,7 @@
 ..def \roll \return \free ..free roll return \free
 ..def ..free \term true \var false \isroll
 ..def ..free \term false \var true \isreturn
-..def ..free some \var none \term
+..def ..free some  \var none \term
 ..def ..free \term none some \var
 
 # the cofree comonad
@@ -175,7 +175,7 @@
 ..def \trace \ann \cofree ..cofree trace ann \cofree
 ..def \uncofree \cofree .cofree uncofree \uncofree
 ..def .uncofree \trace \ann trace \trace
-..def .uncofree \trace \ann ann \ann
+..def .uncofree \trace \ann ann   \ann
 
 # data Oct a = Oct a a a a a a a a
 ..def \0 \1 \2 \3 \4 \5 \6 \7 \oct ........oct 0 1 2 3 4 5 6 7 \oct
@@ -578,6 +578,9 @@
   .isge ...compare ord lo val
   .isle ...compare ord hi val
 \clamped
+# the trivial ordering, under which all elements are considered equal
+..def .eq .kestrel true \triv:eq
+..def ..ord triv:eq .kestrel et \triv:ord
 # the reverse ordering, obtained by swapping arguments to `compare`
 ..def .unord \inner:eq \innercompare
   ..ord inner:eq .cardinal innercompare
@@ -600,8 +603,6 @@
 ..def .undbg \debug debug \debug
 # the debugged debugging, prints out a `DList U8` as itself
 ..def .dbg id \dbgged:dbg
-# the character debugging, prints out a `U8` as itself
-..def .dbg cons \chr:dbg
 # places a debugging before, after or within `Dlist U8`s
 ..def \right .undbg \innerdebug
   .dbg \inner ..bluebird .innerdebug inner right
@@ -668,23 +669,29 @@
 # the left-zero and right-zero semigroups over the carrier set
 ..def .sgrp kestrel \first:sgrp
 ..def .sgrp kite \last:sgrp
-# can't use `cata` here because the `natf` endofunctor isn't defined yet
-..def .unsgrp \sappend \elem .fix \stimes \count
-  ..count ..bluebird .sappend elem stimes elem
+# can't use `cata` here because `natf:ftor` and `binf:ftor` aren't defined yet
+..def .unsgrp \sappend \elem .fix \stimes
+  ..opt ..bluebird .sappend elem stimes elem
 \stimes
+..def .unsgrp \sappend \elem .fix \bstimes ..list
+  \head \tail ....head sappend kite elem ..warbler sappend .bstimes tail
+elem \bstimes
 
 ..def \sgrp \mempty \mnid ..mnid sgrp mempty \mnid
 ..def \unmnid \mnid .mnid unmnid \unmnid
-..def .unmnid \sgrp \mempty sgrp \mnid:sgrp
+..def .unmnid \sgrp \mempty sgrp   \mnid:sgrp
 ..def .unmnid \sgrp \mempty mempty \mempty
 # dual monoid, the monoid obtained by swapping arguments to `sappend`
 ..def .unmnid \sgrp \mempty ..mnid .dual:sgrp sgrp mempty \dual:mnid
 # the monoid of endomorphisms under composition
 ..def .sgrp bluebird \endo:sgrp
 ..def ..mnid endo:sgrp id \endo:mnid
-..def .unmnid \sgrp \mempty \elem \count
-  ..count ..stimes sgrp elem mempty
+..def .unmnid \sgrp \mempty \elem
+  ..opt ..stimes sgrp elem mempty
 \mtimes
+..def .unmnid .unsgrp \sappend \mempty \elem .fix \bmtimes ..list
+  \head \tail ....head sappend kite elem ..warbler sappend .bmtimes tail
+mempty \bmtimes
 
 ..def \fmap \ftor .ftor fmap \ftor
 ..def \unftor \ftor .ftor unftor \unftor
@@ -701,8 +708,8 @@
 
 ..def \ftor \pure \apply \aptv ...aptv ftor pure apply \aptv
 ..def \unaptv \aptv .aptv unaptv \unaptv
-..def .unaptv \ftor \pure \apply ftor \aptv:ftor
-..def .unaptv \ftor \pure \apply pure \pure
+..def .unaptv \ftor \pure \apply ftor  \aptv:ftor
+..def .unaptv \ftor \pure \apply pure  \pure
 ..def .unaptv \ftor \pure \apply apply \apply
 ..def \aptv \func \arg1 \arg2
   ...apply aptv ...fmap .aptv:ftor aptv func arg1 arg2
@@ -726,8 +733,8 @@
 \ap:mnid
 # `type Rap f a = Dual (Ap f (Dual a))`
 # the monoid given by `Ap` but where effects compose in reverse
-..def \inner:sgrp .dual:sgrp .ap:sgrp .dual:sgrp inner:sgrp \rap:sgrp
-..def \inner:mnid .dual:mnid .ap:mnid .dual:mnid inner:mnid \rap:mnid
+..def \aptv \sgrp .dual:sgrp ..ap:sgrp aptv .dual:sgrp sgrp \rap:sgrp
+..def \aptv \mnid .dual:mnid ..ap:mnid aptv .dual:mnid mnid \rap:mnid
 
 ..def \aptv \bind \mnad ..mnad aptv bind \mnad
 ..def \unmnad \mnad .mnad unmnad \unmnad
@@ -736,7 +743,7 @@
 ..def \mnad ..cardinal .bind mnad id \join
 ..def \mnad \x \f ...bind mnad x .kestrel f \bindk
 ..def \mnad \f \g \x ...bind mnad .f x g \kleisli
-..def \mnad ..bluebird fix .bindk mnad \mforever
+..def \mnad ..bluebird fix .bindk   mnad \mforever
 ..def \mnad ..bluebird fix .kleisli mnad \kforever
 # the monoid of Kleisli endomorphisms under Kleisli composition
 ..def \mnad .sgrp .kleisli mnad \kendo:sgrp
@@ -748,9 +755,9 @@
 
 ..def \aptv \empty \alt \altv ...altv aptv empty alt \altv
 ..def \unaltv \altv .altv unaltv \unaltv
-..def .unaltv \aptv \empty \alt aptv \altv:aptv
+..def .unaltv \aptv \empty \alt aptv  \altv:aptv
 ..def .unaltv \aptv \empty \alt empty \empty
-..def .unaltv \aptv \empty \alt alt \alt # \lhs \rhs
+..def .unaltv \aptv \empty \alt alt   \alt # \lhs \rhs
 ..def \altv ..bool ..pure .altv:aptv altv unit .empty altv \guard
 ..def \many1 \altv \val
   ...alt altv ..many1 altv val ..pure .altv:aptv altv nil
@@ -785,9 +792,9 @@
 # `Comonad`, the categorical dual of `Monad`
 ..def \ftor \extract \extend \cmnd ...cmnd ftor extract extend \cmnd
 ..def \uncmnd \cmnd .cmnd uncmnd \uncmnd
-..def .uncmnd \ftor \extract \extend ftor \cmnd:ftor
+..def .uncmnd \ftor \extract \extend ftor    \cmnd:ftor
 ..def .uncmnd \ftor \extract \extend extract \extract
-..def .uncmnd \ftor \extract \extend extend \extend
+..def .uncmnd \ftor \extract \extend extend  \extend
 ..def \cmnd \f \x ...extend cmnd .kestrel f x \extendk
 ..def \cmnd ..extend cmnd id \duplicate
 ..def \cmnd \f \g \x .g ...extend cmnd f x \cokleisli
@@ -797,7 +804,7 @@
 # the identity comonad
 ..def ...cmnd id:ftor id id \id:cmnd
 
-# "The Foldable class represents data structures that can be reduced to a
+# "The `Foldable` class represents data structures that can be reduced to a
 # summary value one element at a time." well that's the list catamorphism, so
 # why not output the list directly and let the user consume it as they please?
 # `foldr` and `tolist` are interdefinable and both are lazy, so we lose nothing.
@@ -807,20 +814,18 @@
 ..def \tolist \fldb .fldb tolist \fldb
 ..def \unfldb \fldb .fldb unfldb \unfldb
 ..def .unfldb \tolist tolist \tolist
-# the singleton foldable, folds to a singleton list of itself
-..def .fldb \val ..cons val nil \single:fldb
 
 ..def \ftor \fldb \sequence \tvsb ...tvsb ftor fldb sequence \tvsb
 ..def \untvsb \tvsb .tvsb untvsb \untvsb
-..def .untvsb \ftor \fldb \sequence ftor \tvsb:ftor
-..def .untvsb \ftor \fldb \sequence fldb \tvsb:fldb
+..def .untvsb \ftor \fldb \sequence ftor     \tvsb:ftor
+..def .untvsb \ftor \fldb \sequence fldb     \tvsb:fldb
 ..def .untvsb \ftor \fldb \sequence sequence \sequence
 
 # `Distributive`, supposedly the categorical dual of `Traversable`
 # distribute :: (Functor f, Distributive g) => f (g a) -> g (f a)
 ..def \ftor \distribute \dstv ..dstv ftor distribute \dstv
 ..def \undstv \dstv .dstv undstv \undstv
-..def .undstv \ftor \distribute ftor \dstv:ftor
+..def .undstv \ftor \distribute ftor       \dstv:ftor
 ..def .undstv \ftor \distribute distribute \distribute
 
  # type class instances and utility functions
@@ -1612,8 +1617,7 @@ none lhs \divmod
   stream:ftor
   \streamval .fst streamval
   # apply `func` to every tail and collect into a stream
-  \func ..ana streamf:ftor .unpair
-    \fst \snd ..pair .func ..pair fst snd snd
+  \func ..ana streamf:ftor ...phi pair func snd
 \stream:cmnd
 ..def .fldb
   ..cata streamf:ftor .unpair cons
@@ -1885,7 +1889,7 @@ nat dnil \listof
 ..def ..cata listf:ftor ..list \head \acc .some ..acc .cons head nil none \init
 # rev list = appEndo (getDual (foldMap (Dual . Endo . cons) list)) nil
 ..def \list ...fold .dual:mnid endo:mnid ...fmap list:ftor cons list nil \rev
-..def \elem ..ana natf:ftor ..opt .cons elem nil \replicate
+..def \elem ..cata natf:ftor ..opt .cons elem nil \replicate
 ..def \pred ..cata listf:ftor ...cardinal list none
   \head \acc ...pred head .some head acc
 \find
@@ -2479,7 +2483,7 @@ id nat dnil \dlistof # refer to `listof`
   .cofree:ftor trace:ftor
   \cofreeval .ann cofreeval
   \func ..para .cofreef:ftor trace:ftor .uncofree
-    .unpair \trace \acc \ann ..cofree .func ..cofree trace ann acc
+    .unpair \trace \acc \ann ..cofree acc .func ..cofree trace ann
 \cofree:cmnd
 # instance Foldable f => Foldable (Cofree f)
 ..def .unfldb \tracetolist .fldb
@@ -2713,6 +2717,7 @@ id nat dnil \dlistof # refer to `listof`
 ..def .oct:dbg  bool:dbg  \u8:dbg
 ..def .oct:seq  bool:seq  \u8:seq
 ..def .oct:enum bool:enum \u8:enum
+..def .dbg cons \u8::chr:dbg
 ..def .dbg
   .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     .\nibble ..bluebird
@@ -2868,10 +2873,11 @@ id nat dnil \dlistof # refer to `listof`
 ..def .list:ord  u8:ord  \str:ord
 ..def .list:bndd u8:bndd \str:bndd
 ..def .list:dbg  u8:dbg  \str:dbg
-..def .list:dbg  chr:dbg \str::chr:dbg
-..def .list:dbg  u8::hex:dbg \str::hex:dbg
 ..def .list:seq  u8:seq  \str:seq
 ..def .list:enum u8:enum \str:enum
+..def .list:dbg  u8::chr:dbg \str::chr:dbg
+..def .list:dbg  u8::hex:dbg \str::hex:dbg
+..def .dbg todlist           \str::raw:dbg
 # no need for `Monoid Str`, it'd be isomorphic to `Alternative f =>
 # Monoid (Alt f a)` for `f ~ List` and `a ~ U8`
 
@@ -3056,11 +3062,18 @@ id nat dnil \dlistof # refer to `listof`
 \labels
 # delimited-control operators. in truth you can also use `shift` undelimited and
 # use `reset` to delimit `abort` and `callCC`.
+#
+# the first reduction rule mentions 'reset' twice on its right-hand side. the
+# outermost 'reset' protects 'E' from any control effects, which means that
+# wrapping a program fragment in `reset` makes it appear pure. the innermost
+# 'reset' absorbs control effects from 'C', which means that the argument to
+# 'f' is a pure function. the types of `shift` and `reset` reflect this.
+#
 # E[reset C[shift f]] ==> E[reset (f (x. reset C[x]))]
 #          E[reset v] ==> E[v]
-# reset :: Cont b b -> Cont a b
+# reset :: Cont b b -> b
 # shift :: ((b -> a) -> Cont a a) -> Cont a b
-..def \contaval \cont .cont .contaval id \reset
+..def \contaval .contaval id \reset
 ..def \usecc \cont ..usecc \val .cont val id \shift
 
 # an `IO a` is a function that takes a continuation and returns "$" functions

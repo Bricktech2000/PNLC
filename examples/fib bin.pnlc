@@ -28,7 +28,7 @@
 ..def .:0 .:1 .:2 .:3 .:4 .:5 .:6 .:7 .:8 .:9 nil \decimal
 
 .main
-  ...bind  io:mnad .getsep '\n' \str
+  ...bind io:mnad .getsep '\n' \str
     .....fromdigs u8:eq decimal .rev str
       \bin .puts .rev .:\n ..todigs decimal .fib bin
       # \bin ..putd ..before:dbg :\n bin:dbg .fib bin
