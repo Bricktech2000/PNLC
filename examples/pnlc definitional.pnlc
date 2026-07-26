@@ -30,27 +30,18 @@
 ..def ........typ false false false false false false false true \iszero
 ..def .dbg ........typ :X :R :G :P :E :D :O :Z \typ:dbg
 ..def .seq ........typ id id id id id id id id \typ:seq
-..def .enum
-  ..cons mkzero
-  ..cons mkone
-  ..cons mkdump
-  ..cons mkeput
-  ..cons mkput
-  ..cons mkget
-  ..cons mkerr
-  ..cons mkexit
-  nil
+..def .enum .........listof eight
+  mkzero mkone mkdump mkeput mkput mkget mkerr mkexit
 \typ:enum
-..def
-  ..cons .:$ .:e .:x .:i .:t nil
-  ..cons .:$ .:e .:r .:r     nil
-  ..cons .:$ .:g .:e .:t     nil
-  ..cons .:$ .:p .:u .:t     nil
-  ..cons .:$ .:e .:p .:u .:t nil
-  ..cons .:$ .:d .:u .:m .:p nil
-  ..cons .:# .:o .:n .:e     nil
-  ..cons .:# .:z .:e .:r .:o nil
-  nil
+..def .........listof eight
+  .:$ .:e .:x .:i .:t nil
+  .:$ .:e .:r .:r     nil
+  .:$ .:g .:e .:t     nil
+  .:$ .:p .:u .:t     nil
+  .:$ .:e .:p .:u .:t nil
+  .:$ .:d .:u .:m .:p nil
+  .:# .:o .:n .:e     nil
+  .:# .:z .:e .:r .:o nil
 \ios
 
 # data Term = Mrk Term | App Term Term | Lam Term | Var Nat | Io Typ

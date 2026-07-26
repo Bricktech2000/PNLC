@@ -130,10 +130,10 @@
 ..def ...alt parser:altv .unsatp ..memb u8:eq metachars
   ...seqr parser:aptv .chrp '\' .satp ..memb u8:eq metachars
 \symbolp
-..def \regexp
-  ...alt parser:altv ...fmapk parser:ftor univset .chrp '%'
-  ...alt parser:altv ....between parser:aptv .chrp '(' .chrp ')' regexp
-  ...alt parser:altv ...rapply parser:aptv
+..def \regexp ..fold .alt:mnid parser:altv ....listof three
+  ...fmapk parser:ftor univset .chrp '%'
+  ....between parser:aptv .chrp '(' .chrp ')' regexp
+  ...rapply parser:aptv
     ...fmap parser:ftor issome ..option parser:altv .chrp '~'
     ...alt parser:altv ...fmapk parser:ftor ..range $00 $ff .chrp '.'
       ...cardinal .fmap parser:ftor
@@ -143,14 +143,14 @@
         .unpair \hi \lo ...islt ...compare u8:ord lo hi
           ..bluebird ..range .u8::inc hi .u8::dec lo not
           ..range lo hi
-  .empty parser:altv
 \atomp
 ..def \regexp
   ....lifta2 parser:aptv .quixoticbird simplify .atomp regexp
-    ...alt parser:altv ...fmapk parser:ftor star .chrp '*'
-    ...alt parser:altv ...fmapk parser:ftor ..starling concat star .chrp '+'
-    ...alt parser:altv ...fmapk parser:ftor .union epsilon .chrp '?'
-    ..pure parser:aptv id
+    ..fold .alt:mnid parser:altv .....listof four
+      ...fmapk parser:ftor star .chrp '*'
+      ...fmapk parser:ftor ..starling concat star .chrp '+'
+      ...fmapk parser:ftor .union epsilon .chrp '?'
+      ..pure parser:aptv id
 \factorp
 ..def \regexp
   ...cardinal .fmap parser:ftor ..many parser:altv .factorp regexp

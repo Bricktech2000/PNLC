@@ -144,7 +144,7 @@
 ..def ..res \okval true \errval false \isok
 ..def ..res \okval false \errval true \iserr
 ..def ..res some \errval none \okval
-..def ..res \okval none some \errval
+..def ..res \okval none  some \errval
 
 ..def \head \tail \cons \nil ..cons head tail \cons
 ..def             \cons \nil nil              \nil
@@ -153,6 +153,12 @@
 ..def ..list \head \tail false true \isnil
 ..def ..list \head \tail .some head none \head
 ..def ..list \head \tail .some tail none \tail
+
+# def:dlist
+# type DList a = List a -> List a
+..def \head \tail \nil ..cons head .tail nil \dcons
+..def \init \last \nil .init ..cons last nil \dsnoc
+..def \nil nil \dnil
 
 # the free monad
 # data Free f a = Roll (f (Free f a)) | Return a
@@ -867,7 +873,7 @@
 \listf:ftor
 ..def .unmnid .unsgrp \sappend \mempty
   ..cata listf:ftor ..list sappend mempty
-\fold
+\fold # `List` is the free monoid
 ..def .ftor
   \func ..cata listf:ftor ..list ..bluebird cons func nil
 \list:ftor
@@ -1861,6 +1867,19 @@ none lhs \divmod
 ..def \elem:ord  .down:ord  .list:ord  .down:ord  elem:ord  \short:ord
 ..def \elem:bndd .down:bndd .list:bndd .down:bndd elem:bndd \short:bndd
 ..def \elem:enum .down:enum .list:enum .down:enum elem:enum \short:enum
+# `listof` is syntax sugar for building lists. these are beta-equivalent:
+#     ....listof three foo bar baz
+#     ..cons foo ..cons bar ..cons baz nil
+# lists are free monoids so you can use `listof` also as syntax sugar for
+# multiplying monoid elements:
+#     ..fold ..ap:mnid io:aptv unit:mnid ......listof five
+#       .putc 'a'  .putc 'b'  exit  .putc 'c'  .putc 'd'
+# listof :: nat -> {a ->} List a
+# the carrier type `acc :: DList a -> {a ->} List a`
+..def \nat ....cata natf:ftor ..opt
+  \acc \dlist \elem .acc ..dsnoc dlist elem
+  \dlist .dlist nil
+nat dnil \listof
 ..def ..cata listf:ftor ..list .kestrel some none \len
 ..def ..cata listf:ftor ..list \head \acc .some ..acc id head none \last
 ..def ..cata listf:ftor ..list \head \acc .some ..acc .cons head nil none \init
@@ -2015,16 +2034,15 @@ none lhs \divmod
 ..def ..cata listf:ftor ..list insert  nil \sort
 ..def ..cata listf:ftor ..list include nil \nubsort
 
-# `type DList a = List a -> List a`
 # difference lists. a difference list is a function which, when given a tail,
 # prepends the list it represents to that tail. concatenation of difference
 # lists is function composition, which is constant time. `tolist` and `todlist`
 # are linear time. see 'A Novel Representation of Lists and its Application to
 # the Function "Reverse"' by John Hughes, 1986
-..def .dove cons \dcons
-..def id \dnil
-..def ..cardinal blackbird cons \dsnoc
 ..def ..cata listf:ftor ..list dcons dnil \todlist
+..def \nat ....cata natf:ftor ..opt
+  \acc \dlist \elem .acc ..dsnoc dlist elem
+id nat dnil \dlistof # refer to `listof`
 # no need for `Monoid (DList a)`, it'd be isomorphic to `Alternative f =>
 # Monoid (Alt f a)` and to `Monoid (Endo (f a))` for `f ~ DList`
 ..def .ftor
@@ -2389,7 +2407,7 @@ none lhs \divmod
   ..cata .freef:ftor .aptv:ftor .mnad:aptv term:mnad ..free
     .join term:mnad
     .pure .mnad:aptv term:mnad
-\retract
+\retract # `Free` is the free monad
 ..def \term:ftor \func
   ..cata .freef:ftor term:ftor ..free
     ..bluebird roll func
@@ -2501,7 +2519,7 @@ none lhs \divmod
   ..ana .cofreef:ftor .cmnd:ftor trace:cmnd \seed ..cofree
     ..duplicate trace:cmnd seed
     ..extract trace:cmnd seed
-\section
+\section # `Cofree` is the cofree comonad
 ..def \trace:ftor \func
   ..ana .cofreef:ftor trace:ftor .uncofree \trace \ann
     ..cofree .func trace ann

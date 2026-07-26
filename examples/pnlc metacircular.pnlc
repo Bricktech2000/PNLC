@@ -9,14 +9,13 @@
 # application, lambda-abstraction, evaluation order, runtime errors are all
 # stolen from the host interpreter
 
-..def
-  ..cons ..pair .:$ .:e .:x .:i .:t nil $exit
-  ..cons ..pair .:$ .:e .:r .:r     nil $err
-  ..cons ..pair .:$ .:g .:e .:t     nil $get
-  ..cons ..pair .:$ .:p .:u .:t     nil $put
-  ..cons ..pair .:$ .:e .:p .:u .:t nil $eput
-  ..cons ..pair .:$ .:d .:u .:m .:p nil $dump
-  nil
+..def .......listof six
+  ..pair .:$ .:e .:x .:i .:t nil $exit
+  ..pair .:$ .:e .:r .:r     nil $err
+  ..pair .:$ .:g .:e .:t     nil $get
+  ..pair .:$ .:p .:u .:t     nil $put
+  ..pair .:$ .:e .:p .:u .:t nil $eput
+  ..pair .:$ .:d .:u .:m .:p nil $dump
 \ios
 
 ..def \func \arg \env ..func env .arg env \app
@@ -57,10 +56,11 @@
 
 # parse :: Parser (IO Void)
 ..def ...fmap parser:ftor
-  # `\cont` here is noteworthy. it reshapes the parsed value from an opaque
+  # `abort` here is noteworthy. it reshapes the parsed value from an opaque
   # `Term` to an `IO Void` so it's compatible with the prelude's IO monad.
-  \term \cont .term ...fmap list:ftor snd ios
-  ....between parser:aptv wsp eofp .termp ...fmap list:ftor fst ios
+  \term .abort .term ...fmap list:ftor snd ios
+  ....between parser:aptv wsp eofp
+    .termp ...fmap list:ftor fst ios
 \parse
 
 # read characters from stdin until a '\0'. we use the character '\0' to end the
