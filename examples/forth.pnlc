@@ -1,0 +1,93 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# a small Forth-inspired DSL. cells are one byte in size. it has 256 bytes of
+# memory. the data stack is separate from the memory. there is no return stack.
+
+# type Stack = List U8
+# type Memory = List (Sqr U8)
+# type Prog = Stack -> Memory -> IO (Pair Stack Memory)
+# type Word = Prog -> Prog
+
+# pop :: (U8 -> Stack -> a) -> Stack -> a
+# like `unpair` but for `Stack`. when we hit `nil` we conjure up a '\0'.
+..def \func ..list func ..func '\0' nil \pop
+# stk :: (Stack -> Stack) -> Word
+# mem :: (Stack -> State Memory Stack) -> Word
+# ios :: (Stack -> IO Stack) -> Word
+# prg :: Prog -> Word
+..def \defn \prog \s \m ..prog .defn s m \stk
+..def \defn \prog \s \m ...defn s m prog \mem
+..def \defn \prog \s \m ...bind io:mnad .defn s \s ..prog s m \ios
+..def \defn \prog \s \m ...bind io:mnad ..defn s m .unpair prog \prg
+# end :: Prog
+# the identity program
+..def \s \m ..pure io:aptv ..pair s m \end
+
+# stack shuffling
+..def .stk dnil \nop
+..def .stk .pop \a dnil \drop
+..def .stk .pop \a ..dcons a ..dcons a dnil \dup
+..def .stk .pop \a .pop \b ..dcons a dnil \nip
+..def .stk .pop \a .pop \b ..dcons b ..dcons a dnil \swap
+..def .stk .pop \a .pop \b ..dcons b ..dcons a ..dcons b dnil \over
+..def .stk .pop \a .pop \b ..dcons a ..dcons b ..dcons a dnil \tuck
+..def .stk .pop \a .pop \b .pop \c ..dcons c ..dcons a ..dcons b dnil \rot
+
+# arithmetic and logic
+..def .stk .pop \a .cons .u8::inc a \inc
+..def .stk .pop \a .cons .u8::dec a \dec
+..def .stk .pop \a .cons .u8::shl a \shl
+..def .stk .pop \a .cons .u8::shr a \shr
+..def .stk .pop \a .pop \b .cons ..u8::add a b \add
+..def .stk .pop \a .pop \b .cons ..u8::sub a b \sub
+..def .stk .pop \a .cons ...fmap oct:ftor not a \not
+..def .stk .pop \a .pop \b .cons ....lifta2 oct:aptv and a b \and
+..def .stk .pop \a .pop \b .cons ....lifta2 oct:aptv or  a b \or
+..def .stk .pop \a .pop \b .cons ....lifta2 oct:aptv bne a b \xor
+..def .stk .pop \a .pop \b .cons ..pure oct:aptv .iset ...compare u8:ord a b \et
+..def .stk .pop \a .pop \b .cons ..pure oct:aptv .isgt ...compare u8:ord a b \gt
+..def .stk .pop \a .pop \b .cons ..pure oct:aptv .islt ...compare u8:ord a b \lt
+
+# memory access
+..def .mem .pop \a \s \m ..pair
+  ..cons .....lookup u8:eq a m id '\0' s
+m \load
+..def .mem .pop \a .pop \b \s \m ..pair s
+  ..cons ..pair a b ..filter ..queerbird fst ..unequal u8:eq a m
+\store
+
+# input and output
+..def \cont $err \err # omitted from the prelude
+..def .ios \s exit \exit
+..def .ios \s err  \err
+..def .ios \s ...fmap io:ftor \optchr ..cons ..optchr id '\0' s getc \get
+..def .ios .pop \a \s ...fmapk io:ftor s  .putc a  \put
+..def .ios .pop \a \s ...fmapk io:ftor s .eputc a \eput
+..def .prg \s \m ...fmapk io:ftor ..pair s m ...bindk io:mnad
+  ..eputd ..before:dbg :\n .list:dbg u8::hex:dbg s
+  ..eputd ..before:dbg :\n .list:dbg .sqr:dbg u8::hex:dbg m
+\dump
+
+# "immediate" words
+# then    :: Prog -> Word
+# else    :: Prog -> Word
+# either  :: Prog -> Prog -> Word
+# forever :: Prog -> Word
+# repeat  :: Prog -> Word
+# while   :: Prog -> Prog -> Word
+# lit :: U8 -> Word
+# let :: (Word -> Prog) -> Word
+# def :: Prog -> (Word -> Prog) -> Word
+..def \cnsq .prg .pop \a .....unequal u8:eq '\0' a cnsq end \then
+..def \altv .prg .pop \a .....unequal u8:eq '\0' a end altv \else
+..def \cnsq \altv .prg .pop \a .....unequal u8:eq '\0' a cnsq altv \either
+..def \body .prg .fix \rec ..prg body rec \forever
+..def \cond .prg .fix \rec ..prg cond ..then rec end \repeat
+..def \cond \body .prg .fix \rec ..prg cond ..then ..prg body rec end \while
+..def \val .stk .cons val \lit
+..def \lam .prg .pop \a .lam .lit a \let
+..def \prog \lam .prg .lam .prg prog \def
+
+# run the program on an empty stack and empty memory
+.\prog .main ...fmapk io:ftor unit ..prog nil nil

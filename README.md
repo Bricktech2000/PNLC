@@ -134,4 +134,19 @@ cat examples/bf/dbfi.bf bang examples/bf/cat.bf bang -           | bin/pnlc prel
 cat examples/bf/dbfi.bf bang examples/bf/reverse.bf bang -       | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/dbfi.bf bang examples/bf/head.bf bang -          | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/dbfi.bf bang examples/bf/truth-machine.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+
+# Forth DSL demos
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/cat.f
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/rot13.f
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/hello\ world.f
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/truth-machine.f
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/fib.f
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/collatz.f
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/greeting.f
+cat examples/bf/ascii.bf                | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
+cat examples/bf/cat.bf bang -           | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
+cat examples/bf/reverse.bf bang -       | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
+cat examples/bf/head.bf bang -          | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
+cat examples/bf/truth-machine.bf bang - | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
+cat examples/bf/thuemorse.bf            | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
 ```

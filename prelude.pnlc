@@ -2529,6 +2529,8 @@ id nat dnil \dlistof # refer to `listof`
 ..def \term:ftor ..ana term:ftor trace \fromcofree
 ..def \term:ftor ..cata term:ftor ..cardinal cofree unit \tocofree
 
+# many of these definitions are unrolled for performance. we care about the
+# performance of `Oct` because `type U8 = Oct Bool` and `U8`s have to be fast
 ..def .ftor
   \func .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     ........oct
@@ -2846,10 +2848,18 @@ id nat dnil \dlistof # refer to `listof`
     ..pair b oct
     arg
 \u8::decb
+..def \p .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..pair a7 ........oct p a0 a1 a2 a3 a4 a5 a6
+\u8::shlp
+..def \c .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  ..pair a0 ........oct a1 a2 a3 a4 a5 a6 a7 c
+\u8::shrc
 ..def ..blackbird snd .u8::addc false \u8::add
 ..def ..blackbird snd .u8::subb false \u8::sub
 ..def ..bluebird  snd .u8::incc true  \u8::inc
 ..def ..bluebird  snd .u8::decb true  \u8::dec
+..def ..bluebird  snd .u8::shlp false \u8::shl
+..def ..bluebird  snd .u8::shrc false \u8::shr
 ..def .sgrp u8::add \u8::add:sgrp
 ..def ..mnid u8::add:sgrp $00 \u8::add:mnid
 
