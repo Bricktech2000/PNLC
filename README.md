@@ -119,13 +119,17 @@ cat examples/bf/reverse.bf bang -       | bin/pnlc prelude.pnlc examples/brainfu
 cat examples/bf/beaver.bf               | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/clear.bf                | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/head.bf bang -          | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/strip.bf bang -         | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/truth-machine.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/bin2text.bf bang -      | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
-cat examples/bf/text2bf.bf bang -       | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/wc.bf bang -            | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/collatz.bf bang -       | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/fib.bf                  | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/squares.bf              | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/thuemorse.bf            | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/sierpinski.bf           | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/siercarpet.bf           | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/dbfi.bf bang examples/bf/ascii.bf bang           | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/dbfi.bf bang examples/bf/cat.bf bang -           | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/dbfi.bf bang examples/bf/reverse.bf bang -       | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/dbfi.bf bang examples/bf/head.bf bang -          | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
+cat examples/bf/dbfi.bf bang examples/bf/truth-machine.bf bang - | bin/pnlc prelude.pnlc examples/brainfuck.pnlc
 ```
