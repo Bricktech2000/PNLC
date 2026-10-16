@@ -4,16 +4,16 @@
 # keeps going forever. we perform addition in base ten for performance
 
 # data Dig = D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 0 \d0
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 1 \d1
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 2 \d2
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 3 \d3
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 4 \d4
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 5 \d5
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 6 \d6
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 7 \d7
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 8 \d8
-..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 9 \d9
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d0 \d0
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d1 \d1
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d2 \d2
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d3 \d3
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d4 \d4
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d5 \d5
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d6 \d6
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d7 \d7
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d8 \d8
+..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d9 \d9
 # type Digs = List Dig
 ..def
   ..para listf:ftor ...cardinal list ..cons d1 nil

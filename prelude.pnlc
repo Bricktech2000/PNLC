@@ -177,16 +177,17 @@
 ..def .uncofree \trace \ann ann   \ann
 
 # data Oct a = Oct a a a a a a a a
-..def \0 \1 \2 \3 \4 \5 \6 \7 \oct ........oct 0 1 2 3 4 5 6 7 \oct
+..def \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 \oct
+  ........oct o0 o1 o2 o3 o4 o5 o6 o7 \oct
 ..def \unoct \oct .oct unoct \unoct
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 0 \oct::0
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 1 \oct::1
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 2 \oct::2
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 3 \oct::3
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 4 \oct::4
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 5 \oct::5
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 6 \oct::6
-..def .unoct \0 \1 \2 \3 \4 \5 \6 \7 7 \oct::7
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o0 \o0
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o1 \o1
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o2 \o2
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o3 \o3
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o4 \o4
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o5 \o5
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o6 \o6
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o7 \o7
 
 # def:u8
 # type U8 = Oct Bool
@@ -730,7 +731,7 @@ mempty \bmtimes
   ..ap:sgrp aptv inner:sgrp
   ..pure aptv innermempty
 \ap:mnid
-# `type Rap f a = Dual (Ap f (Dual a))`
+# type Rap f a = Dual (Ap f (Dual a))
 # the monoid given by `Ap` but where effects compose in reverse
 ..def \aptv \sgrp .dual:sgrp ..ap:sgrp aptv .dual:sgrp sgrp \rap:sgrp
 ..def \aptv \mnid .dual:mnid ..ap:mnid aptv .dual:mnid mnid \rap:mnid
@@ -989,7 +990,7 @@ mempty \bmtimes
   \optlhs \optrhs ..optlhs some optrhs
 \opt:altv
 ..def .fldb
-  \optarg ...optarg cons id nil
+  \optval ...optval cons id nil
 \opt:fldb
 ..def ...tvsb
   opt:ftor
@@ -1009,7 +1010,7 @@ mempty \bmtimes
 # and to `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.Last a`.
 #
 # these instances need to be lazy in the element instance so we can take their
-# fixed points to define the equivalent instances for `Nat`
+# fixed points to define the corresponding instances for `Nat`
 ..def \elem:eq .eq
   \rhs \lhs ..rhs
     ..lhs .cardinal .equal elem:eq .kestrel false
@@ -1029,7 +1030,7 @@ mempty \bmtimes
 ..def \elem:enum .enum
   ..cons none ...fmap list:ftor some .enumerate elem:enum
 \opt:enum
-# `type Every a = Down (Maybe (Down a))`
+# type Every a = Down (Maybe (Down a))
 # the ordering where `Nothing` is the top element instead of the bottom element
 ..def \elem:ord  .down:ord  .opt:ord  .down:ord  elem:ord  \every:ord
 ..def \elem:bndd .down:bndd .opt:bndd .down:bndd elem:bndd \every:bndd
@@ -1077,18 +1078,78 @@ mempty \bmtimes
 ..def .join opt:mnad \satpred
 ..def ..cata natf:ftor ..opt .cardinal .bind opt:mnad id \satsub
 ..def ..cata natf:ftor ..opt .cardinal .bind opt:mnad some \sub
-..def \rhs \lhs ...fix \rec \quot \rem
-  ....sub rhs rem .rec .some quot ..pair quot rem
-none lhs \divmod
+# divides one argument by the other, maximally lazily:
+#     div m (n+m) = 1 + div m n
+#     div m (n<m) = 0
+#     mod m (n+m) = mod m n
+#     mod m (n<m) = n
+# it's important to be lazy in the `pair` constructor. otherwise, accessing the
+# remainder requires building the entire quotient in memory then discarding it
+..def \rhs \lhs ..fix \rec \rem
+  ....phi pair fst snd # be lazy in the `pair` constructor
+    ....sub rhs rem \rem
+      ..rec rem ..bluebird pair some
+      ..pair none rem
+lhs \divmod
 ..def ..blackbird fst divmod \div
 ..def ..blackbird snd divmod \mod
+# squares the argument, maximally lazily:
+#     -- (x+1)2 = x2+2x+1
+#     sq' n (x+1) = 2n+1 + sq' (n+1) x
+#     sq' n (x<1) = 0
+#            sq x = sq' 0 x
+# intuitively, we iteratively stack new layers outwards:
+#     0 1 2 3
+#     1 1 2 3
+#     2 2 2 3
+#     3 3 3 3
+..def \lhs ....cata natf:ftor ..opt
+  \acc \nat ..add .some ..mul two nat .acc .some nat
+  \nat none
+lhs none \sq
+# takes the square root of the argument, maximally lazily:
+#     -- (x+1)2 = x2+2x+1
+#     sqrt' n (x+2n+1) = 1 + sqrt' (n+1) x
+#     sqrt' n (x<2n+1) = 0
+#               sqrt x = sqrt' 0 x
+#     sqrm' n (x+2n+1) = sqrm' (n+1) x
+#     sqrm' n (x<2n+1) = x
+#               sqrm x = sqrm' 0 x
+# intuitively, we iteratively peel off layers from the inside out:
+#     0 1 2 3
+#     1 1 2 3
+#     2 2 2 3
+#     3 3 3 3
+..def \lhs ...fix \rec \nat \sqrm
+  ....phi pair fst snd # be lazy in the `pair` constructor
+    ....sub .some ..mul two nat sqrm \sqrm
+      ...rec .some nat sqrm ..bluebird pair some
+      ..pair none sqrm
+none lhs \sqrtrm
+..def ..bluebird fst sqrtrm \sqrt
+..def ..bluebird snd sqrtrm \sqrm
+# the number-theoretic definitions of gcd and lcm get muddy around gcd(0,0),
+# lcm(0,0), lcm(0,n) and lcm(n,0), so they tend to be left undefined. but in
+# fact the partial order a|b := TE k. ka=b induces a distributive bounded
+# lattice, and we can define gcd and lcm to be its meet and join, in which
+# case we have that:
+#     gcd(0,0) = 0    lcm(0,0) = 0    lcm(0,n) = 0    lcm(n,0) = 0
+# the implementations below uphold these identities. it might appear that a
+# call to lcm(0,0) divides by zero, but due to lazy evaluation the division
+# is not carried out because the quotient is never examined
+..def .fix \gcd \rhs \lhs ...isnone rhs lhs ..gcd ..mod rhs lhs rhs \gcd
+..def \rhs \lhs ..mul rhs ..div ..gcd rhs lhs lhs \lcm # max(a,b)=a-min(a,b)+b
 ..def ..cata natf:ftor ..opt not true \even
 ..def ..cata natf:ftor ..opt not false \odd # bit in unit's place
 ..def ..cata natf:ftor ..opt tinc et \tup  # trit in unit's place
 ..def .sgrp add \add:sgrp
 ..def .sgrp mul \mul:sgrp
+..def .sgrp gcd \gcd:sgrp
+..def .sgrp lcm \lcm:sgrp
 ..def ..mnid add:sgrp none \add:mnid
 ..def ..mnid mul:sgrp one  \mul:mnid
+..def ..mnid gcd:sgrp none \gcd:mnid
+..def ..mnid lcm:sgrp one  \lcm:mnid
 
 ..def .uneq \okequal .uneq \errequal .eq
   \rhs \lhs ..rhs
@@ -1119,20 +1180,20 @@ none lhs \divmod
 ..def ...aptv
   resb:ftor
   \val .ok val
-  \resfunc \resarg
-    ..resfunc \func ...fmap resb:ftor func resarg err
+  \resbfunc \resbarg
+    ..resbfunc \func ...fmap resb:ftor func resbarg err
 \resb:aptv
 ..def ..mnad
   resb:aptv
-  \resarg \func ..resarg func err
+  \resbarg \func ..resbarg func err
 \resb:mnad
 ..def \empty ...altv
   resb:aptv
   empty
-  \reslhs \resrhs ..reslhs ok .kestrel resrhs
+  \resblhs \resbrhs ..resblhs ok .kestrel resbrhs
 \resb:altv
 ..def .fldb
-  \resval ...resval cons kite nil
+  \resbval ...resbval cons kite nil
 \resb:fldb
 ..def ...tvsb
   resb:ftor
@@ -1171,37 +1232,38 @@ none lhs \divmod
     .enumerate ..res:enum err:enum ok:enum
 \flip:enum
 ..def .ftor
-  \errfunc \resarg .flip
+  \errfunc \flipbarg .flip
     ...fmap resb:ftor errfunc
-      .flip resarg
+      .flip flipbarg
 \flipb:ftor
 ..def ...aptv
   flipb:ftor
   \errval .flip
     ..pure resb:aptv
       errval
-  \resfunc \resarg .flip
+  \flipbfunc \flipbarg .flip
     ...apply resb:aptv
-      .flip resfunc
-      .flip resarg
+      .flip flipbfunc
+      .flip flipbarg
 \flipb:aptv
 ..def ..mnad
   flipb:aptv
-  \resarg \errfunc .flip
+  \flipbarg \errfunc .flip
     ...bind resb:mnad
-      .flip resarg
+      .flip flipbarg
       ..bluebird flip errfunc
 \flipb:mnad
 ..def .fldb
-  \resval ..tolist resb:fldb .flip resval
+  \flipbval ..tolist resb:fldb .flip flipbval
 \flipb:fldb
 ..def ...tvsb
   flipb:ftor
   flipb:fldb
-  \err:aptv \resaptv ...fmap .aptv:ftor err:aptv flip
-    ...sequence resb:tvsb err:aptv .flip resaptv
+  \err:aptv \flipbaptv ...fmap .aptv:ftor err:aptv flip
+    ...sequence resb:tvsb err:aptv .flip flipbaptv
 \flipb:tvsb
 
+# def:dbl
 # type Dbl a = Either a a
 # `a+a = 2*a` so `Dbl a ~= Pair Bool a`. the type class instances for `Dbl` are
 # given by the corresponding instances for `Pair Bool` under the isomorphism
@@ -1258,17 +1320,17 @@ none lhs \divmod
 \dbl:tvsb
 
 # these instances need to be lazy in the element instance so we can take their
-# fixed points to define the equivalent instances for `Stream`
+# fixed points to define the corresponding instances for `Stream`
 ..def \fst:eq \snd:eq .eq
-  .unpair \rhsfst \rhssnd .unpair \lhsfst \lhssnd ..and
-    ...equal fst:eq rhsfst lhsfst
-    ...equal snd:eq rhssnd lhssnd
+  .unpair \fstrhs \sndrhs .unpair \fstlhs \sndlhs ..and
+    ...equal fst:eq fstrhs fstlhs
+    ...equal snd:eq sndrhs sndlhs
 \pair:eq
 ..def \fst:ord \snd:ord ..ord
   ..pair:eq .ord:eq fst:ord .ord:eq snd:ord
-  .unpair \rhsfst \rhssnd .unpair \lhsfst \lhssnd ..telse
-    ...compare fst:ord rhsfst lhsfst
-    ...compare snd:ord rhssnd lhssnd
+  .unpair \fstrhs \sndrhs .unpair \fstlhs \sndlhs ..telse
+    ...compare fst:ord fstrhs fstlhs
+    ...compare snd:ord sndrhs sndlhs
 \pair:ord
 ..def \fst:bndd \snd:bndd ..bndd
   ..pair .top fst:bndd .top snd:bndd
@@ -1286,9 +1348,9 @@ none lhs \divmod
   ....lifta2 list:aptv .cardinal pair .enumerate snd:enum .enumerate fst:enum
 \pair:enum
 ..def \fst:sgrp \snd:sgrp .sgrp
-  .unpair \lhsfst \lhssnd .unpair \rhsfst \rhssnd ..pair
-    ...sappend fst:sgrp lhsfst rhsfst
-    ...sappend fst:sgrp lhssnd rhssnd
+  .unpair \fstlhs \sndlhs .unpair \fstrhs \sndrhs ..pair
+    ...sappend fst:sgrp fstlhs fstrhs
+    ...sappend snd:sgrp sndlhs sndrhs
 \pair:sgrp
 ..def \fst:mnid \snd:mnid ..mnid
   ..pair:sgrp .mnid:sgrp fst:mnid .mnid:sgrp snd:mnid
@@ -1320,19 +1382,19 @@ none lhs \divmod
 ..def \fstfunc .unpair \fst \snd ..pair .fstfunc fst snd \censor
 ..def ...cmnd
   paira:ftor
-  \pairval .snd pairval
+  \pairaval .snd pairaval
   \func \arg ..pair .fst arg .func arg
   # \func \arg ...fmapk paira:ftor .func arg arg # works too
 \paira:cmnd
 ..def .fldb
-  .unpair \fst \snd ..cons snd nil
+  \pairaval ..cons .snd pairaval nil
 \paira:fldb
 ..def ...tvsb
   paira:ftor
   paira:fldb
   \snd:aptv .unpair ..bluebird .fmap .aptv:ftor snd:aptv pair
 \paira:tvsb
-..def \pair .pair finch \swap
+..def .unpair .cardinal pair \swap
 
 # type Swap a b = Pair b a
 ..def \snd:eq \fst:eq .eq
@@ -1362,65 +1424,66 @@ none lhs \divmod
     .enumerate ..pair:enum snd:enum fst:enum
 \swap:enum
 ..def .ftor
-  \fstfunc \pairarg .swap
+  \fstfunc \swapaarg .swap
     ...fmap paira:ftor fstfunc
-      .swap pairarg
+      .swap swapaarg
 \swapa:ftor
 ..def \snd:mnid ...aptv
   swapa:ftor
   \fstval .swap
     ..pure .paira:aptv snd:mnid
       fstval
-  \pairfunc \pairarg .swap
+  \swapafunc \swapaarg .swap
     ...apply .paira:aptv snd:mnid
-      .swap pairfunc
-      .swap pairarg
+      .swap swapafunc
+      .swap swapaarg
 \swapa:aptv
 ..def \snd:mnid ..mnad
   .swapa:aptv snd:mnid
-  \pairarg \fstfunc .swap
+  \swapaarg \fstfunc .swap
     ...bind .paira:mnad snd:mnid
-      .swap pairarg
+      .swap swapaarg
       ..bluebird swap fstfunc
 \swapa:mnad
 ..def \sndval .swap
   .tell sndval
 \stell
-..def \pair ...fmap swapa:ftor swap .swap
+..def \val ...fmap swapa:ftor swap .swap
   .listen
-    .swap pair
+    .swap val
 \slisten
-..def \pair .swap
+..def \val .swap
   .pass
-    ...fmap swapa:ftor swap .swap pair
+    ...fmap swapa:ftor swap .swap val
 \spass
-..def \sndfunc \pair ...fmap swapa:ftor swap .swap
+..def \sndfunc \val ...fmap swapa:ftor swap .swap
   ..listens sndfunc
-    .swap pair
+    .swap val
 \slistens
-..def \sndfunc \pair .swap
+..def \sndfunc \val .swap
   ..censor sndfunc
-    .swap pair
+    .swap val
 \scensor
 ..def ...cmnd
   swapa:ftor
-  \pairval ..extract paira:cmnd
-    .swap pairval
+  \swapaval ..extract paira:cmnd
+    .swap swapaval
   \func \arg .swap
     ...extend paira:cmnd
       ..bluebird func swap
       .swap arg
 \swapa:cmnd
 ..def .fldb
-  \pairval ..tolist paira:fldb .swap pairval
+  \swapaval ..tolist paira:fldb .swap swapaval
 \swapa:fldb
 ..def ...tvsb
   swapa:ftor
   swapa:fldb
-  \fst:aptv \pairaptv ...fmap .aptv:ftor fst:aptv swap
-    ...sequence paira:tvsb fst:aptv .swap pairaptv
+  \fst:aptv \swapaaptv ...fmap .aptv:ftor fst:aptv swap
+    ...sequence paira:tvsb fst:aptv .swap swapaaptv
 \swapa:tvsb
 
+# def:sqr
 # type Sqr a = Pair a a
 # `a*a = a^2` so `Sqr a ~= Fn Bool a`. the type class instances for `Sqr` are
 # given by the corresponding instances for `Fn Bool` under the isomorphism.
@@ -1567,6 +1630,7 @@ none lhs \divmod
 ..def ..mnid zadd:sgrp zero \zadd:mnid
 ..def ..mnid zmul:sgrp .succ zero \zmul:mnid
 
+# def:stream
 # type Stream a = Fix (Pair a)
 ..def paira:ftor \streamf:ftor
 ..def ..bluebird fix pair:eq   \stream:eq
@@ -1601,7 +1665,7 @@ none lhs \divmod
   \streamfunc \streamarg ...ana streamf:ftor
     # almost a `swapa:aptv`, but `pair` the constructor does not induce a monoid
     .unpair .unpair \fstfunc \sndfunc .unpair \fstarg \sndarg
-        ..pair .fstfunc fstarg ..pair sndfunc sndarg
+      ..pair .fstfunc fstarg ..pair sndfunc sndarg
     ..pair streamfunc streamarg
 \stream:aptv
 ..def ..mnad
@@ -1660,7 +1724,7 @@ none lhs \divmod
   .sfind ..bluebird pred fst
 \sassoc
 ..def \pred ..bluebird ..fmap stream:ftor snd
-  .sfind ..bluebird pred fst
+  .sfinds ..bluebird pred fst
 \sassocs
 ..def .uneq .bluebird sassoc  \slookup
 ..def .uneq .bluebird sassocs \slookups
@@ -1744,9 +1808,9 @@ none lhs \divmod
 # "multiset" operations. they operate on sorted streams. if your streams have no
 # duplicates, they become "set" operations (unless you call `merge`, of course).
 # when choosing between two equal elements, we take the left-hand-side element.
-# lmerge :: Ord a => List a -> Stream a -> Stream a
-# lunion :: Ord a => List a -> Stream a -> Stream a
-# lsubtract :: Ord a => List a -> Stream a -> Stream a
+# lmerge      :: Ord a => List a -> Stream a -> Stream a
+# lunion      :: Ord a => List a -> Stream a -> Stream a
+# lsubtract   :: Ord a => List a -> Stream a -> Stream a
 # lannihilate :: Ord a => List a -> Stream a -> Stream a
 #
 # these two are omitted on purpose. their outputs are `List`s, so you can use
@@ -1754,76 +1818,76 @@ none lhs \divmod
 # lsubtract' :: Ord a => Stream a -> List a -> List a
 # lintersect :: Ord a => List a -> Stream a -> List a
 ..def \elem:ord .fix \smerge \rhs \lhs
-  .rhs \rhsfst \rhssnd
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhsfst lhsfst
-    ..pair rhsfst ..smerge rhssnd lhs
-    ..pair lhsfst ..smerge rhs    lhssnd
-    ..pair lhsfst ..smerge rhs    lhssnd
+  .rhs \fstrhs \sndrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord   fstrhs fstlhs
+    ..pair fstrhs ..smerge sndrhs    lhs
+    ..pair fstlhs ..smerge    rhs sndlhs
+    ..pair fstlhs ..smerge    rhs sndlhs
 \smerge
 ..def \elem:ord .fix \lmerge \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhshead lhsfst
-    ..pair rhshead ..lmerge rhstail lhs
-    ..pair lhsfst  ..lmerge rhs     lhssnd
-    ..pair lhsfst  ..lmerge rhs     lhssnd
+  ...cardinal rhs lhs \headrhs \tailrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord    headrhs fstlhs
+    ..pair headrhs ..lmerge tailrhs    lhs
+    ..pair fstlhs  ..lmerge     rhs sndlhs
+    ..pair fstlhs  ..lmerge     rhs sndlhs
 \lmerge
 ..def \elem:ord .fix \sunion \rhs \lhs
-  .rhs \rhsfst \rhssnd
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhsfst lhsfst
-    ..pair rhsfst ..sunion rhssnd lhs
-    ..pair lhsfst ..sunion rhssnd lhssnd
-    ..pair lhsfst ..sunion rhs    lhssnd
+  .rhs \fstrhs \sndrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord   fstrhs fstlhs
+    ..pair fstrhs ..sunion sndrhs    lhs
+    ..pair fstlhs ..sunion sndrhs sndlhs
+    ..pair fstlhs ..sunion    rhs sndlhs
 \sunion
 ..def \elem:ord .fix \lunion \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhshead lhsfst
-    ..pair rhshead ..lunion rhstail lhs
-    ..pair lhsfst  ..lunion rhstail lhssnd
-    ..pair lhsfst  ..lunion rhs     lhssnd
+  ...cardinal rhs lhs \headrhs \tailrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord    headrhs fstlhs
+    ..pair headrhs ..lunion tailrhs    lhs
+    ..pair fstlhs  ..lunion tailrhs sndlhs
+    ..pair fstlhs  ..lunion     rhs sndlhs
 \lunion
 ..def \elem:ord .fix \ssubtract \rhs \lhs
-  .rhs \rhsfst \rhssnd
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhsfst lhsfst
-                  ..ssubtract rhssnd lhs
-                  ..ssubtract rhssnd lhssnd
-    ..pair lhsfst ..ssubtract rhs    lhssnd
+  .rhs \fstrhs \sndrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord      fstrhs fstlhs
+                  ..ssubtract sndrhs    lhs
+                  ..ssubtract sndrhs sndlhs
+    ..pair fstlhs ..ssubtract    rhs sndlhs
 \ssubtract
 ..def \elem:ord .fix \lsubtract \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhshead lhsfst
-                  ..lsubtract rhstail lhs
-                  ..lsubtract rhstail lhssnd
-    ..pair lhsfst ..lsubtract rhs     lhssnd
+  ...cardinal rhs lhs \headrhs \tailrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord      headrhs fstlhs
+                  ..lsubtract tailrhs    lhs
+                  ..lsubtract tailrhs sndlhs
+    ..pair fstlhs ..lsubtract     rhs sndlhs
 \lsubtract
 ..def \elem:ord .fix \sintersect \rhs \lhs
-  .rhs \rhsfst \rhssnd
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhsfst lhsfst
-                  ..sintersect rhssnd lhs
-    ..pair lhsfst ..sintersect rhssnd lhssnd
-                  ..sintersect rhs    lhssnd
+  .rhs \fstrhs \sndrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord       fstrhs fstlhs
+                  ..sintersect sndrhs    lhs
+    ..pair fstlhs ..sintersect sndrhs sndlhs
+                  ..sintersect    rhs sndlhs
 \sintersect
 ..def \elem:ord .fix \sannihilate \rhs \lhs
-  .rhs \rhsfst \rhssnd
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhsfst lhsfst
-    ..pair rhsfst ..sannihilate rhssnd lhs
-                  ..sannihilate rhssnd lhssnd
-    ..pair lhsfst ..sannihilate rhs    lhssnd
+  .rhs \fstrhs \sndrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord        fstrhs fstlhs
+    ..pair fstrhs ..sannihilate sndrhs    lhs
+                  ..sannihilate sndrhs sndlhs
+    ..pair fstlhs ..sannihilate    rhs sndlhs
 \sannihilate
 ..def \elem:ord .fix \lannihilate \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  .lhs \lhsfst \lhssnd
-  ......compare elem:ord rhshead lhsfst
-    ..pair rhshead ..lannihilate rhstail lhs
-                   ..lannihilate rhstail lhssnd
-    ..pair lhsfst  ..lannihilate rhs     lhssnd
+  ...cardinal rhs lhs \headrhs \tailrhs
+  .lhs \fstlhs \sndlhs
+  ......compare elem:ord         headrhs fstlhs
+    ..pair headrhs ..lannihilate tailrhs    lhs
+                   ..lannihilate tailrhs sndlhs
+    ..pair fstlhs  ..lannihilate     rhs sndlhs
 \lannihilate
 ..def \elem:ord \elem ..lmerge    elem:ord ..cons elem nil \sinsert
 ..def \elem:ord \elem ..lunion    elem:ord ..cons elem nil \sinclude
@@ -1839,9 +1903,9 @@ none lhs \divmod
     .\conscons ..rhs
       ..lhs conscons \head \tail false
       ..lhs \head \tail false true
-    \lhshead \lhstail \rhshead \rhstail ..and
-      ..elemequal rhshead lhshead
-      ..listequal rhstail lhstail
+    \headlhs \taillhs \headrhs \tailrhs ..and
+      ..elemequal headrhs headlhs
+      ..listequal tailrhs taillhs
 \list:eq
 ..def .unord \elem:eq \elemcompare ..ord
   .list:eq elem:eq
@@ -1864,7 +1928,7 @@ none lhs \divmod
   .fix \listenumerate ..cons nil
     ....lifta2 list:aptv .cardinal cons listenumerate elemenumerate
 \list:enum
-# `type Short a = Down (List (Down a))`
+# type Short a = Down (List (Down a))
 # the ordering where shorter lists compare greater than longer lists and where
 # `Nil` is the top element instead of the bottom element
 ..def \elem:ord  .down:ord  .list:ord  .down:ord  elem:ord  \short:ord
@@ -2008,44 +2072,44 @@ nat dnil \listof
 # duplicates, they become "set" operations (unless you call `merge`, of course).
 # when choosing between two equal elements, we take the left-hand-side element.
 ..def \elem:ord .fix \merge \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  ...cardinal lhs rhs \lhshead \lhstail
-  ......compare elem:ord rhshead lhshead
-    ..cons rhshead ..merge rhstail lhs
-    ..cons lhshead ..merge rhs     lhstail
-    ..cons lhshead ..merge rhs     lhstail
+  ...cardinal rhs lhs \headrhs \tailrhs
+  ...cardinal lhs rhs \headlhs \taillhs
+  ......compare elem:ord   headrhs headlhs
+    ..cons headrhs ..merge tailrhs     lhs
+    ..cons headlhs ..merge     rhs taillhs
+    ..cons headlhs ..merge     rhs taillhs
 \merge
 ..def \elem:ord .fix \union \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  ...cardinal lhs rhs \lhshead \lhstail
-  ......compare elem:ord rhshead lhshead
-    ..cons rhshead ..union rhstail lhs
-    ..cons lhshead ..union rhstail lhstail
-    ..cons lhshead ..union rhs     lhstail
+  ...cardinal rhs lhs \headrhs \tailrhs
+  ...cardinal lhs rhs \headlhs \taillhs
+  ......compare elem:ord   headrhs headlhs
+    ..cons headrhs ..union tailrhs     lhs
+    ..cons headlhs ..union tailrhs taillhs
+    ..cons headlhs ..union     rhs taillhs
 \union
 ..def \elem:ord .fix \subtract \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  ...cardinal lhs lhs \lhshead \lhstail
-  ......compare elem:ord rhshead lhshead
-                   ..subtract rhstail lhs
-                   ..subtract rhstail lhstail
-    ..cons lhshead ..subtract rhs     lhstail
+  ...cardinal rhs lhs \headrhs \tailrhs
+  ...cardinal lhs lhs \headlhs \taillhs
+  ......compare elem:ord      headrhs headlhs
+                   ..subtract tailrhs     lhs
+                   ..subtract tailrhs taillhs
+    ..cons headlhs ..subtract     rhs taillhs
 \subtract
 ..def \elem:ord .fix \intersect \rhs \lhs
-  ...cardinal rhs rhs \rhshead \rhstail
-  ...cardinal lhs lhs \lhshead \lhstail
-  ......compare elem:ord rhshead lhshead
-                   ..intersect rhstail lhs
-    ..cons lhshead ..intersect rhstail lhstail
-                   ..intersect rhs     lhstail
+  ...cardinal rhs rhs \headrhs \tailrhs
+  ...cardinal lhs lhs \headlhs \taillhs
+  ......compare elem:ord       headrhs headlhs
+                   ..intersect tailrhs     lhs
+    ..cons headlhs ..intersect tailrhs taillhs
+                   ..intersect     rhs taillhs
 \intersect
 ..def \elem:ord .fix \annihilate \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-  ...cardinal lhs rhs \lhshead \lhstail
-  ......compare elem:ord rhshead lhshead
-    ..cons rhshead ..annihilate rhstail lhs
-                   ..annihilate rhstail lhstail
-    ..cons lhshead ..annihilate rhs     lhstail
+  ...cardinal rhs lhs \headrhs \tailrhs
+  ...cardinal lhs rhs \headlhs \taillhs
+  ......compare elem:ord        headrhs headlhs
+    ..cons headrhs ..annihilate tailrhs     lhs
+                   ..annihilate tailrhs taillhs
+    ..cons headlhs ..annihilate     rhs taillhs
 \annihilate
 ..def \elem:ord \elem ..merge    elem:ord ..cons elem nil \insert
 ..def \elem:ord \elem ..union    elem:ord ..cons elem nil \include
@@ -2109,7 +2173,7 @@ id nat dnil \dlistof # refer to `listof`
   .fix \dlistenumerate ..cons dnil
     ....lifta2 list:aptv .cardinal dcons dlistenumerate elemenumerate
 \dlist:enum
-# `type DShort a = Down (DList (Down a))`
+# type DShort a = Down (DList (Down a))
 # the ordering where shorter dlists compare greater than longer dlists and where
 # `DNil` is the top element instead of the bottom element
 ..def \elem:ord  .down:ord  .dlist:ord  .down:ord  elem:ord  \dshort:ord
@@ -2191,48 +2255,71 @@ id nat dnil \dlistof # refer to `listof`
   ...fmap opt:ftor .cons .not head ..head .some tail acc
 \bdec
 ..def .fix \badd \rhs \lhs
-  ...cardinal rhs lhs \rhshead \rhstail
-    ...cardinal lhs rhs \lhshead \lhstail
-      ..cons ..bne rhshead lhshead
-        .....and rhshead lhshead binc id ..badd rhstail lhstail
+  ...cardinal rhs lhs \headrhs \tailrhs
+    ...cardinal lhs rhs \headlhs \taillhs
+      ..cons ..bne headrhs headlhs
+        .....and headrhs headlhs binc id ..badd tailrhs taillhs
 \badd
 ..def .fix \bsub \rhs \lhs
-  ...cardinal rhs .some lhs \rhshead \rhstail
-    ...cardinal lhs ...bisnil rhs none .some nil \lhshead \lhstail
-      ...fmap opt:ftor .cons ..bne rhshead lhshead
-        ..bsub .....bgt rhshead lhshead binc id rhstail lhstail
+  ...cardinal rhs .some lhs \headrhs \tailrhs
+    ...cardinal lhs ...bisnil rhs none .some nil \headlhs \taillhs
+      ...fmap opt:ftor .cons ..bne headrhs headlhs
+        ..bsub .....bgt headrhs headlhs binc id tailrhs taillhs
 \bsub
-..def \rhs \lhs
-  ...cata listf:ftor ...cardinal list nil \head \acc
-    ....head badd kite lhs ..cons false acc
-    rhs
-\bmul
-..def \rhs \lhs
-  ...cata listf:ftor ...cardinal list bone \head \acc
-    ....head bmul kite lhs ..bmul acc acc
-    rhs
-\bpow
+..def \rhs \lhs ...cata listf:ftor ...cardinal list nil
+  \head \acc ....head badd kite lhs ..cons false acc
+rhs \bmul
+..def \rhs \lhs ...cata listf:ftor ...cardinal list bone
+  \head \acc ....head bmul kite lhs ..bmul acc acc
+rhs \bpow
 ..def \rhs \lhs ...cata natf:ftor ..opt ..cardinal bpow lhs bone rhs \btet
 ..def ..cata natf:ftor ..opt .cons false bone \exp2
 ..def ..bluebird len bnorm \log2 # log2 :: Bin -> Maybe Nat
-..def \rhs \lhs
+..def \rhs \lhs ...cata listf:ftor ...cardinal list ..pair nil nil
   # for performance we keep `rem` and `quot` in normal form throughout
-  ...cata listf:ftor ...cardinal list ..pair nil nil
-    \head .unpair \quot ..queerbird .bcons head \rem
-      ....bsub rhs rem
-        ..bluebird .pair ..cons true quot bnorm
-        ..pair ..bcons false quot rem
-    lhs
-\bdivmod
+  \head .unpair \quot ..queerbird .bcons head \rem
+    ....bsub rhs rem ..queerbird bnorm \rem
+      ..pair ..cons  true  quot rem
+      ..pair ..bcons false quot rem
+lhs \bdivmod
 ..def ..blackbird fst bdivmod \bdiv
 ..def ..blackbird snd bdivmod \bmod
+# schoolboy method for square roots two digits at a time, but in binary. for
+# performance we keep `sqrm` in normal form throughout. if `lhs` is in normal
+# form then so will be `sqrt`
+..def \lhs .snd ...cata listf:ftor ...cardinal list
+  # pad the radicand `lhs` to even length by optionally placing a zero in the
+  # reserve. the root-so-far `sqrt` and working remainder `sqrm` begin empty
+  ..pair ...odd .len lhs .some false none ..pair nil nil
+  # take down two digits from the radicand `lhs` and append them to the working
+  # remainder `sqrm`. we do this by way of the reserve.
+  \head .unpair ...cardinal opt .pair .some head \res
+    .unpair \sqrt \sqrm ..pair none
+      # attempt to subtract the root-so-far `sqrt` with zero-one appended from
+      # the working remainder `sqrm`. if successful, append a one onto the root-
+      # so-far `sqrt`; if not, append a zero
+      ..def ..bcons head ..bcons res sqrm \sqrm
+      ..def ..cons true ..cons false sqrt \trial
+      ....bsub trial sqrm ..queerbird bnorm \sqrm
+        ..pair ..cons true  sqrt sqrm
+        ..pair ..cons false sqrt sqrm
+lhs \bsqrtrm
+..def ..bluebird fst bsqrtrm \bsqrt
+..def ..bluebird snd bsqrtrm \bsqrm
+# refer to the comment above `gcd` and `lcm` (the `Nat` implementations)
+..def .fix \bgcd \rhs \lhs ...isnil rhs lhs ..bgcd ..bmod rhs lhs rhs \bgcd
+..def \rhs \lhs ..bmul rhs ..bdiv ..bgcd rhs lhs lhs \blcm
 ..def ..cata listf:ftor ..list ..bool clr mrk true \beven
 ..def ..cata listf:ftor ..list ..bool mrk clr false \bodd # bit in unit's place
 ..def ..cata listf:ftor ..list ..bool tnpi tnot et \btup # trit in unit's place
 ..def .sgrp badd \badd:sgrp
 ..def .sgrp bmul \bmul:sgrp
+..def .sgrp bgcd \bgcd:sgrp
+..def .sgrp blcm \blcm:sgrp
 ..def ..mnid badd:sgrp nil  \badd:mnid
 ..def ..mnid bmul:sgrp bone \bmul:mnid
+..def ..mnid bgcd:sgrp nil  \bgcd:mnid
+..def ..mnid blcm:sgrp bone \blcm:mnid
 ..def ..cata listf:ftor ...cardinal list none
   \head \acc ...head some id ..add acc acc
 \frombin
@@ -2250,6 +2337,7 @@ id nat dnil \dlistof # refer to `listof`
       ..cons ....index .frombin rem digs id $err quot
 \todigs
 
+# def:tape
 # type Tape a = Pair a (Sqr (Stream a))
 # pairs all the way down!
 ..def .unpair \head .unpair \left \right .right \fst \snd
@@ -2281,7 +2369,7 @@ id nat dnil \dlistof # refer to `listof`
         ..stake radius right
 \tape:dbg
 ..def \elem:seq
-  ..pair:seq elem:seq .sqr:seq .stream:seq seq
+  ..pair:seq elem:seq .sqr:seq .stream:seq elem:seq
 \tape:seq # never terminates
 ..def \tails:enum1 \elem:enum
   ..pair:enum elem:enum .enum
@@ -2474,7 +2562,7 @@ id nat dnil \dlistof # refer to `listof`
     \trace \ann ..cofree trace .func ann
 \cofree:ftor
 ..def \trace:altv
-  ..def .aptv:ftor .altv:aptv trace \trace:ftor
+  ..def .aptv:ftor .altv:aptv trace:altv \trace:ftor
   ...aptv
     .cofree:ftor trace:ftor
     \val ..cofree .empty .altv:aptv trace:altv val
@@ -2485,7 +2573,7 @@ id nat dnil \dlistof # refer to `listof`
       cofreefunc
 \cofree:aptv
 ..def \trace:altv
-  ..def .aptv:ftor .altv:aptv trace \trace:ftor
+  ..def .aptv:ftor .altv:aptv trace:altv \trace:ftor
   ..mnad
     .cofree:aptv .altv:aptv trace:altv
     \cofreearg \func
@@ -2511,7 +2599,7 @@ id nat dnil \dlistof # refer to `listof`
 ..def .untvsb \trace:ftor \trace:fldb \tracesequence ...tvsb
   .cofree:ftor trace:ftor
   .cofree:fldb trace:fldb
-  \elem:aptv ..cata .cofreef:ftor trace:ftor .cofree
+  \elem:aptv ..cata .cofreef:ftor trace:ftor .uncofree
     \trace \ann ...fmap .aptv:ftor elem:aptv
       ..cardinal cofree ann
       ..tracesequence elem:aptv trace
@@ -2581,56 +2669,56 @@ id nat dnil \dlistof # refer to `listof`
   oct:aptv
   .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7 \func
     ........oct
-      .oct::0 .func a0
-      .oct::1 .func a1
-      .oct::2 .func a2
-      .oct::3 .func a3
-      .oct::4 .func a4
-      .oct::5 .func a5
-      .oct::6 .func a6
-      .oct::7 .func a7
+      .o0 .func a0
+      .o1 .func a1
+      .o2 .func a2
+      .o3 .func a3
+      .o4 .func a4
+      .o5 .func a5
+      .o6 .func a6
+      .o7 .func a7
 \oct:mnad
 ..def .fldb
-  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-    ..cons a0
-    ..cons a1
-    ..cons a2
-    ..cons a3
-    ..cons a4
-    ..cons a5
-    ..cons a6
-    ..cons a7
+  .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+    ..cons o0
+    ..cons o1
+    ..cons o2
+    ..cons o3
+    ..cons o4
+    ..cons o5
+    ..cons o6
+    ..cons o7
     nil
 \oct:fldb
 ..def ...tvsb
   oct:ftor
   oct:fldb
-  \elem:aptv .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  \elem:aptv .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
     ..def .cardinal .apply elem:aptv \capply
-    ..capply a7
-    ..capply a6
-    ..capply a5
-    ..capply a4
-    ..capply a3
-    ..capply a2
-    ..capply a1
-    ..capply a0
+    ..capply o7
+    ..capply o6
+    ..capply o5
+    ..capply o4
+    ..capply o3
+    ..capply o2
+    ..capply o1
+    ..capply o0
     ..pure elem:aptv oct
 \oct:tvsb
 ..def ..dstv
   oct:ftor
   .unftor \outerfmap \ftoroct
     ........oct
-      ..outerfmap oct::0 ftoroct
-      ..outerfmap oct::1 ftoroct
-      ..outerfmap oct::2 ftoroct
-      ..outerfmap oct::3 ftoroct
-      ..outerfmap oct::4 ftoroct
-      ..outerfmap oct::5 ftoroct
-      ..outerfmap oct::6 ftoroct
-      ..outerfmap oct::7 ftoroct
+      ..outerfmap o0 ftoroct
+      ..outerfmap o1 ftoroct
+      ..outerfmap o2 ftoroct
+      ..outerfmap o3 ftoroct
+      ..outerfmap o4 ftoroct
+      ..outerfmap o5 ftoroct
+      ..outerfmap o6 ftoroct
+      ..outerfmap o7 ftoroct
 \oct:dstv
-..def \func \zero .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+..def \func \zero .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
   ..func
     ..func
       ..func
@@ -2640,28 +2728,28 @@ id nat dnil \dlistof # refer to `listof`
               ..func
                 ..func
                   zero
-                  a0
-                a1
-              a2
-            a3
-          a4
-        a5
-      a6
-    a7
+                  o0
+                o1
+              o2
+            o3
+          o4
+        o5
+      o6
+    o7
 \oct::foldl
-..def \func \zero .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..func a0
-    ..func a1
-      ..func a2
-        ..func a3
-          ..func a4
-            ..func a5
-              ..func a6
-                ..func a7
+..def \func \zero .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..func o0
+    ..func o1
+      ..func o2
+        ..func o3
+          ..func o4
+            ..func o5
+              ..func o6
+                ..func o7
                   zero
 \oct::foldr
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ........oct a7 a6 a5 a4 a3 a2 a1 a0
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ........oct o7 o6 o5 o4 o3 o2 o1 o0
 \oct::rev
 ..def .uneq \elemequal .eq
   .unoct \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
@@ -2695,29 +2783,29 @@ id nat dnil \dlistof # refer to `listof`
   ..pure oct:aptv elembot
 \oct:bndd
 ..def .undbg \elemdebug .dbg
-  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
     \x
-      ..elemdebug a7
-      ..elemdebug a6
-      ..elemdebug a5
-      ..elemdebug a4
-      ..elemdebug a3
-      ..elemdebug a2
-      ..elemdebug a1
-      ..elemdebug a0
+      ..elemdebug o7
+      ..elemdebug o6
+      ..elemdebug o5
+      ..elemdebug o4
+      ..elemdebug o3
+      ..elemdebug o2
+      ..elemdebug o1
+      ..elemdebug o0
     x
 \oct:dbg
 ..def .unseq \elemforce .seq
-  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
     \x
-      ..elemforce a7
-      ..elemforce a6
-      ..elemforce a5
-      ..elemforce a4
-      ..elemforce a3
-      ..elemforce a2
-      ..elemforce a1
-      ..elemforce a0
+      ..elemforce o7
+      ..elemforce o6
+      ..elemforce o5
+      ..elemforce o4
+      ..elemforce o3
+      ..elemforce o2
+      ..elemforce o1
+      ..elemforce o0
     x
 \oct:seq
 ..def .unenum \elemenumerate .enum
@@ -2734,10 +2822,10 @@ id nat dnil \dlistof # refer to `listof`
 ..def .oct:enum bool:enum \u8:enum
 ..def .dbg cons \u8::chr:dbg
 ..def .dbg
-  .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
+  .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
     .\nibble ..bluebird
-      ....nibble a7 a6 a5 a4
-      ....nibble a3 a2 a1 a0
+      ....nibble o7 o6 o5 o4
+      ....nibble o3 o2 o1 o0
     \n3 \n2 \n1 \n0 ..n3
       ..n2 ..n1 ..n0 ,f ,e ..n0 ,d ,c ..n1 ..n0 ,b ,a ..n0 ,9 ,8
       ..n2 ..n1 ..n0 ,7 ,6 ..n0 ,5 ,4 ..n1 ..n0 ,3 ,2 ..n0 ,1 ,0
@@ -2745,95 +2833,95 @@ id nat dnil \dlistof # refer to `listof`
 # perform case analysis on each bit, examining any bit at most once. `and`,
 # `or`, `blt` and `ble` are special cases of case analysis where one branch
 # short-circuits, so we allow those too. memory aid:
-#     `.and aN` --- it is necessary that aN be true
+#     `.and aN` --- it is necessary  that aN be true
 #     `.or  aN` --- it is sufficient that aN be true
-#     `.blt aN` --- it is necessary that aN be false
+#     `.blt aN` --- it is necessary  that aN be false
 #     `.ble aN` --- it is sufficient that aN be false
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..a6
-    ..a4 # isalpha
-      ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
-      ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
-    ..and a5 ..and a4 ..ble a3 ..blt a2 ..blt a1 true # isdigit
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..o6
+    ..o4 # isalpha
+      ..ble o3 ..blt o2 ..ble o1 ..ble o0 false
+      ..or  o3 ..or  o2 ..or  o1 ..or  o0 false
+    ..and o5 ..and o4 ..ble o3 ..blt o2 ..blt o1 true # isdigit
 \isalnum
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..and a6 ..a4
-    ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
-    ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..and o6 ..o4
+    ..ble o3 ..blt o2 ..ble o1 ..ble o0 false
+    ..or  o3 ..or  o2 ..or  o1 ..or  o0 false
 \isalpha
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..blt a6 ..blt a4 ..blt a2 ..blt a1 ..a5
-    ..blt a3 ..blt a0 true
-    ..and a3 ..and a0 true
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..blt o6 ..blt o4 ..blt o2 ..blt o1 ..o5
+    ..blt o3 ..blt o0 true
+    ..and o3 ..and o0 true
 \isblank
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..a6
-    ..and a5 ..and a4 ..and a3 ..and a2 ..and a1 ..and a0 true
-    ..blt a5 ..blt a4 ..blt a3 ..blt a2 ..blt a1 ..blt a0 true # !isprint
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..o6
+    ..and o5 ..and o4 ..and o3 ..and o2 ..and o1 ..and o0 true
+    ..blt o5 ..blt o4 ..blt o3 ..blt o2 ..blt o1 ..blt o0 true # !isprint
 \iscntrl
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..blt a6 ..and a5 ..and a4 ..ble a3 ..blt a2 ..blt a1 true
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..blt o6 ..and o5 ..and o4 ..ble o3 ..blt o2 ..blt o1 true
 \isdigit
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..a6
-    ..ble a5 ..ble a4 ..ble a3 ..ble a2 ..ble a1 ..ble a0 false # isprint
-    ..and a5 ..or  a4 ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..o6
+    ..ble o5 ..ble o4 ..ble o3 ..ble o2 ..ble o1 ..ble o0 false # isprint
+    ..and o5 ..or  o4 ..or  o3 ..or  o2 ..or  o1 ..or  o0 false
 \isgraph
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..and a6 ..and a5 ..a4
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..and o6 ..and o5 ..o4
     # isalpha
-    ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
-    ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
+    ..ble o3 ..blt o2 ..ble o1 ..ble o0 false
+    ..or  o3 ..or  o2 ..or  o1 ..or  o0 false
 \islower
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..a6
-    ..ble a5 ..ble a4 ..ble a3 ..ble a2 ..ble a1 ..ble a0 false
-    ..or  a5 false
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..o6
+    ..ble o5 ..ble o4 ..ble o3 ..ble o2 ..ble o1 ..ble o0 false
+    ..or  o5 false
 \isprint
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..a6
-    ..a4
-      ..and a3 ..a5
-        ..or  a2 ..and a1 ..and a0 true
-        ..a2
-          ..and a1 ..and a0 true
-          ..ble a1 ..ble a0 false
-      ..blt a3 ..blt a2 ..blt a1 ..blt a0 true
-    ..and a5 ..a4
-      ..and a3 ..or  a2 ..or  a1 false
-      ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..o6
+    ..o4
+      ..and o3 ..o5
+        ..or  o2 ..and o1 ..and o0 true
+        ..o2
+          ..and o1 ..and o0 true
+          ..ble o1 ..ble o0 false
+      ..blt o3 ..blt o2 ..blt o1 ..blt o0 true
+    ..and o5 ..o4
+      ..and o3 ..or  o2 ..or  o1 false
+      ..or  o3 ..or  o2 ..or  o1 ..or  o0 false
 \ispunct
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..blt a6 ..blt a4 ..a5
-    ..blt a3 ..blt a2 ..blt a1 ..blt a0 true
-    ..and a3 ..a2
-      ..blt a1 true
-      ..or  a1 ..or  a0 false
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..blt o6 ..blt o4 ..o5
+    ..blt o3 ..blt o2 ..blt o1 ..blt o0 true
+    ..and o3 ..o2
+      ..blt o1 true
+      ..or  o1 ..or  o0 false
 \isspace
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..and a6 ..blt a5 ..a4
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..and o6 ..blt o5 ..o4
     # isalpha
-    ..ble a3 ..blt a2 ..ble a1 ..ble a0 false
-    ..or  a3 ..or  a2 ..or  a1 ..or  a0 false
+    ..ble o3 ..blt o2 ..ble o1 ..ble o0 false
+    ..or  o3 ..or  o2 ..or  o1 ..or  o0 false
 \isupper
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 ..a6
-    ..blt a4 ..blt a3 ..a2
-      ..ble a1 ..ble a0 false
-      ..or  a1 ..or  a0 false
-    ..and a5 ..and a4 ..ble a3 ..blt a2 ..blt a1 true # isdigit
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 ..o6
+    ..blt o4 ..blt o3 ..o2
+      ..ble o1 ..ble o0 false
+      ..or  o1 ..or  o0 false
+    ..and o5 ..and o4 ..ble o3 ..blt o2 ..blt o1 true # isdigit
 \isxdigit
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a7 true
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o7 true
 \isascii
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ........oct a0 a1 a2 a3 a4 true  a6 a7
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ........oct o0 o1 o2 o3 o4 true  o6 o7
 \mklower
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ........oct a0 a1 a2 a3 a4 false a5 a7
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ........oct o0 o1 o2 o3 o4 false o6 o7
 \mkupper
-..def \chr ...isupper chr .mklower chr chr \tolower
-..def \chr ...islower chr .mkupper chr chr \toupper
+..def \chr ....isupper chr mklower id chr \tolower
+..def \chr ....islower chr mkupper id chr \toupper
 ..def \c \rhs \lhs
   ...oct::foldl
     .unpair \c \oct .unpair \rhs \lhs ..pair
@@ -2868,11 +2956,11 @@ id nat dnil \dlistof # refer to `listof`
     ..pair b oct
     arg
 \u8::decb
-..def \p .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..pair a7 ........oct p a0 a1 a2 a3 a4 a5 a6
+..def \p .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..pair o7 ........oct p o0 o1 o2 o3 o4 o5 o6
 \u8::shlp
-..def \c .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..pair a0 ........oct a1 a2 a3 a4 a5 a6 a7 c
+..def \c .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..pair o0 ........oct o1 o2 o3 o4 o5 o6 o7 c
 \u8::shrc
 ..def ..blackbird snd .u8::addc false \u8::add
 ..def ..blackbird snd .u8::subb false \u8::sub
@@ -2883,7 +2971,8 @@ id nat dnil \dlistof # refer to `listof`
 ..def .sgrp u8::add \u8::add:sgrp
 ..def ..mnid u8::add:sgrp $00 \u8::add:mnid
 
-# type String = List u8
+# def:string
+# type String = List U8
 ..def .list:eq   u8:eq   \str:eq
 ..def .list:ord  u8:ord  \str:ord
 ..def .list:bndd u8:bndd \str:bndd
@@ -2896,8 +2985,8 @@ id nat dnil \dlistof # refer to `listof`
 # no need for `Monoid Str`, it'd be isomorphic to `Alternative f =>
 # Monoid (Alt f a)` for `f ~ List` and `a ~ U8`
 
+# def:fn
 # type Fn a b = a -> b
-#
 # the environment monad, models values that depend on a shared environment
 ..def .ftor bluebird \fna:ftor
 ..def ...aptv fna:ftor kestrel starling \fna:aptv # liftA2 = phi
@@ -2965,8 +3054,8 @@ id nat dnil \dlistof # refer to `listof`
 # no need for `Monoid b => Monoid (Fn a b)`, it'd be isomorphic to
 # `(Applicative f, Monoid b) => Monoid (Ap f b)` for `f ~ Fn a`
 
+# def:state
 # type State a b = a -> Pair b a
-#
 # the state monad, models values that mutate shared state
 ..def .ftor
   \func \stateaarg ...fmap fna:ftor ..fmap swapa:ftor func stateaarg
@@ -2990,6 +3079,7 @@ id nat dnil \dlistof # refer to `listof`
 ..def ..fmap fna:ftor fst \seval
 ..def ..fmap fna:ftor snd \sexec
 
+# def:parser
 # type Parser a = String -> Maybe (Pair a String)
 ..def .ftor
   \func \parserarg
@@ -3029,8 +3119,8 @@ id nat dnil \dlistof # refer to `listof`
   ..fmap list:ftor chrp
 \strp
 
+# def:cont
 # type Cont a b = (b -> a) -> a
-#
 # the continuation monad, models interruptable and resumable computations.
 # any monad can be embedded into the continuation monad by partially applying
 # `bind` to obtain a `Cont`. note that `Cont` is not a continuation but rather
@@ -3092,6 +3182,7 @@ id nat dnil \dlistof # refer to `listof`
 ..def \contaval .contaval id \reset
 ..def \usecc \cont ..usecc \val .cont val id \shift
 
+# def:io
 # type IO a = Cont Prog a
 # type Prog = <opaque>
 # the I/O monad is the continuation monad in disguise

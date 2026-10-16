@@ -3,16 +3,16 @@
 
 # given some character, is it in [a-mA-M]?
 # ..def ..bluebird ...clamped u8:ord 'a' 'm' mklower \a-m
-# ..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-#   ..blt a7 ..and a6 ..blt a4 ..a3
-#     ..ble a2 ..ble a1 false
-#     ..or  a2 ..or  a1 ..or  a0 false
+# ..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+#   ..blt o7 ..and o6 ..blt o4 ..o3
+#     ..ble o2 ..ble o1 false
+#     ..or  o2 ..or  o1 ..or  o0 false
 # \a-m
 
 # given a character in [a-zA-Z], is it in [a-mA-M]?
 # ..def ...becard isle ..compare u8:ord 'm' mklower \a-m
-..def .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
-  ..blt a4 ..ble a3 ..ble a2 ..ble a1 false
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
+  ..blt o4 ..ble o3 ..ble o2 ..ble o1 false
 \a-m
 
 .main .callcc \break ..mforever io:mnad

@@ -13,16 +13,14 @@
   .\atomp ...alt parser:altv
     ....lifta2 parser:aptv .kleisli io:mnad atomp bfp
     ..pure parser:aptv .pure io:aptv
-  # force the head of the tape before incrementing or decrementing its value and
-  # before moving to another cell to avoid drowning in unfinished computations.
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '>'
-    ..bluebird .pure io:aptv ...phi .force u8:seq fst leftshift
+    ..bluebird .pure io:aptv  leftshift'
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '<'
-    ..bluebird .pure io:aptv ...phi .force u8:seq fst rightshift
+    ..bluebird .pure io:aptv rightshift'
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '+'
-    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8::inc
+    ..bluebird .pure io:aptv ..fmap swapa:ftor u8::inc
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '-'
-    ..bluebird .pure io:aptv ..fmap swapa:ftor ..starling .force u8:seq u8::dec
+    ..bluebird .pure io:aptv ..fmap swapa:ftor u8::dec
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '.'
     \tape ...fmapk io:ftor tape .putc .fst tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp ','

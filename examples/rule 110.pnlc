@@ -6,12 +6,12 @@
 # decode :: U8 -> Tape Bool -> Bool
 # decode a Wolfram code into a function that maps an infinite neighborhood of a
 # cell to the cell's next state
-..def .unoct \r0 \r1 \r2 \r3 \r4 \r5 \r6 \r7
+..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
   # extract a radius-one neighborhood `(left, head, right)` from the infinite
   # neighborhood. interpret it as a 3-bit number and pick out the corresponding
   # bit from `rule`
   .unpair \head .unpair .unpair \left \#sndleft .unpair \right \#sndright
-    ..left ..head ..right r7 r6 ..right r5 r4 ..head ..right r3 r2 ..right r1 r0
+    ..left ..head ..right o7 o6 ..right o5 o4 ..head ..right o3 o2 ..right o1 o0
 \decode
 
 ..def .dbg ..bool ,@ ,_ \cell:dbg
