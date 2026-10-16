@@ -3,10 +3,34 @@
 
 # keep in sync with ../pnlc.c, 'pnlc metacircular.pnlc' and 'pnlc shallow.pnlc'
 
-# PNLC self-interpreter. it can interpret itself, if you're patient enough. it
-# is a close port of pnlc.c and in principle a complete specification of the
-# object language with no semantic leakage from the host interpreter. it stores
-# lambda-terms as trees rather than directed graphs so there is duplicate work
+# PNLC self-interpreter and self-hosted compiler. it can interpret itself or
+# compile itself, if you're patient enough. it is a close port of pnlc.c and
+# in principle a complete specification of the object language with no semantic
+# leakage from the host runtime. it stores lambda-terms as trees rather than
+# directed graphs so there is duplicate work
+
+# data Dig = D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 0 \d0
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 1 \d1
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 2 \d2
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 3 \d3
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 4 \d4
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 5 \d5
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 6 \d6
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 7 \d7
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 8 \d8
+..def \0 \1 \2 \3 \4 \5 \6 \7 \8 \9 9 \d9
+# type Digs = List Dig
+..def
+  ..para listf:ftor ...cardinal list ..cons d1 nil
+    \head .unpair \tail \acc ..cons
+      ..........head d1   d2   d3   d4   d5   d6   d7   d8   d9   d0
+      ..........head tail tail tail tail tail tail tail tail tail acc
+\digs::inc
+..def .dbg
+  ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
+    ..........head ,0 ,1 ,2 ,3 ,4 ,5 ,6 ,7 ,8 ,9
+\digs:dbg
 
 # data Typ = Exit | Err | Emit | Get | Put | Eput | Dump | One | Zero
 ..def \exit \err \emit \get \put \eput \dump \one \zero exit \mkexit
@@ -32,21 +56,21 @@
 ..def .........typ false false false false false false false false true \iszero
 ..def .\n .........typ n n n n .some true .some false n n n none \unput
 ..def .\n .........typ n n n n n n n .some true .some false none \unbit
-..def .dbg .........typ :X :R :M :G :P :E :D :O :Z \typ:dbg
+..def .dbg .........typ ,X ,R ,M ,G ,P ,E ,D ,O ,Z \typ:dbg
 ..def .seq .........typ id id id id id id id id id \typ:seq
 ..def .enum ..........listof nine
   mkzero mkone mkdump mkeput mkput mkget mkemit mkerr mkexit
 \typ:enum
 ..def ..........listof nine
-  .:$ .:e .:x .:i .:t nil # $exit
-  .:$ .:e .:r .:r     nil # $err
-  .:$ .:e .:m .:i .:t nil # $emit
-  .:$ .:g .:e .:t     nil # $get
-  .:$ .:p .:u .:t     nil # $put
-  .:$ .:e .:p .:u .:t nil # $eput
-  .:$ .:d .:u .:m .:p nil # $dump
-  .:# .:o .:n .:e     nil # $one
-  .:# .:z .:e .:r .:o nil # $zero
+  .,$ .,e .,x .,i .,t nil # $exit
+  .,$ .,e .,r .,r     nil # $err
+  .,$ .,e .,m .,i .,t nil # $emit
+  .,$ .,g .,e .,t     nil # $get
+  .,$ .,p .,u .,t     nil # $put
+  .,$ .,e .,p .,u .,t nil # $eput
+  .,$ .,d .,u .,m .,p nil # $dump
+  .,# .,o .,n .,e     nil # $one
+  .,# .,z .,e .,r .,o nil # $zero
 \ios
 
 # data Term = Mrk Term | App Term Term | Lam Term | Var Nat | Io Typ
@@ -61,6 +85,11 @@
 ..def .....term \mrkd none \func \arg none some  \idx none \typ none \body
 ..def .....term \mrkd none \func \arg none \body none some \typ none \idx
 ..def .....term \mrkd none \func \arg none \body none \idx none some \typ
+..def .....term \m true \f \a false \b false \i false \t false \ismrk
+..def .....term \m false \f \a true \b false \i false \t false \isapp
+..def .....term \m false \f \a false \b true \i false \t false \islam
+..def .....term \m false \f \a false \b false \i true \t false \isvar
+..def .....term \m false \f \a false \b false \i false \t true \isio
 # the "base" functor for `Term`, with the property `Fix TermF = Term`.
 # `data TermF a = App a a | Lam a | Var Nat | Io Typ deriving Functor`
 ..def .ftor
@@ -68,7 +97,7 @@
 \termf:ftor
 ..def .dbg
   ..cata termf:ftor
-    .....term .bluebird :# .becard :. .bluebird :\ .debug nat:dbg .debug typ:dbg
+    .....term .bluebird ,# .becard ,. .bluebird ,\ .debug nat:dbg .debug typ:dbg
 \term:dbg
 # forcing appears to have become unnecessary.
 ..def .seq
@@ -79,6 +108,413 @@
 # we maintain the invariant that the child of a `Mrk` is never another `Mrk`
 ..def \term ...mrkd term id term \unmark
 ..def ..bluebird mrk unmark \mark
+
+# codegen :: Term -> DList U8
+..def \topterm
+  # keywords and identifiers we include exactly the ones we use. we we sort
+  # them with :sor/ nil/<CR> and give them trailing spaces only when necessary.
+  # character constants, string literals and header names are not included.
+  # keywords
+  ..def \nil .,c .,h .,a .,r .,  nil \char
+  ..def \nil .,e .,l .,s .,e .,  nil \else
+  ..def \nil .,f .,o .,r nil \for
+  ..def \nil .,g .,o .,t .,o .,  nil \goto
+  ..def \nil .,i .,f nil \if
+  ..def \nil .,i .,n .,t .,  nil \int
+  ..def \nil .,r .,e .,t .,u .,r .,n .,  nil \return
+  ..def \nil .,s .,i .,z .,e .,o .,f .,  nil \sizeof
+  ..def \nil .,s .,t .,a .,t .,i .,c .,  nil \static
+  ..def \nil .,s .,t .,r .,u .,c .,t .,  nil \struct
+  ..def \nil .,u .,n .,i .,o .,n .,  nil \union'
+  ..def \nil .,u .,n .,s .,i .,g .,n .,e .,d .,  nil \unsigned
+  ..def \nil .,v .,o .,i .,d .,  nil \void
+  # standard identifiers
+  ..def \nil .,C .,H .,A .,R .,_ .,B .,I .,T nil \CHAR_BIT
+  ..def \nil .,E .,O .,F nil \EOF
+  ..def \nil .,F .,I .,L .,E nil \FILE
+  ..def \nil .,I .,N .,T .,_ .,M .,A .,X nil \INT_MAX
+  ..def \nil .,N .,U .,L .,L nil \NULL
+  ..def \nil .,a .,b .,o .,r .,t nil \abort
+  ..def \nil .,b .,o .,o .,l .,  nil \bool
+  ..def \nil .,f .,f .,l .,u .,s .,h nil \fflush
+  ..def \nil .,f .,g .,e .,t .,c nil \fgetc
+  ..def \nil .,f .,p .,r .,i .,n .,t .,f nil \fprintf
+  ..def \nil .,f .,p .,u .,t .,c nil \fputc
+  ..def \nil .,f .,r .,e .,e nil \free
+  ..def \nil .,i .,n .,c .,l .,u .,d .,e nil \include
+  ..def \nil .,m .,a .,i .,n nil \main
+  ..def \nil .,m .,a .,l .,l .,o .,c nil \malloc
+  ..def \nil .,s .,t .,d .,e .,r .,r nil \stderr
+  ..def \nil .,s .,t .,d .,i .,n nil \stdin
+  ..def \nil .,s .,t .,d .,o .,u .,t nil \stdout
+  # other identifiers
+  ..def \nil .,a .,r .,g nil \arg
+  ..def \nil .,a .,r .,g .,_ nil \arg_
+  ..def \nil .,b nil \b
+  ..def \nil .,b .,e .,t .,a nil \beta
+  ..def \nil .,b .,e .,t .,a .,_ nil \beta_
+  ..def \nil .,b .,i .,t nil \bit
+  ..def \nil .,b .,o .,d .,y nil \body
+  ..def \nil .,b .,s .,  nil \bs
+  ..def \nil .,b .,s .,_ .,e .,o .,f nil \bs_eof
+  ..def \nil .,b .,s .,_ .,e .,r .,r nil \bs_err
+  ..def \nil .,b .,s .,_ .,g .,e .,t nil \bs_get
+  ..def \nil .,b .,s .,_ .,i .,n nil \bs_in
+  ..def \nil .,b .,s .,_ .,o .,u .,t nil \bs_out
+  ..def \nil .,b .,s .,_ .,p .,u .,t nil \bs_put
+  ..def \nil .,b .,u .,f nil \buf
+  ..def \nil .,c nil \c
+  ..def \nil .,c .,o .,n .,t nil \cont
+  ..def \nil .,d .,e .,c .,r .,e .,f nil \decref
+  ..def \nil .,d .,u .,m .,p nil \dump
+  ..def \nil .,e nil \e
+  ..def \nil .,e .,n .,v nil \env
+  ..def \nil .,e .,n .,v .,l .,e .,n nil \envlen
+  ..def \nil .,e .,o .,f nil \eof
+  ..def \nil .,f .,p nil \fp
+  ..def \nil .,f .,u .,n .,c nil \func
+  ..def \nil .,i .,s .,e .,o .,f nil \iseof
+  ..def \nil .,n nil \n
+  ..def \nil .,o .,n .,e .,_ nil \one_
+  ..def \nil .,r .,e .,f .,c .,o .,u .,n .,t nil \refcount
+  ..def \nil .,t .,o .,p nil \top
+  ..def \nil .,s .,e .,l .,f nil \self
+  ..def \nil .,t .,e .,r .,m nil \term
+  ..def \nil .,t .,h .,r .,e .,a .,d nil \thread
+  ..def \nil .,t .,h .,u .,n .,k .,  nil \thunk
+  ..def \nil .,u nil \u
+  ..def \nil .,m .,e .,m .,o nil \memo
+  ..def \nil .,z .,e .,r .,o nil \zero
+  # constants
+  ..def \nil .,0 nil \0
+  ..def \nil .,1 nil \1
+  # punctuators
+  ..def ,[ \[ ..def ,( \( ..def ,{ \{
+  ..def ,] \] ..def ,) \) ..def ,} \} ..def \nil .,- .,> nil \->
+  ..def \nil .,+ .,+ nil \++ ..def ,& \& ..def ,+ \+
+  ..def \nil .,- .,- nil \-- ..def ,* \* ..def ,- \-
+  ..def \nil .,< .,< nil \<< ..def ,< \< ..def \nil .,= .,= nil \==
+  ..def \nil .,> .,> nil \>> ..def ,> \> ..def \nil .,! .,= nil \!=
+  ..def \nil .,& .,& nil \&&
+  ..def ,? \? ..def ,: \: ..def ,; \;
+  ..def ,= \= ..def \nil .,| .,= nil \|=
+  ..def ,, \,
+
+  # emit :: Term -> Pair (List Nat) (State Digs (DList U8))
+  ..def              ..iterate digs::inc ..cons d0 nil \digsiota
+  ..def ..cata natf:ftor ..opt digs::inc ..cons d0 nil \digs4nat
+  ..def .fix \emit \t .....t
+    \mrkd .emit mrkd
+    \functerm \argterm
+      ..emit functerm \funcenv \funcstr
+      ..emit  argterm  \argenv  \argstr
+      ..def ...union nat:ord funcenv argenv \appenv
+      ..def .digs4nat .len funcenv \funclen
+      ..def .digs4nat .len  argenv  \arglen
+      ..pair appenv
+        ....lifta2 statea:aptv bluebird funcstr
+        ...bind    statea:mnad sget \funcid
+        ....lifta2 statea:aptv bluebird argstr
+        ...bind    statea:mnad sget \argid
+        ...bindk   statea:mnad .smodify digs::inc
+        ...bind    statea:mnad sget \appid
+        ..pure statea:aptv \nil
+          .struct .thunk .* .beta_ ...debug digs:dbg appid .(
+              .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+            .\nil ...isvar .unmark functerm
+              .struct .thunk .* .func .; nil
+              .struct .thunk .* .func .= .malloc .( .sizeof .* .func .+ .sizeof
+                  .arg .* .....and .isnil funcenv .isapp .unmark functerm 1
+                  ..debug digs:dbg funclen .) .;
+              .* .func .= .( .struct .thunk .) .{ .1 .,
+                  ...debug digs:dbg funclen .,
+                  .beta_ ...debug digs:dbg funcid .} .; nil
+            .\nil ...isvar .unmark argterm
+              .struct .thunk .* .arg_ .; nil
+              .struct .thunk .* .arg_ .= .malloc .( .sizeof .* .arg_ .+ .sizeof
+                  .arg .* .....and .isnil argenv .isapp .unmark argterm 1
+                  ..debug digs:dbg arglen .) .;
+              .* .arg_ .= .( .struct .thunk .) .{ .1 .,
+                  ...debug digs:dbg arglen .,
+                  .beta_ ...debug digs:dbg argid .} .; nil
+            ...fold endo:mnid ...fmap list:ftor .unpair \elem \appidx \nil
+              ..def ...fmap opt:ftor digs4nat ...elemindex nat:eq elem funcenv
+              ..def ...fmap opt:ftor digs4nat ...elemindex nat:eq elem  argenv
+              \argidx \funcidx
+                .\nil ...cardinal funcidx nil \funcidx
+                  .\nil ...isnone argidx nil
+                    .self .-> .env .[ ...debug digs:dbg appidx .] .->
+                        .refcount .++ .; nil
+                  ...isvar .unmark functerm
+                    .func .= .self .-> .env .[
+                        ...debug digs:dbg appidx .] .; nil
+                    .func .-> .env .[ ...debug digs:dbg funcidx .] .=
+                        .self .-> .env .[ ...debug digs:dbg appidx .] .; nil
+                ...cardinal argidx nil \argidx
+                  ...isvar .unmark argterm
+                    .arg_ .= .self .-> .env .[
+                        ...debug digs:dbg appidx .] .; nil
+                    .arg_ .-> .env .[ ...debug digs:dbg argidx .] .=
+                        .self .-> .env .[ ...debug digs:dbg appidx .] .; nil
+              ....lifta2 trim:aptv pair appenv ..tolist stream:fldb digsiota
+            .func .= .func .-> .beta .( .func ., .arg_ .) .;
+            .if .( .-- .self .-> .refcount .) .{
+              .self .-> .envlen .= .1 ., .self .-> .beta .= .beta_ .0 .;
+              .( .* .self .-> .env .= .func .) .-> .refcount .++ .;
+            .} .else
+              .free .( .self .) .;
+            .return .func .-> .beta .( .func ., .arg .) .;
+          .} .,\n nil
+    \bodyterm
+      ..emit bodyterm \bodyenv \bodystr
+      ..def ...head bodyenv isnone false \binds
+      ..def ...fmap list:ftor satpred ...delete nat:ord none bodyenv \lamenv
+      ..def .digs4nat .len bodyenv \bodylen
+      ..pair lamenv
+        ....lifta2 statea:aptv bluebird bodystr
+        ...bind    statea:mnad sget \bodyid
+        ...bindk   statea:mnad .smodify digs::inc
+        ...bind    statea:mnad sget \lamid
+        ..pure statea:aptv \nil
+          .struct .thunk .* .beta_ ...debug digs:dbg lamid .(
+              .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+            .\nil ...isvar .unmark bodyterm
+              .struct .thunk .* .body .; nil
+              .struct .thunk .* .body .= .malloc .( .sizeof .* .body .+ .sizeof
+                  .arg .* .....and .isnil bodyenv .isapp .unmark bodyterm 1
+                  ..debug digs:dbg bodylen .) .;
+              .* .body .= .( .struct .thunk .) .{ .1 .,
+                  ...debug digs:dbg bodylen .,
+                  .beta_ ...debug digs:dbg bodyid .} .; nil
+            .\nil ...not binds
+              .decref .( .arg .) .; nil
+              ...isvar .unmark bodyterm
+                .body .= .arg .; nil
+                .body .-> .env .[ .0 .] .= .arg .; nil
+            ...fold endo:mnid ...fmap list:ftor \lamidx \nil
+              ...isvar .unmark bodyterm
+                .( .body .= .self .-> .env .[ ...debug digs:dbg lamidx .]
+                    .) .-> .refcount .++ .; nil
+                .( .body .-> .env .[ ...debug digs:dbg
+                    ...binds digs::inc id lamidx .] .= .self .-> .env .[
+                    ...debug digs:dbg lamidx .] .) .-> .refcount .++ .; nil
+              ..stake .len lamenv digsiota
+            .return .decref .( .self .) ., .body .;
+          .} .,\n nil
+    \idx ..pair ..cons idx nil
+      ..pure statea:aptv dnil
+    \typ
+      ...unput typ \isput ..pair nil
+        ..emit .lam .lam .io mkone \putenv \putstr
+        ...bindk   statea:mnad .smodify digs::inc
+        ...bind    statea:mnad sget \oneid
+        ...bindk   statea:mnad .smodify digs::inc
+        ...bind    statea:mnad sget \zeroid
+        ...bindk   statea:mnad .smodify digs::inc
+        ...bind    statea:mnad sget \putid
+        ....lifta2 statea:aptv queerbird putstr
+        ..pure statea:aptv \nil
+          .struct .thunk .* .beta_ ...debug digs:dbg oneid .(
+            .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+            .if .( .arg .!= .& .thread .) .abort .( .) .;
+            .return .self .;
+          .} .,\n
+          .struct .thunk .* .beta_ ...debug digs:dbg zeroid .(
+            .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+            .if .( .arg .!= .& .thread .) .abort .( .) .;
+            .return .self .;
+          .} .,\n
+          .struct .thunk .* .beta_ ...debug digs:dbg putid .(
+            .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+            .if .( .arg .!= .& .thread .) .abort .( .) .;
+            .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
+            .struct .thunk .* .bit .= .self .-> .env .[ .1 .] .;
+            .cont .-> .refcount .++ ., .bit .-> .refcount .++ .,
+                .decref .( .self .) .;
+            .static .struct .thunk .one_ .= .{ .INT_MAX ., .0 .,
+              .beta_ ...debug digs:dbg oneid .} .;
+            .static .struct .thunk .zero .= .{ .INT_MAX ., .0 .,
+              .beta_ ...debug digs:dbg zeroid .} .;
+            .bit .= .bit .-> .beta .( .bit ., .& .one_ .) .;
+            .bit .= .bit .-> .beta .( .bit ., .& .zero .) .;
+            .bit .= .bit .-> .beta .( .bit ., .& .thread .) .;
+            .if .( .bit .!= .& .one_ .&& .bit .!= .& .zero .) .abort .( .) .;
+            .bs_put .( .& ...isput bs_out bs_err ., .bit .== .& .one_ .) .;
+            .return .cont .-> .beta .( .cont ., .& .thread .) .;
+          .} .,\n nil
+      .........typ
+        ..pair nil
+          ...bindk statea:mnad .smodify digs::inc
+          ...bind  statea:mnad sget \exitid
+          ..pure   statea:aptv \nil
+            .struct .thunk .* .beta_ ...debug digs:dbg exitid .(
+                .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+              .if .( .arg .!= .& .thread .) .abort .( .) .;
+              .return .decref .( .self .) ., .& .thread .;
+            .} .,\n nil
+        ..pair nil
+          ...bindk statea:mnad .smodify digs::inc
+          ...bind  statea:mnad sget \errid
+          ..pure   statea:aptv \nil
+            .struct .thunk .* .beta_ ...debug digs:dbg errid .(
+                .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+              .if .( .arg .!= .& .thread .) .abort .( .) .;
+              .decref .( .self .) ., .abort .( .) .;
+            .} .,\n nil
+        ..pair nil
+          ..emit .lam .io mkzero \emitenv \emitstr
+          ...bindk statea:mnad .smodify digs::inc
+          ...bind  statea:mnad sget \emitid
+          ....lifta2 statea:aptv queerbird emitstr
+          ..pure statea:aptv \nil
+            .struct .thunk .* .beta_ ...debug digs:dbg emitid .(
+                .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+              .if .( .arg .!= .& .thread .) .abort .( .) .;
+              .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
+              .cont .-> .refcount .++ ., .decref .( .self .) .;
+              .return .cont .-> .beta .( .cont ., .& .thread .) .;
+            .} .,\n nil
+        ..pair nil
+          ..emit .lam .lam .var none \eofenv \eofstr
+          ..emit .lam .lam ..app .var one .lam .lam .var one \oneenv \onestr
+          ..emit .lam .lam ..app .var one .lam .lam .var none \zeroenv \zerostr
+          ..emit .lam .io mkzero \getenv \getstr
+          ....lifta2 statea:aptv bluebird eofstr
+          ...bind    statea:mnad sget \eofid
+          ....lifta2 statea:aptv bluebird onestr
+          ...bind    statea:mnad sget \oneid
+          ....lifta2 statea:aptv bluebird zerostr
+          ...bind    statea:mnad sget \zeroid
+          ...bindk   statea:mnad .smodify digs::inc
+          ...bind    statea:mnad sget \getid
+          ....lifta2 statea:aptv queerbird getstr
+          ..pure statea:aptv \nil
+            .struct .thunk .* .beta_ ...debug digs:dbg getid .(
+                .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+              .if .( .arg .!= .& .thread .) .abort .( .) .;
+              .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
+              .cont .-> .refcount .++ ., .decref .( .self .) .;
+              .fflush .( .bs_out .,. .fp .) ., .fflush .( .bs_err .,. .fp .) .;
+              .bool .bit .= .bs_get .( .& .bs_in .) .,
+                  .iseof .= .bs_eof .( .& .bs_in .) .;
+              .static .struct .thunk .eof .= .{ .INT_MAX ., .0 .,
+                  .beta_ ...debug digs:dbg eofid .} .;
+              .static .struct .thunk .one_ .= .{ .INT_MAX ., .0 .,
+                  .beta_ ...debug digs:dbg oneid .} .;
+              .static .struct .thunk .zero .= .{ .INT_MAX ., .0 .,
+                  .beta_ ...debug digs:dbg zeroid .} .;
+              .cont .= .cont .-> .beta .( .cont ., .iseof .? .& .eof .:
+                  .bit .? .& .one_ .: .& .zero .) .;
+              .return .cont .-> .beta .( .cont ., .& .thread .) .;
+            .} .,\n nil
+        ..pair nil ..pure statea:aptv dnil # handled above
+        ..pair nil ..pure statea:aptv dnil # handled above
+        ..pair nil
+          ..emit .lam .lam .io mkone \dumpenv \dumpstr
+          ...bindk   statea:mnad .smodify digs::inc
+          ...bind    statea:mnad sget \dumpid
+          ....lifta2 statea:aptv queerbird dumpstr
+          ..pure statea:aptv \nil
+            .struct .thunk .* .beta_ ...debug digs:dbg dumpid .(
+                .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+              .if .( .arg .!= .& .thread .) .abort .( .) .;
+              .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
+              .struct .thunk .* .term .= .self .-> .env .[ .1 .] .;
+              .dump .( .term .) ., .fputc .( .,' .,\ .,n .,' ., .stderr .) .;
+              .cont .-> .refcount .++ ., .decref .( .self .) .;
+              .return .cont .-> .beta .( .cont ., .& .thread .) .;
+            .} .,\n nil
+        ..pair ..cons none ..cons one nil
+          ..pure statea:aptv dnil
+        ..pair ..cons none nil
+          ..pure statea:aptv dnil
+  \emit
+
+  # keep in sync with pnlc.c
+  ..def \nil
+    .struct .bs .{
+      .FILE .* .fp .;
+      .int .n .;
+      .int .c .;
+    .} .;
+    .bool .bs_eof .( .struct .bs .* .bs .) .{
+      .return .bs .-> .c .== .EOF .;
+    .}
+    .bool .bs_get .( .struct .bs .* .bs .) .{
+      .if .( .bs .-> .n .== .0 .)
+        .bs .-> .n .= .CHAR_BIT ., .bs .-> .c .= .fgetc .( .bs .-> .fp .) .;
+      .return .bs .-> .c .>> .CHAR_BIT .- .bs .-> .n .-- .& .1 .;
+    .}
+    .void .bs_put .( .struct .bs .* .bs ., .bool .bit .) .{
+      .bs .-> .c .|= .bit .<< .bs .-> .n .++ .;
+      .if .( .bs .-> .n .== .CHAR_BIT .)
+        .bs .-> .n .= .0 ., .fputc .( .bs .-> .c ., .bs .-> .fp .) .,
+            .bs .-> .c .= .0 .;
+    .} nil
+  \BITSTREAM_LIB
+
+  .\topstr ..seval topstr ..cons d0 nil
+  ..emit topterm \topenv \topstr
+  ....lifta2 statea:aptv bluebird
+  ..pure statea:aptv \nil
+    .,# .include .,< .,l .,i .,m .,i .,t .,s .,. .,h .,> .,\n
+    .,# .include .,< .,s .,t .,d .,b .,o .,o .,l .,. .,h .,> .,\n
+    .,# .include .,< .,s .,t .,d .,i .,o .,. .,h .,> .,\n
+    .,# .include .,< .,s .,t .,d .,l .,i .,b .,. .,h .,> .,\n
+    .struct .thunk .{
+      .unsigned .refcount ., .envlen .;
+      .struct .thunk .* .( .* .beta .) .( .struct .thunk .* .self .,
+          .struct .thunk .* .arg .) .;
+      .struct .thunk .* .env .[ .] .;
+    .} .;
+    .void .decref .( .struct .thunk .* .thunk .) .{
+    .decref .:
+      .if .( .-- .thunk .-> .refcount .)
+        .return .;
+      .for .( .unsigned .e .= .1 .; .e .< .thunk .-> .envlen .; .e .++ .)
+        .decref .( .thunk .-> .env .[ .e .] .) .;
+      .if .( .thunk .-> .envlen .) .{
+        .struct .thunk .* .env .= .* .thunk .-> .env .;
+        .free .( .thunk .) ., .thunk .= .env .;
+        .goto .decref .;
+      .}
+      .free .( .thunk .) .;
+    .}
+    .void .dump .( .struct .thunk .* .thunk .) .{
+      .union' .{
+        .struct .thunk .* .( .* .beta .) .( .struct .thunk .* .thunk .,
+            .struct .thunk .* .arg .) .;
+        .unsigned .char .buf .[ .sizeof .thunk .-> .beta .] .;
+      .} .u .= .{ .thunk .-> .beta .} .;
+      .for .( .unsigned .b .= .0 .; .b .< .sizeof .u .,. .buf .; .b .++ .)
+        .fprintf .( .stderr .,
+            .," .,% .,0 .,2 .,x .," ., .u .,. .buf .[ .b .] .) .;
+      .fputc .( .,' .,( .,' ., .stderr .) .;
+      .for .( .unsigned .e .= .0 .; .e .< .thunk .-> .envlen .; .e .++ .)
+        .dump .( .thunk .-> .env .[ .e .] .) .;
+      .fputc .( .,' .,) .,' ., .stderr .) .;
+    .} .,\n
+    .BITSTREAM_LIB .,\n
+    .struct .bs .bs_in ., .bs_out ., .bs_err .;
+    .struct .thunk .thread .= .{ .INT_MAX ., .0 ., .NULL .} .;
+    .struct .thunk .* .beta_ .0 .(
+        .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+      .struct .thunk .* .memo .= .* .self .-> .env .;
+      .memo .-> .refcount .++ ., .decref .( .self .) .;
+      .return .memo .-> .beta .( .memo ., .arg .) .;
+    .} .,\n nil
+  ....lifta2 statea:aptv bluebird topstr
+  ...bind    statea:mnad sget \topid
+  ..pure statea:aptv \nil
+    .int .main .( .void .) .{
+      .bs_in .,. .fp .= .stdin ., .bs_out .,. .fp .= .stdout .,
+          .bs_err .,. .fp .= .stderr .;
+      .struct .thunk .* .top .= .malloc .( .sizeof .* .top .+ .sizeof .top .) .;
+      .* .top .= .( .struct .thunk .) .{ .1 ., .0 ., .NULL .} .;
+      .if .( .beta_ ...debug digs:dbg topid .( .top ., .& .thread .) .!=
+          .& .thread .) .abort .( .) .;
+    .} .,\n nil
+\codegen
 
 # beta :: Term -> Nat -> Term -> Term
 ..def \arg .fix \beta \lvl \term .....term
@@ -109,7 +545,7 @@
       ...typ func \type
         ...isdump type
           .\dump ...bindk io:mnad .eputs dump .run cont
-          ...debug term:dbg arg .:\n nil
+          ...debug term:dbg arg .,\n nil
         ...unput type \isput
           ..def ..app ..app arg .io mkone .io mkzero \arg
           ......kleisli opt:mnad typ unbit .whnf arg \bit
@@ -119,7 +555,7 @@
       ..pure io:aptv false
     ...typ func \type
       ...isemit type
-        .run cont
+        ...fmapk io:ftor true .eputs ..codegen cont nil
       ...isget type
         ...bind io:mnad get \optbit
           .\arg .run ..app cont arg
@@ -154,7 +590,7 @@
     ...seqr parser:aptv wsp .termp env
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....memb u8:eq .:. .:\ .:# nil ...head name id '\0'
+    .....memb u8:eq .,. .,\ .,# nil ...head name id '\0'
       .empty parser:altv
       .....elemindex str:eq name env
         ..bluebird .pure parser:aptv var
@@ -175,5 +611,5 @@
 .main
   ...bind io:mnad .getsep '\0' \str ...parse str
     .unpair \term \inp ...bind io:mnad .run term ..bool ..pure io:aptv unit
-      .eputs .:r .:u .:n .:t .:i .:m .:e .:  .:e .:r .:r .:o .:r .:\n nil
-    .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
+      .eputs .,r .,u .,n .,t .,i .,m .,e .,  .,e .,r .,r .,o .,r .,\n nil
+    .eputs .,p .,a .,r .,s .,e .,  .,e .,r .,r .,o .,r .,\n nil

@@ -2,9 +2,9 @@
 # inc:../prelude.pnlc
 
 .main .callcc \break ..mforever io:mnad .callcc \continue
-  ...bindk io:mnad .puts .:E .:n .:t .:e .:r .:
-    .:y .:o .:u .:r .:  .:n .:a .:m .:e .:: .:  nil
+  ...bindk io:mnad .puts .,E .,n .,t .,e .,r .,
+    .,y .,o .,u .,r .,  .,n .,a .,m .,e .,: .,  nil
   ...bind  io:mnad .getto '\n' \name
   ...bindk io:mnad ...when io:aptv .isnil name .break unit
-  ...bindk io:mnad ...when io:aptv ...equal str:eq .:\n nil name .continue unit
-    .puts .:G .:r .:e .:e .:t .:i .:n .:g .:s .:, .:  name
+  ...bindk io:mnad ...when io:aptv ...equal str:eq .,\n nil name .continue unit
+    .puts .,G .,r .,e .,e .,t .,i .,n .,g .,s .,, .,  name

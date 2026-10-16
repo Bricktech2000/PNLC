@@ -54,11 +54,11 @@
 \digs::add
 ..def .dbg
   ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
-    ..........head :0 :1 :2 :3 :4 :5 :6 :7 :8 :9
+    ..........head ,0 ,1 ,2 ,3 ,4 ,5 ,6 ,7 ,8 ,9
 \digs:dbg
 
 .main
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
-    ...fmap stream:ftor .putd ..before:dbg :\n digs:dbg
+    ...fmap stream:ftor .putd ..before:dbg ,\n digs:dbg
       ...ana streamf:ftor .unpair \a \b ..pair a ..pair b ..digs::add a b
         ..pair ..cons d0 nil ..cons d1 nil

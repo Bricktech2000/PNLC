@@ -3,5 +3,5 @@
 
 .main .callcc \break ..mforever io:mnad
   ...bind  io:mnad .getto '\n' \str
-  ...bindk io:mnad .puts ...rev .:\n str kite nil
+  ...bindk io:mnad .puts ...rev .,\n str kite nil
   ...when  io:aptv .isnil str .break unit

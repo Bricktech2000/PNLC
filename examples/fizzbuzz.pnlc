@@ -1,13 +1,13 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-..def .:0 .:1 .:2 .:3 .:4 .:5 .:6 .:7 .:8 .:9 nil \decimal
+..def .,0 .,1 .,2 .,3 .,4 .,5 .,6 .,7 .,8 .,9 nil \decimal
 
 .main
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
     ...fmap stream:ftor \str ...bindk io:mnad .puts str .putc '\n'
       ...cardinal .fmap stream:ftor ..iterate binc nil \bin
-        ...isnil ..bmod bfifteen bin .:F .:i .:z .:z .:B .:u .:z .:z nil
-        ...isnil ..bmod bthree   bin .:F .:i .:z .:z nil
-        ...isnil ..bmod bfive    bin .:B .:u .:z .:z nil
+        ...isnil ..bmod bfifteen bin .,F .,i .,z .,z .,B .,u .,z .,z nil
+        ...isnil ..bmod bthree   bin .,F .,i .,z .,z nil
+        ...isnil ..bmod bfive    bin .,B .,u .,z .,z nil
         .rev ..todigs decimal bin

@@ -115,6 +115,24 @@ cat hook examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnl
 bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc examples/greeting.pnlc nul - | bin/emit
 bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc examples/fib\ dec.pnlc       | bin/emit
 
+# PNLC self-compiler demos
+cat emit examples/no-op\ naked.pnlc        | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat emit examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat emit examples/bit-cat\ naked.pnlc      | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat prelude.pnlc emit examples/primes.pnlc   | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat prelude.pnlc emit examples/fib\ dec.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat prelude.pnlc emit examples/ack.pnlc      | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat prelude.pnlc emit examples/hanoi.pnlc    | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat prelude.pnlc emit examples/fizzbuzz.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat prelude.pnlc emit examples/greeting.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat prelude.pnlc emit examples/pnlc\ definitional.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && cat examples/no-op\ naked.pnlc         | bin/emit
+cat prelude.pnlc emit examples/pnlc\ definitional.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && cat examples/hello\ world\ naked.pnlc  | bin/emit
+cat prelude.pnlc emit examples/pnlc\ definitional.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && cat examples/bit-cat\ naked.pnlc nul - | bin/emit
+cat emit hook examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat emit hook examples/bit-cat\ naked.pnlc      | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc emit examples/greeting.pnlc | bin/emit 2> emit.c && make bin/emit && bin/emit
+bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc emit examples/fib\ dec.pnlc | bin/emit 2> emit.c && make bin/emit && bin/emit
+
 # regex engine demos
 bin/pnlc run prelude.pnlc examples/regex.pnlc
 cat examples/re/comment.re pnlc.c                  | bin/pnlc run prelude.pnlc examples/regex.pnlc

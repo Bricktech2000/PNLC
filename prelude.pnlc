@@ -448,110 +448,110 @@
 ..def ........oct true  true  true  true  true  true  true  true  \$ff
 # a term like `:a` is both a difference list containing the character 'a' and a
 # function that appends the character 'a' to the head of a list
-...vireo $00 .cons $00 \'\0' \:\0
-...vireo $07 .cons $07 \'\a' \:\a
-...vireo $08 .cons $08 \'\b' \:\b
-...vireo $09 .cons $09 \'\t' \:\t
-...vireo $0a .cons $0a \'\n' \:\n
-...vireo $0b .cons $0b \'\v' \:\v
-...vireo $0c .cons $0c \'\f' \:\f
-...vireo $0d .cons $0d \'\r' \:\r
-...vireo $1b .cons $1b \'\e' \:\e
-...vireo \' $20 .cons $20 \' \: # eg .putc .' ' or .puts .:  nil
-...vireo $21 .cons $21 \'!' \:!
-...vireo $22 .cons $22 \'"' \:"
-...vireo $23 .cons $23 \'#' \:#
-...vireo $24 .cons $24 \'$' \:$
-...vireo $25 .cons $25 \'%' \:%
-...vireo $26 .cons $26 \'&' \:&
-...vireo $27 .cons $27 \''' \:'
-...vireo $28 .cons $28 \'(' \:(
-...vireo $29 .cons $29 \')' \:)
-...vireo $2a .cons $2a \'*' \:*
-...vireo $2b .cons $2b \'+' \:+
-...vireo $2c .cons $2c \',' \:,
-...vireo $2d .cons $2d \'-' \:-
-...vireo $2e .cons $2e \'.' \:.
-...vireo $2f .cons $2f \'/' \:/
-...vireo $30 .cons $30 \'0' \:0
-...vireo $31 .cons $31 \'1' \:1
-...vireo $32 .cons $32 \'2' \:2
-...vireo $33 .cons $33 \'3' \:3
-...vireo $34 .cons $34 \'4' \:4
-...vireo $35 .cons $35 \'5' \:5
-...vireo $36 .cons $36 \'6' \:6
-...vireo $37 .cons $37 \'7' \:7
-...vireo $38 .cons $38 \'8' \:8
-...vireo $39 .cons $39 \'9' \:9
-...vireo $3a .cons $3a \':' \::
-...vireo $3b .cons $3b \';' \:;
-...vireo $3c .cons $3c \'<' \:<
-...vireo $3d .cons $3d \'=' \:=
-...vireo $3e .cons $3e \'>' \:>
-...vireo $3f .cons $3f \'?' \:?
-...vireo $40 .cons $40 \'@' \:@
-...vireo $41 .cons $41 \'A' \:A
-...vireo $42 .cons $42 \'B' \:B
-...vireo $43 .cons $43 \'C' \:C
-...vireo $44 .cons $44 \'D' \:D
-...vireo $45 .cons $45 \'E' \:E
-...vireo $46 .cons $46 \'F' \:F
-...vireo $47 .cons $47 \'G' \:G
-...vireo $48 .cons $48 \'H' \:H
-...vireo $49 .cons $49 \'I' \:I
-...vireo $4a .cons $4a \'J' \:J
-...vireo $4b .cons $4b \'K' \:K
-...vireo $4c .cons $4c \'L' \:L
-...vireo $4d .cons $4d \'M' \:M
-...vireo $4e .cons $4e \'N' \:N
-...vireo $4f .cons $4f \'O' \:O
-...vireo $50 .cons $50 \'P' \:P
-...vireo $51 .cons $51 \'Q' \:Q
-...vireo $52 .cons $52 \'R' \:R
-...vireo $53 .cons $53 \'S' \:S
-...vireo $54 .cons $54 \'T' \:T
-...vireo $55 .cons $55 \'U' \:U
-...vireo $56 .cons $56 \'V' \:V
-...vireo $57 .cons $57 \'W' \:W
-...vireo $58 .cons $58 \'X' \:X
-...vireo $59 .cons $59 \'Y' \:Y
-...vireo $5a .cons $5a \'Z' \:Z
-...vireo $5b .cons $5b \'[' \:[
-...vireo $5c .cons $5c \'\' \:\
-...vireo $5d .cons $5d \']' \:]
-...vireo $5e .cons $5e \'^' \:^
-...vireo $5f .cons $5f \'_' \:_
-...vireo $60 .cons $60 \'`' \:`
-...vireo $61 .cons $61 \'a' \:a
-...vireo $62 .cons $62 \'b' \:b
-...vireo $63 .cons $63 \'c' \:c
-...vireo $64 .cons $64 \'d' \:d
-...vireo $65 .cons $65 \'e' \:e
-...vireo $66 .cons $66 \'f' \:f
-...vireo $67 .cons $67 \'g' \:g
-...vireo $68 .cons $68 \'h' \:h
-...vireo $69 .cons $69 \'i' \:i
-...vireo $6a .cons $6a \'j' \:j
-...vireo $6b .cons $6b \'k' \:k
-...vireo $6c .cons $6c \'l' \:l
-...vireo $6d .cons $6d \'m' \:m
-...vireo $6e .cons $6e \'n' \:n
-...vireo $6f .cons $6f \'o' \:o
-...vireo $70 .cons $70 \'p' \:p
-...vireo $71 .cons $71 \'q' \:q
-...vireo $72 .cons $72 \'r' \:r
-...vireo $73 .cons $73 \'s' \:s
-...vireo $74 .cons $74 \'t' \:t
-...vireo $75 .cons $75 \'u' \:u
-...vireo $76 .cons $76 \'v' \:v
-...vireo $77 .cons $77 \'w' \:w
-...vireo $78 .cons $78 \'x' \:x
-...vireo $79 .cons $79 \'y' \:y
-...vireo $7a .cons $7a \'z' \:z
-...vireo $7b .cons $7b \'{' \:{
-...vireo $7c .cons $7c \'|' \:|
-...vireo $7d .cons $7d \'}' \:}
-...vireo $7e .cons $7e \'~' \:~
+...vireo $00 .cons $00 \'\0' \,\0
+...vireo $07 .cons $07 \'\a' \,\a
+...vireo $08 .cons $08 \'\b' \,\b
+...vireo $09 .cons $09 \'\t' \,\t
+...vireo $0a .cons $0a \'\n' \,\n
+...vireo $0b .cons $0b \'\v' \,\v
+...vireo $0c .cons $0c \'\f' \,\f
+...vireo $0d .cons $0d \'\r' \,\r
+...vireo $1b .cons $1b \'\e' \,\e
+...vireo \' $20 .cons $20 \' \, # eg .putc .' ' or .puts .,  nil
+...vireo $21 .cons $21 \'!' \,!
+...vireo $22 .cons $22 \'"' \,"
+...vireo $23 .cons $23 \'#' \,#
+...vireo $24 .cons $24 \'$' \,$
+...vireo $25 .cons $25 \'%' \,%
+...vireo $26 .cons $26 \'&' \,&
+...vireo $27 .cons $27 \''' \,'
+...vireo $28 .cons $28 \'(' \,(
+...vireo $29 .cons $29 \')' \,)
+...vireo $2a .cons $2a \'*' \,*
+...vireo $2b .cons $2b \'+' \,+
+...vireo $2c .cons $2c \',' \,,
+...vireo $2d .cons $2d \'-' \,-
+...vireo $2e .cons $2e \'.' \,.
+...vireo $2f .cons $2f \'/' \,/
+...vireo $30 .cons $30 \'0' \,0
+...vireo $31 .cons $31 \'1' \,1
+...vireo $32 .cons $32 \'2' \,2
+...vireo $33 .cons $33 \'3' \,3
+...vireo $34 .cons $34 \'4' \,4
+...vireo $35 .cons $35 \'5' \,5
+...vireo $36 .cons $36 \'6' \,6
+...vireo $37 .cons $37 \'7' \,7
+...vireo $38 .cons $38 \'8' \,8
+...vireo $39 .cons $39 \'9' \,9
+...vireo $3a .cons $3a \':' \,:
+...vireo $3b .cons $3b \';' \,;
+...vireo $3c .cons $3c \'<' \,<
+...vireo $3d .cons $3d \'=' \,=
+...vireo $3e .cons $3e \'>' \,>
+...vireo $3f .cons $3f \'?' \,?
+...vireo $40 .cons $40 \'@' \,@
+...vireo $41 .cons $41 \'A' \,A
+...vireo $42 .cons $42 \'B' \,B
+...vireo $43 .cons $43 \'C' \,C
+...vireo $44 .cons $44 \'D' \,D
+...vireo $45 .cons $45 \'E' \,E
+...vireo $46 .cons $46 \'F' \,F
+...vireo $47 .cons $47 \'G' \,G
+...vireo $48 .cons $48 \'H' \,H
+...vireo $49 .cons $49 \'I' \,I
+...vireo $4a .cons $4a \'J' \,J
+...vireo $4b .cons $4b \'K' \,K
+...vireo $4c .cons $4c \'L' \,L
+...vireo $4d .cons $4d \'M' \,M
+...vireo $4e .cons $4e \'N' \,N
+...vireo $4f .cons $4f \'O' \,O
+...vireo $50 .cons $50 \'P' \,P
+...vireo $51 .cons $51 \'Q' \,Q
+...vireo $52 .cons $52 \'R' \,R
+...vireo $53 .cons $53 \'S' \,S
+...vireo $54 .cons $54 \'T' \,T
+...vireo $55 .cons $55 \'U' \,U
+...vireo $56 .cons $56 \'V' \,V
+...vireo $57 .cons $57 \'W' \,W
+...vireo $58 .cons $58 \'X' \,X
+...vireo $59 .cons $59 \'Y' \,Y
+...vireo $5a .cons $5a \'Z' \,Z
+...vireo $5b .cons $5b \'[' \,[
+...vireo $5c .cons $5c \'\' \,\
+...vireo $5d .cons $5d \']' \,]
+...vireo $5e .cons $5e \'^' \,^
+...vireo $5f .cons $5f \'_' \,_
+...vireo $60 .cons $60 \'`' \,`
+...vireo $61 .cons $61 \'a' \,a
+...vireo $62 .cons $62 \'b' \,b
+...vireo $63 .cons $63 \'c' \,c
+...vireo $64 .cons $64 \'d' \,d
+...vireo $65 .cons $65 \'e' \,e
+...vireo $66 .cons $66 \'f' \,f
+...vireo $67 .cons $67 \'g' \,g
+...vireo $68 .cons $68 \'h' \,h
+...vireo $69 .cons $69 \'i' \,i
+...vireo $6a .cons $6a \'j' \,j
+...vireo $6b .cons $6b \'k' \,k
+...vireo $6c .cons $6c \'l' \,l
+...vireo $6d .cons $6d \'m' \,m
+...vireo $6e .cons $6e \'n' \,n
+...vireo $6f .cons $6f \'o' \,o
+...vireo $70 .cons $70 \'p' \,p
+...vireo $71 .cons $71 \'q' \,q
+...vireo $72 .cons $72 \'r' \,r
+...vireo $73 .cons $73 \'s' \,s
+...vireo $74 .cons $74 \'t' \,t
+...vireo $75 .cons $75 \'u' \,u
+...vireo $76 .cons $76 \'v' \,v
+...vireo $77 .cons $77 \'w' \,w
+...vireo $78 .cons $78 \'x' \,x
+...vireo $79 .cons $79 \'y' \,y
+...vireo $7a .cons $7a \'z' \,z
+...vireo $7b .cons $7b \'{' \,{
+...vireo $7c .cons $7c \'|' \,|
+...vireo $7d .cons $7d \'}' \,}
+...vireo $7e .cons $7e \'~' \,~
 
  # type class definitions and utility instances
 
@@ -612,14 +612,14 @@
 ..def \left \right .undbg \innerdebug
   .dbg \inner ...becard left .innerdebug inner right
 \within:dbg
-..def ..within:dbg :( :) \paren:dbg
-..def ..within:dbg :[ :] \brack:dbg
-..def ..within:dbg :{ :} \brace:dbg
-..def ..within:dbg :< :> \angle:dbg
-..def ..within:dbg :" :" \quote:dbg
-..def ..within:dbg :' :' \acute:dbg
-..def ..within:dbg :` :` \grave:dbg
-..def ..within:dbg :  :  \space:dbg
+..def ..within:dbg ,( ,) \paren:dbg
+..def ..within:dbg ,[ ,] \brack:dbg
+..def ..within:dbg ,{ ,} \brace:dbg
+..def ..within:dbg ,< ,> \angle:dbg
+..def ..within:dbg ," ," \quote:dbg
+..def ..within:dbg ,' ,' \acute:dbg
+..def ..within:dbg ,` ,` \grave:dbg
+..def ..within:dbg ,  ,  \space:dbg
 
 # sequencing of evaluation order. forcing a call to `force` forces the first
 # argument then evaluates to the second argument. partially applying `force`
@@ -932,7 +932,7 @@ mempty \bmtimes
 ..def .eq bet \bool:eq
 ..def ..ord bool:eq ..psi tcord woet \bool:ord
 ..def ..bndd true false \bool:bndd
-..def .dbg ..bool :1 :0 \bool:dbg
+..def .dbg ..bool ,1 ,0 \bool:dbg
 ..def .seq ..bool id id \bool:seq
 ..def .enum ..cons false ..cons true nil \bool:enum
 # `and:mnid` and `or:mnid` work like `..min:mnid bool:ord bool:bndd` and
@@ -949,7 +949,7 @@ mempty \bmtimes
 ..def .eq ..blackbird isgt teq \cmp:eq
 ..def ..ord cmp:eq tcord \cmp:ord
 ..def ..bndd gt lt \cmp:bndd
-..def .dbg ...cmp :> := :< \cmp:dbg
+..def .dbg ...cmp ,> ,= ,< \cmp:dbg
 ..def .seq ...cmp id id id \cmp:seq
 ..def .enum ..cons lt ..cons et ..cons gt nil \cmp:enum
 # `tand:mnid` and `tor:mnid` work like `..min:mnid cmp:ord cmp:bndd` and
@@ -1023,7 +1023,7 @@ mempty \bmtimes
 \opt:ord
 ..def \elem:bndd ..bndd .some .top elem:bndd none \opt:bndd
 ..def \inner:dbg .dbg
-  ..opt ..blackbird :S .debug inner:dbg :N
+  ..opt ..blackbird ,S .debug inner:dbg ,N
 \opt:dbg
 ..def \elem:seq .seq ..opt .force elem:seq id \opt:seq
 ..def \elem:enum .enum
@@ -1103,7 +1103,7 @@ none lhs \divmod
 \res:ord
 ..def \ok:bndd \err:bndd ..bndd .ok .top ok:bndd .err .bot err:bndd \res:bndd
 ..def .undbg \okdebug .undbg \errdebug .dbg
-  ..res ..blackbird :O okdebug ..blackbird :E errdebug
+  ..res ..blackbird ,O okdebug ..blackbird ,E errdebug
 \res:dbg
 ..def .unseq \okforce .unseq \errforce .seq
   ..res okforce errforce
@@ -1276,7 +1276,7 @@ none lhs \divmod
 \pair:bndd
 ..def \fst:dbg \snd:dbg .dbg
   .unpair \fst \snd
-    ...becard ..debug fst:dbg fst :, ..debug snd:dbg snd
+    ...becard ..debug fst:dbg fst ,, ..debug snd:dbg snd
 \pair:dbg
 ..def \fst:seq \snd:seq .seq
   .unpair \fst \snd
@@ -1509,7 +1509,7 @@ none lhs \divmod
 ..def ..ord int:eq \rhs \lhs ...zsub rhs lhs .cardinal .compare nat:ord \int:ord
 ..def ..pair:bndd nat:bndd .down:bndd nat:bndd \int:bndd
 ..def .nat:dbg \natdebug .dbg
-  .unpair \pos \neg ...becard .natdebug pos :- .natdebug neg
+  .unpair \pos \neg ...becard .natdebug pos ,- .natdebug neg
 \int:dbg
 ..def .sqr:seq nat:seq \int:seq
 ..def .enum
@@ -1849,13 +1849,13 @@ none lhs \divmod
     .\conscons ..rhs
       ..lhs conscons \head \tail lt
       ..lhs \head \tail gt et
-    \lhshead \lhstail \rhshead \rhstail ..telse
-      ..elemcompare rhshead lhshead
-      ..listcompare rhstail lhstail
+    \headlhs \taillhs \headrhs \tailrhs ..telse
+      ..elemcompare headrhs headlhs
+      ..listcompare tailrhs taillhs
 \list:ord
 ..def \elem:bndd ..bndd .fix .cons .top elem:bndd nil \list:bndd
 ..def .undbg \elemdebug .dbg
-  ..cata listf:ftor ..list \head \acc ...becard .elemdebug head :: acc :N
+  ..cata listf:ftor ..list \head \acc ...becard .elemdebug head ,: acc ,N
 \list:dbg
 ..def .unseq \elemforce .seq
   ..cata listf:ftor ..list \head \acc ..bluebird .elemforce head acc id
@@ -1870,6 +1870,22 @@ none lhs \divmod
 ..def \elem:ord  .down:ord  .list:ord  .down:ord  elem:ord  \short:ord
 ..def \elem:bndd .down:bndd .list:bndd .down:bndd elem:bndd \short:bndd
 ..def \elem:enum .down:enum .list:enum .down:enum elem:enum \short:enum
+# an `Applicative` instance that trims the longer list then proceeds pointwise;
+# `liftA2` is a `zipWith`. the `Alternative` instance extends the shorter list
+# using corresponding elements from the longer list then returns the LHS list
+..def ...aptv
+  list:ftor
+  \val .fix .cons val
+  ..cata listf:ftor ...cardinal list \arg nil
+    \func \acc ...cardinal list nil
+      \arg \tail ..cons .func arg .acc tail
+\trim:aptv
+..def ..altv
+  nil
+  ..para listf:ftor ...cardinal list \rhs rhs
+    \lhs .unpair \tail \acc ...cardinal list tail
+      \#rhs \tail ..cons lhs .acc tail
+\trim:altv
 # `listof` is syntax sugar for building lists. these are beta-equivalent:
 #     ....listof three foo bar baz
 #     ..cons foo ..cons bar ..cons baz nil
@@ -1963,11 +1979,11 @@ nat dnil \listof
     .acc \take \drop ..pair ..cons head take drop
     ..pair nil ..cons head tail
 \span
-..def ..cata natf:ftor ...cardinal list ..bluebird some .kestrel nil
+..def ..cata natf:ftor ...cardinal opt ..bluebird some .kestrel nil
   \acc ...cardinal list none
     \head \tail ...fmap opt:ftor .cons head .acc tail
 \take
-..def ..cata natf:ftor ...cardinal list ..bluebird some .pair nil
+..def ..cata natf:ftor ...cardinal opt ..bluebird some .pair nil
   \acc ...cardinal list none
     \head \tail ...fmap opt:ftor ..fmap swapa:ftor .cons head .acc tail
 \splitat
@@ -2160,8 +2176,8 @@ id nat dnil \dlistof # refer to `listof`
     ..buncons bin \n0 \bin ..buncons bin \n1 \bin
     ..buncons bin \n2 \bin ..buncons bin \n3 \bin
     ..queerbird .bindebug bin ..n3
-      ..n2 ..n1 ..n0 :f :e ..n0 :d :c ..n1 ..n0 :b :a ..n0 :9 :8
-      ..n2 ..n1 ..n0 :7 :6 ..n0 :5 :4 ..n1 ..n0 :3 :2 ..n0 :1 :0
+      ..n2 ..n1 ..n0 ,f ,e ..n0 ,d ,c ..n1 ..n0 ,b ,a ..n0 ,9 ,8
+      ..n2 ..n1 ..n0 ,7 ,6 ..n0 ,5 ,4 ..n1 ..n0 ,3 ,2 ..n0 ,1 ,0
 \bin::hex:dbg
 ..def .list:seq bool:seq \bin:seq
 ..def .enum
@@ -2257,11 +2273,11 @@ id nat dnil \dlistof # refer to `listof`
 ..def \radius .undbg \elemdebug .dbg
   .unpair \head .unpair \left \right ...becard
     ..fold .dual:mnid endo:mnid
-      ...fmap list:ftor \elem ..bluebird .elemdebug elem :]
+      ...fmap list:ftor \elem ..bluebird .elemdebug elem ,]
         ..stake radius left
     .elemdebug head
     ..fold endo:mnid
-      ...fmap list:ftor \elem ..bluebird :[ .elemdebug elem
+      ...fmap list:ftor \elem ..bluebird ,[ .elemdebug elem
         ..stake radius right
 \tape:dbg
 ..def \elem:seq
@@ -2386,8 +2402,8 @@ id nat dnil \dlistof # refer to `listof`
 ..def \term:ftor \term:dbg1 .undbg \vardebug
   ..term:dbg1 dbgged:dbg \termdebug .dbg
     ..cata .freef:ftor term:ftor ..free
-      ..blackbird :@ termdebug
-      ..blackbird :$ vardebug
+      ..blackbird ,@ termdebug
+      ..blackbird ,$ vardebug
 \free:dbg
 ..def \term:ftor \term:seq1 .unseq \varforce
   ..term:seq1 forced:seq \termforce .seq
@@ -2443,7 +2459,7 @@ id nat dnil \dlistof # refer to `listof`
 ..def \trace:ftor \trace:dbg1 .undbg \anndebug
   ..trace:dbg1 dbgged:dbg \tracedebug .dbg
     ..cata .cofreef:ftor trace:ftor .uncofree
-      \trace \ann ...becard .tracedebug trace :@ .anndebug ann
+      \trace \ann ...becard .tracedebug trace ,@ .anndebug ann
 \cofree:dbg
 ..def \trace:ftor \trace:seq1 .unseq \annforce
   ..trace:seq1 forced:seq \traceforce .seq
@@ -2723,8 +2739,8 @@ id nat dnil \dlistof # refer to `listof`
       ....nibble a7 a6 a5 a4
       ....nibble a3 a2 a1 a0
     \n3 \n2 \n1 \n0 ..n3
-      ..n2 ..n1 ..n0 :f :e ..n0 :d :c ..n1 ..n0 :b :a ..n0 :9 :8
-      ..n2 ..n1 ..n0 :7 :6 ..n0 :5 :4 ..n1 ..n0 :3 :2 ..n0 :1 :0
+      ..n2 ..n1 ..n0 ,f ,e ..n0 ,d ,c ..n1 ..n0 ,b ,a ..n0 ,9 ,8
+      ..n2 ..n1 ..n0 ,7 ,6 ..n0 ,5 ,4 ..n1 ..n0 ,3 ,2 ..n0 ,1 ,0
 \u8::hex:dbg
 # perform case analysis on each bit, examining any bit at most once. `and`,
 # `or`, `blt` and `ble` are special cases of case analysis where one branch
@@ -2933,7 +2949,7 @@ id nat dnil \dlistof # refer to `listof`
 ..def .unenum \argenumerate .undbg \argdebug .undbg \retdebug .dbg
   \fn ..fold endo:mnid
     ...fmap list:ftor
-      \arg ..bluebird ...becard .argdebug arg := .retdebug .fn arg :;
+      \arg ..bluebird ...becard .argdebug arg ,= .retdebug .fn arg ,;
       argenumerate
 \fn:dbg
 ..def .unenum \argenumerate .unseq \retforce .seq

@@ -54,8 +54,8 @@
 \regex:eq
 ..def .dbg
   ..cata regexf:ftor
-    .....regex .becard :| .bluebird :! .becard :. .bluebird :*
-      \lo \hi \neg ...becard ..neg :~ :-
+    .....regex .becard ,| .bluebird ,! .becard ,. .bluebird ,*
+      \lo \hi \neg ...becard ..neg ,~ ,-
         ..debug u8::hex:dbg lo
         ..debug u8::hex:dbg hi
 \regex:dbg
@@ -125,7 +125,7 @@
 \differentiate
 
 ..def
-  .:\ .:- .:. .:~ .:% .:* .:+ .:? .:| .:& .:! .:( .:) nil
+  .,\ .,- .,. .,~ .,% .,* .,+ .,? .,| .,& .,! .,( .,) nil
 \metachars
 ..def ...alt parser:altv .unsatp ..memb u8:eq metachars
   ...seqr parser:aptv .chrp '\' .satp ..memb u8:eq metachars
@@ -184,7 +184,7 @@
         # ...cardinal list ..pure io:aptv regex
         #   \head \acc ...bind io:mnad acc \regex
         #     ...fmapk io:ftor ..differentiate head regex
-        #       ..putd ..before:dbg :\n regex:dbg regex
+        #       ..putd ..before:dbg ,\n regex:dbg regex
         .\matches ...when io:aptv matches .puts line
         .nullable ...cata listf:ftor ..list differentiate regex word
 \run
@@ -196,4 +196,4 @@
     ......seql parser:aptv regexp eofp str
       # .unpair \regex \inp ..putd regex:dbg regex
       .unpair \regex \inp ...bindk io:mnad emit .run regex
-      .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
+      .eputs .,p .,a .,r .,s .,e .,  .,e .,r .,r .,o .,r .,\n nil

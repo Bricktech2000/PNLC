@@ -30,13 +30,13 @@
       \optchr ...fmapk swapa:ftor ..optchr id '\0' tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '#'
     \tape ...fmapk io:ftor tape
-      ..eputd ..before:dbg :\n ..tape:dbg eight u8::hex:dbg tape
+      ..eputd ..before:dbg ,\n ..tape:dbg eight u8::hex:dbg tape
   ...alt parser:altv ...cardinal .fmap parser:ftor
     ....between parser:aptv .chrp '[' .chrp ']' bfp
     \body .callccs \break ..kforever io:mnad
       \tape ......equal u8:eq '\0' .fst tape break body tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor
-    .unsatp ..memb u8:eq .:[ .:] nil
+    .unsatp ..memb u8:eq .,[ .,] nil
     .pure io:aptv
   .empty parser:altv
 \bfp
@@ -48,4 +48,4 @@
   ...bind io:mnad .getsep '!' \str
     ......seql parser:aptv bfp eofp str
       .unpair \prog \inp ...bindk io:mnad emit .prog ..pure tape:aptv '\0'
-      .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
+      .eputs .,p .,a .,r .,s .,e .,  .,e .,r .,r .,o .,r .,\n nil

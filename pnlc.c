@@ -298,6 +298,7 @@ again:
 #define STRINGIZED(STRINGIZABLE) STRINGIZED_ STRINGIZABLE
 #define EXPANDED(STRINGIZABLE) EXPANDED_ STRINGIZABLE
 
+// keep in sync with 'examples/pnlc definitional.pnlc'
 #define BITSTREAM_LIB                                                          \
   /* when stringizing we don't want macros like `CHAR_BIT` expanding */        \
   STRINGIZABLE(                                                                \

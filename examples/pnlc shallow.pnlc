@@ -12,13 +12,13 @@
 # from the host runtime
 
 ..def ........listof seven
-  ..pair .:$ .:e .:x .:i .:t nil $exit
-  ..pair .:$ .:e .:r .:r     nil $err
-  ..pair .:$ .:e .:m .:i .:t nil $emit
-  ..pair .:$ .:g .:e .:t     nil $get
-  ..pair .:$ .:p .:u .:t     nil $put
-  ..pair .:$ .:e .:p .:u .:t nil $eput
-  ..pair .:$ .:d .:u .:m .:p nil $dump
+  ..pair .,$ .,e .,x .,i .,t nil $exit
+  ..pair .,$ .,e .,r .,r     nil $err
+  ..pair .,$ .,e .,m .,i .,t nil $emit
+  ..pair .,$ .,g .,e .,t     nil $get
+  ..pair .,$ .,p .,u .,t     nil $put
+  ..pair .,$ .,e .,p .,u .,t nil $eput
+  ..pair .,$ .,d .,u .,m .,p nil $dump
 \ios
 
 ..def .unpair \funcenv \func .unpair \argenv \arg
@@ -78,7 +78,7 @@
     ...seqr parser:aptv wsp termp
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....memb u8:eq .:. .:\ .:# nil ...head name id '\0'
+    .....memb u8:eq .,. .,\ .,# nil ...head name id '\0'
       .empty parser:altv
       ..pure parser:aptv .var name
   .empty parser:altv
@@ -100,4 +100,4 @@
 .main
   ...bind io:mnad .getsep '\0' \str ...parse str
     .unpair \prog \inp prog
-    .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
+    .eputs .,p .,a .,r .,s .,e .,  .,e .,r .,r .,o .,r .,\n nil

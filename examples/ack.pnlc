@@ -37,7 +37,7 @@
 
 .main # `sequence` accumulates junk
   ...cata listf:ftor ..list .bindk io:mnad ..pure io:aptv unit
-    ...fmap list:ftor .putd ..before:dbg :\n nat:dbg
+    ...fmap list:ftor .putd ..before:dbg ,\n nat:dbg
       ....lifta2 list:aptv ack
         ..tolist stream:fldb ..iterate some none
         ..stake inner ..iterate some none

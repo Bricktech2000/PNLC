@@ -11,5 +11,5 @@
 
 .main # `sequence` accumulates junk
   ...cata listf:ftor ..list .bindk io:mnad ..pure io:aptv unit
-    ...fmap list:ftor .unpair \src \dst .puts .src .:  .:- .:> .:  .dst .:\n nil
-      .....hanoi :A :B :C eight nil
+    ...fmap list:ftor .unpair \src \dst .puts .src .,  .,- .,> .,  .dst .,\n nil
+      .....hanoi ,A ,B ,C eight nil

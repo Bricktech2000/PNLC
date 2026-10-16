@@ -67,8 +67,8 @@ m \load
 ..def .ios .pop \a \s ...fmapk io:ftor s  .putc a  \put
 ..def .ios .pop \a \s ...fmapk io:ftor s .eputc a \eput
 ..def .prg \s \m ...fmapk io:ftor ..pair s m ...bindk io:mnad
-  ..eputd ..before:dbg :\n .list:dbg u8::hex:dbg s
-  ..eputd ..before:dbg :\n .list:dbg .sqr:dbg u8::hex:dbg m
+  ..eputd ..before:dbg ,\n .list:dbg u8::hex:dbg s
+  ..eputd ..before:dbg ,\n .list:dbg .sqr:dbg u8::hex:dbg m
 \dump
 
 # "immediate" words

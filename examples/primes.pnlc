@@ -49,10 +49,10 @@
   \cont \fst \snd ..pair false .snd cont
 \primes
 
-..def .:0 .:1 .:2 .:3 .:4 .:5 .:6 .:7 .:8 .:9 nil \decimal
+..def .,0 .,1 .,2 .,3 .,4 .,5 .,6 .,7 .,8 .,9 nil \decimal
 
 .main
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
-    ...fmap stream:ftor \bin .puts .rev .:\n ..todigs decimal bin
+    ...fmap stream:ftor \bin .puts .rev .,\n ..todigs decimal bin
       ...fmap stream:ftor fst ..sfilter snd
         ....lifta2 stream:aptv pair ..iterate binc nil primes

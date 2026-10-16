@@ -4,4 +4,4 @@
 # see also hello\ world\ naked.pnlc
 
 .main
-  .puts .:H .:e .:l .:l .:o .:, .:  .:w .:o .:r .:l .:d .:! .:\n nil
+  .puts .,H .,e .,l .,l .,o .,, .,  .,w .,o .,r .,l .,d .,! .,\n nil

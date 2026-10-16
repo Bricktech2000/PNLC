@@ -48,7 +48,7 @@
 \digs::halve
 ..def .dbg
   ..cata listf:ftor ...cardinal list id \head \acc ..bluebird acc
-    ..........head :0 :1 :2 :3 :4 :5 :6 :7 :8 :9
+    ..........head ,0 ,1 ,2 ,3 ,4 ,5 ,6 ,7 ,8 ,9
 \digs:dbg
 
 # parsedigs :: String -> Maybe Digs
@@ -74,6 +74,6 @@
   ...bind io:mnad .getsep '\n' \str
     ...parsedigs str \digs # `sequence` accumulates junk
       ...cata listf:ftor ..list .bindk io:mnad ..pure io:aptv unit
-        ...fmap list:ftor .putd ..before:dbg :\n digs:dbg
+        ...fmap list:ftor .putd ..before:dbg ,\n digs:dbg
           .collatz digs
-      .eputs .:i .:n .:v .:a .:l .:i .:d .:  .:n .:u .:m .:b .:e .:r .:\n nil
+      .eputs .,i .,n .,v .,a .,l .,i .,d .,  .,n .,u .,m .,b .,e .,r .,\n nil

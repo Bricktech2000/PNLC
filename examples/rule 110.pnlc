@@ -14,15 +14,15 @@
     ..left ..head ..right r7 r6 ..right r5 r4 ..head ..right r3 r2 ..right r1 r0
 \decode
 
-..def .dbg ..bool :@ :_ \cell:dbg
+..def .dbg ..bool ,@ ,_ \cell:dbg
 
 ..def ..pair true ..pair   # head
   ..pure stream:aptv false # left
   ..pure stream:aptv false # right
 \single
 ..def ..pair true ..pair
-  .cycle ...bind list:mnad .:P .:: .:K .:/ .:B .:8 .:V .:1 nil .tolist oct:fldb
-  .cycle ...bind list:mnad .:E .:? .:& .:* .:e .:( .:n .:, nil .tolist oct:fldb
+  .cycle ...bind list:mnad .,P .,: .,K .,/ .,B .,8 .,V .,1 nil .tolist oct:fldb
+  .cycle ...bind list:mnad .,E .,? .,& .,* .,e .,( .,n .,, nil .tolist oct:fldb
 \random
 
 # no duplicates up to reflection and complement.
@@ -49,5 +49,5 @@
 
 .main
   ...cata streamf:ftor .unpair .bindk io:mnad # `sequence` accumulates junk
-    ...fmap stream:ftor .putd ..before:dbg :\n ..tape:dbg radius cell:dbg
+    ...fmap stream:ftor .putd ..before:dbg ,\n ..tape:dbg radius cell:dbg
       ..iterate ..extend tape:cmnd .decode rule config
