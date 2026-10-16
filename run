@@ -1,0 +1,6 @@
+# vim:tw=80:ft=pnlc:
+
+# rebinds `$emit` to the identity function so it becomes a no-op. programs that
+# normally compile themselves will be interpreted instead
+
+.\p .p \x x \$emit

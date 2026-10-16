@@ -1,5 +1,5 @@
 # vim:tw=80:ft=pnlc:
-# inc:prelude.pnlc
+# inc:../prelude.pnlc
 
 # reads in n, outputs fib(n).
 
@@ -21,7 +21,7 @@
     \head .unpair \a \b
       ..\a \b ..head ..pair b ..badd a b ..pair a b
       ..badd ..bmul a a ..bmul b b
-      ..bmul b ..badd b ..bmul btwo a
+      ..bmul b ..badd b ..bmul btwo a # note `..bmul btwo a` is constant time
     ..pair bone nil # (1,0)*2 = (1,0) so we tolerate leading zeroes in the input
 \fib
 

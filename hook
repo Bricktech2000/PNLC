@@ -1,12 +1,13 @@
 # vim:tw=80:ft=pnlc:
 
-# installs a hook onto the IO functions that dumps the top-level term just
-# before its effect is executed
+# installs a hook onto the I/O actions that dumps the top-level term just before
+# its effect is executed
 
 .\p .p \term ..$dump term term \$hook
 .\p .p .$hook $exit \$exit
 .\p .p .$hook $err  \$err
-.\p .p \cont .$hook .$get cont \$get
+.\p .p \cont .$hook .$emit cont \$emit
+.\p .p \cont .$hook .$get  cont \$get
 .\p .p \bit  \cont .$hook ..$put  bit  cont \$put
 .\p .p \bit  \cont .$hook ..$eput bit  cont \$eput
 .\p .p \term \cont .$hook ..$dump term cont \$dump

@@ -8,40 +8,45 @@
 # object language with no semantic leakage from the host interpreter. it stores
 # lambda-terms as trees rather than directed graphs so there is duplicate work
 
-# data Typ = Exit | Err | Get | Put | Eput | Dump | One | Zero
-..def \exit \err \get \put \eput \dump \one \zero exit \mkexit
-..def \exit \err \get \put \eput \dump \one \zero err  \mkerr
-..def \exit \err \get \put \eput \dump \one \zero get  \mkget
-..def \exit \err \get \put \eput \dump \one \zero put  \mkput
-..def \exit \err \get \put \eput \dump \one \zero eput \mkeput
-..def \exit \err \get \put \eput \dump \one \zero dump \mkdump
-..def \exit \err \get \put \eput \dump \one \zero one  \mkone
-..def \exit \err \get \put \eput \dump \one \zero zero \mkzero
-..def \exit \err \get \put \eput \dump \one \zero
-  \typ ........typ exit err get put eput dump one zero
+# data Typ = Exit | Err | Emit | Get | Put | Eput | Dump | One | Zero
+..def \exit \err \emit \get \put \eput \dump \one \zero exit \mkexit
+..def \exit \err \emit \get \put \eput \dump \one \zero err  \mkerr
+..def \exit \err \emit \get \put \eput \dump \one \zero emit \mkemit
+..def \exit \err \emit \get \put \eput \dump \one \zero get  \mkget
+..def \exit \err \emit \get \put \eput \dump \one \zero put  \mkput
+..def \exit \err \emit \get \put \eput \dump \one \zero eput \mkeput
+..def \exit \err \emit \get \put \eput \dump \one \zero dump \mkdump
+..def \exit \err \emit \get \put \eput \dump \one \zero one  \mkone
+..def \exit \err \emit \get \put \eput \dump \one \zero zero \mkzero
+..def \exit \err \emit \get \put \eput \dump \one \zero
+  \typ .........typ exit err emit get put eput dump one zero
 \typ
-..def ........typ true false false false false false false false \isexit
-..def ........typ false true false false false false false false \iserr
-..def ........typ false false true false false false false false \isget
-..def ........typ false false false true false false false false \isput
-..def ........typ false false false false true false false false \iseput
-..def ........typ false false false false false true false false \isdump
-..def ........typ false false false false false false true false \isone
-..def ........typ false false false false false false false true \iszero
-..def .dbg ........typ :X :R :G :P :E :D :O :Z \typ:dbg
-..def .seq ........typ id id id id id id id id \typ:seq
-..def .enum .........listof eight
-  mkzero mkone mkdump mkeput mkput mkget mkerr mkexit
+..def .........typ true false false false false false false false false \isexit
+..def .........typ false true false false false false false false false \iserr
+..def .........typ false false true false false false false false false \isemit
+..def .........typ false false false true false false false false false \isget
+..def .........typ false false false false true false false false false \isput
+..def .........typ false false false false false true false false false \iseput
+..def .........typ false false false false false false true false false \isdump
+..def .........typ false false false false false false false true false \isone
+..def .........typ false false false false false false false false true \iszero
+..def .\n .........typ n n n n .some true .some false n n n none \unput
+..def .\n .........typ n n n n n n n .some true .some false none \unbit
+..def .dbg .........typ :X :R :M :G :P :E :D :O :Z \typ:dbg
+..def .seq .........typ id id id id id id id id id \typ:seq
+..def .enum ..........listof nine
+  mkzero mkone mkdump mkeput mkput mkget mkemit mkerr mkexit
 \typ:enum
-..def .........listof eight
-  .:$ .:e .:x .:i .:t nil
-  .:$ .:e .:r .:r     nil
-  .:$ .:g .:e .:t     nil
-  .:$ .:p .:u .:t     nil
-  .:$ .:e .:p .:u .:t nil
-  .:$ .:d .:u .:m .:p nil
-  .:# .:o .:n .:e     nil
-  .:# .:z .:e .:r .:o nil
+..def ..........listof nine
+  .:$ .:e .:x .:i .:t nil # $exit
+  .:$ .:e .:r .:r     nil # $err
+  .:$ .:e .:m .:i .:t nil # $emit
+  .:$ .:g .:e .:t     nil # $get
+  .:$ .:p .:u .:t     nil # $put
+  .:$ .:e .:p .:u .:t nil # $eput
+  .:$ .:d .:u .:m .:p nil # $dump
+  .:# .:o .:n .:e     nil # $one
+  .:# .:z .:e .:r .:o nil # $zero
 \ios
 
 # data Term = Mrk Term | App Term Term | Lam Term | Var Nat | Io Typ
@@ -51,13 +56,11 @@
 ..def \idx       \mrk \app \lam \var \io .var idx       \var
 ..def \typ       \mrk \app \lam \var \io .io typ        \io
 ..def \mrk \app \lam \var \io \term .....term mrk app lam var io \term
-..def .....term some     \func \arg none \body none \idx none \typ none \mrkd
-..def .....term \mrkd nil  cons          \body nil  \idx nil  \typ nil  \unapp
-..def .....term \mrkd none \f \a .some f \body none \idx none \typ none \func
-..def .....term \mrkd none \f \a .some a \body none \idx none \typ none \arg
-..def .....term \mrkd none \func \arg none some     \idx none \typ none \body
-..def .....term \mrkd none \func \arg none \body none some    \typ none \idx
-..def .....term \mrkd none \func \arg none \body none \idx none some    \typ
+..def .....term some  \func \arg none \body none \idx none \typ none \mrkd
+..def .....term \mrkd nil  cons       \body nil  \idx nil  \typ nil  \unapp
+..def .....term \mrkd none \func \arg none some  \idx none \typ none \body
+..def .....term \mrkd none \func \arg none \body none some \typ none \idx
+..def .....term \mrkd none \func \arg none \body none \idx none some \typ
 # the "base" functor for `Term`, with the property `Fix TermF = Term`.
 # `data TermF a = App a a | Lam a | Var Nat | Io Typ deriving Functor`
 ..def .ftor
@@ -107,21 +110,21 @@
         ...isdump type
           .\dump ...bindk io:mnad .eputs dump .run cont
           ...debug term:dbg arg .:\n nil
-        ......phi or isput iseput type
-          ..def ...isput type put eput \put
-          ...typ .whnf ..app ..app arg .io mkone .io mkzero \type
-            ...isone  type ...bindk io:mnad .put true  .run cont
-            ...iszero type ...bindk io:mnad .put false .run cont
-            ..pure io:aptv false
+        ...unput type \isput
+          ..def ..app ..app arg .io mkone .io mkzero \arg
+          ......kleisli opt:mnad typ unbit .whnf arg \bit
+            ...bindk io:mnad ...isput put eput bit .run cont
           ..pure io:aptv false
         ..pure io:aptv false
       ..pure io:aptv false
     ...typ func \type
+      ...isemit type
+        .run cont
       ...isget type
         ...bind io:mnad get \optbit
           .\arg .run ..app cont arg
-          .lam .lam ..optbit
-            \bit ..app .var one .lam .lam .var ..bit one none
+          .lam .lam ..optbit \bit
+            ..app .var one .lam .lam .var ..bit one none
             .var none
       ..pure io:aptv false
     ..pure io:aptv false

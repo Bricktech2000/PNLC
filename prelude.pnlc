@@ -2,13 +2,12 @@
 .\p .p \x \f .f x \def
 
 # this file is organized into a few sections separated by form feeds then
-# further into chunks separated by empty lines. in Vim you can navigate
-# sections with [[ and ]] and chunks with { and }. sum types and product types
-# are Scott encoded. type classes are product types and instances thereof
-# inhabit those types. we keep the names of type classes short, at most four
-# characters, because resolution is done manually; when you see a colon in an
-# identifier, think type class instance. when defining binary operators, we
-# order the parameters so as to be maximally lazy in the second argument;
+# further into chunks separated by empty lines. in Vim you can navigate sections
+# with [[ and ]] and chunks with { and }. sum types and product types are Scott
+# encoded. type classes are implemented using explicit dictionary passing, so we
+# keep their names short, at most four characters; when you see an identifier
+# containing a colon, think type class instance. when defining binary operators,
+# we order the parameters so as to be maximally lazy in the second argument;
 # when an operator is strict in both arguments or can be made lazy in either
 # argument, we order the parameters so as to make partial application useful
 
@@ -3018,7 +3017,8 @@ id nat dnil \dlistof # refer to `listof`
 #
 # the continuation monad, models interruptable and resumable computations.
 # any monad can be embedded into the continuation monad by partially applying
-# `bind` to obtain a `Cont`
+# `bind` to obtain a `Cont`. note that `Cont` is not a continuation but rather
+# a suspended computation
 ..def .ftor
   \func \contaarg \cont .contaarg \arg .cont .func arg
 \conta:ftor
@@ -3047,7 +3047,7 @@ id nat dnil \dlistof # refer to `listof`
 #
 #  E[abort v] ==> v
 # E[callCC f] ==> E[f (x. abort E[x])]
-#  E[label f] ==> E[f (abort E[label f])]
+#  E[label f] ==> E[f (_. abort E[label f])]
 # abort :: a -> Cont a b
 # callCC :: ((c -> Cont a b) -> Cont a c) -> Cont a c
 # callCCS :: ((c -> Cont a b) -> s -> Cont a c) -> s -> Cont a c
@@ -3076,21 +3076,23 @@ id nat dnil \dlistof # refer to `listof`
 ..def \contaval .contaval id \reset
 ..def \usecc \cont ..usecc \val .cont val id \shift
 
-# an `IO a` is a function that takes a continuation and returns "$" functions
-# wrapping the application of the continuation to a value of type `a`.
+# type IO a = Cont Prog a
+# type Prog = <opaque>
+# the I/O monad is the continuation monad in disguise
 #
 # no need for `Monoid a => Monoid (IO a)`, it'd be isomorphic to
 # `(Applicative f, Monoid a) => Monoid (Ap f a)` for `f ~ IO`
 ..def conta:ftor \io:ftor
 ..def conta:aptv \io:aptv
 ..def conta:mnad \io:mnad
-# "$" functions like `$put` expect a continuation that takes no arguments, so
-# we make wrappers of type `IO ()` that expect continuations that take a `unit`.
-# similarly, functions like `$exit` expect no continuation, so we make wrappers
-# of type `IO Void` that throw away the continuation.
+# I/O actions like `$put` expect a continuation that takes no arguments,
+# so we make wrappers of type `IO ()` that expect continuations that take a
+# `unit`. similarly, I/O actions like `$exit` expect no continuation, so we
+# make wrappers of type `IO Void` that throw away the continuation.
 ..def \cont $exit \exit
 ..def \cont $err  \#err # would shadow `err` the data constructor
-..def $get \get
+..def \cont .$emit .cont unit \emit
+..def $get  \get
 ..def \bit  \cont ..$put  bit  .cont unit \put
 ..def \bit  \cont ..$eput bit  .cont unit \eput
 ..def \term \cont ..$dump term .cont unit \dump

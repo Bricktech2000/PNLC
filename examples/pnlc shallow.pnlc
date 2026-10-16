@@ -9,11 +9,12 @@
 # we interpret programs by constructing in the host runtime a lambda-term that's
 # beta-equivalent to the program, then evaluating to it. substitution, beta-
 # reduction, evaluation order, structural sharing, runtime errors are all stolen
-# from the host interpreter
+# from the host runtime
 
-..def .......listof six
+..def ........listof seven
   ..pair .:$ .:e .:x .:i .:t nil $exit
   ..pair .:$ .:e .:r .:r     nil $err
+  ..pair .:$ .:e .:m .:i .:t nil $emit
   ..pair .:$ .:g .:e .:t     nil $get
   ..pair .:$ .:p .:u .:t     nil $put
   ..pair .:$ .:e .:p .:u .:t nil $eput
@@ -55,11 +56,10 @@
   ..pair ..cons name nil id
 \var
 
-# type Term = <opaque>
 # type Env = List String
 # wsp :: Parser String
 # varp :: Parser String
-# termp :: Parser (Pair Env Term)
+# termp :: Parser (Pair Env Prog)
 ..def ..many parser:altv .satp isspace \wsp
 ..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp
 ..def .fix \termp
@@ -88,7 +88,7 @@
 ..def ...bind parser:mnad
   ....between parser:aptv wsp eofp termp .unpair \env \term
     # `abort` here is noteworthy. it reshapes the parsed value from an opaque
-    # `Term` to an `IO Void` so it's compatible with the prelude's IO monad.
+    # `Prog` to an `IO Void` so it's compatible with the prelude's IO monad.
     ...opt \term ..pure parser:aptv .abort term .empty parser:altv
       ...cata listf:ftor ...cardinal list .some term
         \head \acc ...apply opt:aptv acc ...lookup str:eq head ios

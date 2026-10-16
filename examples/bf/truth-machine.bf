@@ -1,2 +1,2 @@
 ,.[-->>+[<]<]<[.]
-https://esolangs.org/wiki/Truth-machine#brainfuck
+[https://esolangs.org/wiki/Truth-machine#brainfuck]

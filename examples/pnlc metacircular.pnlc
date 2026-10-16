@@ -7,11 +7,12 @@
 # feature of the object language is defined by using the corresponding feature
 # of the host language (Reynolds, 1972). it can interpret itself. function
 # application, lambda-abstraction, evaluation order, runtime errors are all
-# stolen from the host interpreter
+# stolen from the host runtime
 
-..def .......listof six
+..def ........listof seven
   ..pair .:$ .:e .:x .:i .:t nil $exit
   ..pair .:$ .:e .:r .:r     nil $err
+  ..pair .:$ .:e .:m .:i .:t nil $emit
   ..pair .:$ .:g .:e .:t     nil $get
   ..pair .:$ .:p .:u .:t     nil $put
   ..pair .:$ .:e .:p .:u .:t nil $eput
@@ -22,11 +23,10 @@
 ..def \body      \env \arg .body ..cons arg env \lam
 ..def \idx       \env ....index idx env id $err \var
 
-# type Term = <opaque>
 # type Env = List String
 # wsp :: Parser String
 # varp :: Parser String
-# termp :: Env -> Parser Term
+# termp :: Env -> Parser Prog
 ..def ..many parser:altv .satp isspace \wsp
 ..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp
 ..def .fix \termp \env
@@ -57,7 +57,7 @@
 # parse :: Parser (IO Void)
 ..def ...fmap parser:ftor
   # `abort` here is noteworthy. it reshapes the parsed value from an opaque
-  # `Term` to an `IO Void` so it's compatible with the prelude's IO monad.
+  # `Prog` to an `IO Void` so it's compatible with the prelude's IO monad.
   \term .abort .term ...fmap list:ftor snd ios
   ....between parser:aptv wsp eofp
     .termp ...fmap list:ftor fst ios

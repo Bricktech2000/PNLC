@@ -61,7 +61,7 @@
 # instruction that will halt the program. now the instruction pointer becomes
 # the head pointer and a new instruction pointer is allocated with value $00
 .drop .inc ..lit $00 .swap
-..repeat
+.emit ..repeat
   .over .load
   .dup ..lit '>' .et ...either .drop
     .over .inc .load .add end

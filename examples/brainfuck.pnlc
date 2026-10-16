@@ -47,5 +47,5 @@
 .main
   ...bind io:mnad .getsep '!' \str
     ......seql parser:aptv bfp eofp str
-      .unpair \prog \inp .prog ..pure tape:aptv '\0'
+      .unpair \prog \inp ...bindk io:mnad emit .prog ..pure tape:aptv '\0'
       .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil

@@ -1,0 +1,5 @@
+# vim:tw=80:ft=pnlc:
+
+# wraps a program in `$emit` so it gets compiled instead of interpreted
+
+.$emit

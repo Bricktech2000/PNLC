@@ -9,8 +9,8 @@ let &l:include = '\sinc:'
 " 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
 
 syntax match pnlcLam '\\\_[[:space:]]*[^[:space:]]\+\_[[:space:]]\+'
-syntax match pnlcIgn '\_[[:space:].]\@<=\\\_[[:space:]]*[.\#]\@=[^[:space:]]\+\_[[:space:]]\+'
-syntax match pnlcIO '\_[[:space:].]\@<=\(\$exit\|\$err\|\$get\|\$put\|\$eput\|\$dump\)\_[[:space:]]\+'
+syntax match pnlcIgn '\_[[:space:].]\@1<=\\\_[[:space:]]*[.\#]\@=[^[:space:]]\+\_[[:space:]]\+'
+syntax match pnlcIO '\_[[:space:].]\@1<=\(\$exit\|\$err\|\$emit\|\$get\|\$put\|\$eput\|\$dump\)\_[[:space:]]\+'
 syntax match pnlcApp0 '
       \\(\(\.\_[[:space:]]*[.\#]\@!\|\\\_[[:space:]]*\)[^[:space:]]\+\_[[:space:]]\+\)*
       \[.\#]\@![^[:space:]]\+\_[[:space:]]\+

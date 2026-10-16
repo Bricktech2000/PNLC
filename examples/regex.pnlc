@@ -195,5 +195,5 @@
   ...bind io:mnad .getsep '\n' \str
     ......seql parser:aptv regexp eofp str
       # .unpair \regex \inp ..putd regex:dbg regex
-      .unpair \regex \inp .run regex
+      .unpair \regex \inp ...bindk io:mnad emit .run regex
       .eputs .:p .:a .:r .:s .:e .:  .:e .:r .:r .:o .:r .:\n nil
