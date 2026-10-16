@@ -1,7 +1,10 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-# keep in sync with ../pnlc.c, 'pnlc metacircular.pnlc' and 'pnlc shallow.pnlc'
+# keep in sync with ../pnlc.c, 'pnlc metacircular.pnlc', 'pnlc nbe.pnlc' and
+# 'pnlc shallow.pnlc'
+
+# keep in sync with 'pnlc nbe.pnlc'
 
 # PNLC self-interpreter and self-hosted compiler. it can interpret itself or
 # compile itself, if you're patient enough. it is a close port of pnlc.c and

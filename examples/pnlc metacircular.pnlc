@@ -1,7 +1,8 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-# keep in sync with ../pnlc.c, 'pnlc definitional.pnlc' and 'pnlc shallow.pnlc'
+# keep in sync with ../pnlc.c, 'pnlc definitional.pnlc', 'pnlc nbe.pnlc' and
+# 'pnlc shallow.pnlc'
 
 # meta-circular PNLC self-interpreter. 'meta-circular' in the sense that each
 # feature of the object language is defined by using the corresponding feature
@@ -19,9 +20,13 @@
   ..pair .,$ .,d .,u .,m .,p nil $dump
 \ios
 
-..def \func \arg \env ..func env .arg env \app
-..def \body      \env \arg .body ..cons arg env \lam
-..def \idx       \env ....index idx env id $err \var
+# type Ctx = List Prog
+# app :: (Ctx -> Prog) -> (Ctx -> Prog) -> (Ctx -> Prog)
+# lam :: (Ctx -> Prog) -> (Ctx -> Prog)
+# var :: Nat -> (Ctx -> Prog)
+..def \func \arg \ctx ..func ctx .arg ctx \app
+..def \body      \ctx \arg .body ..cons arg ctx \lam
+..def \idx       \ctx ...opt id $err ..index idx ctx \var
 
 # type Env = List String
 # wsp :: Parser String

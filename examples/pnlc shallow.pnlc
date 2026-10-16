@@ -1,8 +1,8 @@
 # vim:tw=80:ft=pnlc:
 # inc:../prelude.pnlc
 
-# keep in sync with ../pnlc.c, 'pnlc definitional.pnlc' and
-# 'pnlc metacircular.pnlc'
+# keep in sync with ../pnlc.c, 'pnlc definitional.pnlc',
+# 'pnlc metacircular.pnlc' and 'pnlc nbe.pnlc'
 
 # a PNLC self-interpreter, sort of. it can execute itself. I'm not sure what to
 # call it. it's a parser followed by a shallow embedding into the host calculus.

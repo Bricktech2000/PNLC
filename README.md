@@ -97,6 +97,7 @@ bin/pnlc prelude.pnlc emit examples/fib\ dec.pnlc && make bin/emit && bin/emit
 # PNLC self-interpreter demos
 bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 bin/pnlc prelude.pnlc examples/pnlc\ metacircular.pnlc
+bin/pnlc prelude.pnlc examples/pnlc\ nbe.pnlc
 bin/pnlc prelude.pnlc examples/pnlc\ shallow.pnlc
 cat examples/no-op\ naked.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc

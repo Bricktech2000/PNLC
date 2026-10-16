@@ -1,0 +1,179 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# keep in sync with ../pnlc.c, 'pnlc definitional.pnlc',
+# 'pnlc metacircular.pnlc' and 'pnlc shallow.pnlc'
+
+# keep in sync with 'pnlc definitional.pnlc'
+
+# PNLC self-interpreter using normalization-by-evaluation (NbE). the idea of NbE
+# is to evaluate syntax (`Term`) into denotations (`Sem`) in such a way that
+# identity of denotations coincides with semantic equivalence of syntax and that
+# denotations can be reified back into syntax to obtain normal forms. this way
+# we can normalize terms without explicit beta-reduction while retaining control
+# over runtime errors and implementations of I/O actions
+
+# data Typ = Exit | Err | Emit | Get | Put | Eput | Dump | One | Zero
+..def \exit \err \emit \get \put \eput \dump \one \zero exit \mkexit
+..def \exit \err \emit \get \put \eput \dump \one \zero err  \mkerr
+..def \exit \err \emit \get \put \eput \dump \one \zero emit \mkemit
+..def \exit \err \emit \get \put \eput \dump \one \zero get  \mkget
+..def \exit \err \emit \get \put \eput \dump \one \zero put  \mkput
+..def \exit \err \emit \get \put \eput \dump \one \zero eput \mkeput
+..def \exit \err \emit \get \put \eput \dump \one \zero dump \mkdump
+..def \exit \err \emit \get \put \eput \dump \one \zero one  \mkone
+..def \exit \err \emit \get \put \eput \dump \one \zero zero \mkzero
+..def \exit \err \emit \get \put \eput \dump \one \zero
+  \typ .........typ exit err emit get put eput dump one zero
+\typ
+..def .........typ true false false false false false false false false \isexit
+..def .........typ false true false false false false false false false \iserr
+..def .........typ false false true false false false false false false \isemit
+..def .........typ false false false true false false false false false \isget
+..def .........typ false false false false true false false false false \isput
+..def .........typ false false false false false true false false false \iseput
+..def .........typ false false false false false false true false false \isdump
+..def .........typ false false false false false false false true false \isone
+..def .........typ false false false false false false false false true \iszero
+..def .\n .........typ n n n n .some true .some false n n n none \unput
+..def .\n .........typ n n n n n n n .some true .some false none \unbit
+..def .dbg .........typ ,X ,R ,M ,G ,P ,E ,D ,O ,Z \typ:dbg
+..def .seq .........typ id id id id id id id id id \typ:seq
+..def .enum ..........listof nine
+  mkzero mkone mkdump mkeput mkput mkget mkemit mkerr mkexit
+\typ:enum
+..def ..........listof nine
+  .,$ .,e .,x .,i .,t nil # $exit
+  .,$ .,e .,r .,r     nil # $err
+  .,$ .,e .,m .,i .,t nil # $emit
+  .,$ .,g .,e .,t     nil # $get
+  .,$ .,p .,u .,t     nil # $put
+  .,$ .,e .,p .,u .,t nil # $eput
+  .,$ .,d .,u .,m .,p nil # $dump
+  .,# .,o .,n .,e     nil # $one
+  .,# .,z .,e .,r .,o nil # $zero
+\ios
+
+# data Term = App Term Term | Lam         Term | Var Nat  | Io Typ
+# data Sem  = App Sem  Sem  | Lam (Sem -> Sem) | Var Void | Io Typ
+..def \func \arg \app \lam \var \io ..app func arg \app
+..def \body      \app \lam \var \io .lam body      \lam
+..def \idx       \app \lam \var \io .var idx       \var
+..def \typ       \app \lam \var \io .io typ        \io
+..def \app \lam \var \io \term ....term app lam var io \term
+..def ....term cons       \body nil  \idx nil  \typ nil  \unapp
+..def ....term \func \arg none some  \idx none \typ none \body
+..def ....term \func \arg none \body none some \typ none \idx
+..def ....term \func \arg none \body none \idx none some \typ
+# reify :: Sem -> Term
+..def ..fix \reify \lvl ....term
+  \func \arg ..app ..reify lvl func ..reify lvl arg
+  # since `Term` and `Sem` have the same shape and the host language is untyped,
+  # there is no need to reflect `.var .some lvl` into the semantic domain before
+  # sending it to `body`
+  \body .lam ..reify .some lvl .body .var .some lvl
+  \idx .var ..satsub idx lvl
+  \typ .io typ
+none \reify
+# the "base" functor for `Term`, with the property `Fix TermF = Term`.
+# `data TermF a = App a a | Lam a | Var Nat | Io Typ deriving Functor`
+..def .ftor
+  \func ....term ..psi app func ..bluebird lam func var io
+\termf:ftor
+..def .dbg ..cata termf:ftor
+  ....term .becard ,. .bluebird ,\ .debug nat:dbg .debug typ:dbg
+\term:dbg
+# forcing appears to have become unnecessary.
+..def .seq
+  ..cata termf:ftor
+    ....term bluebird id .force nat:seq .force typ:seq
+\term:seq
+
+# type Ctx = List Sem
+# apply :: Sem -> Sem -> Sem
+# doapp :: (Ctx -> Sem) -> (Ctx -> Sem) -> (Ctx -> Sem)
+# dolam :: (Ctx -> Sem) -> (Ctx -> Sem)
+# dovar :: Nat -> (Ctx -> Sem)
+# doio  :: Typ -> (Ctx -> Sem)
+..def \func \arg ....body func id .app func arg \apply
+..def \func \arg \ctx ..apply .func ctx .arg ctx \doapp
+..def \body      \ctx .lam \arg .body ..cons arg ctx \dolam
+..def \idx       \ctx ...opt id $err ..index idx ctx \dovar
+..def \typ       \ctx .io typ \doio
+
+# run :: Sem -> IO Bool
+..def .fix \run \sem
+  ...unapp sem \func \cont
+    ...unapp func \func \arg
+      ...typ func \type
+        ...isdump type
+          .\dump ...bindk io:mnad .eputs dump .run cont
+          ...debug term:dbg .reify arg .,\n nil
+        ...unput type \isput
+          ..def ..apply ..apply arg .io mkone .io mkzero \arg
+          ......kleisli opt:mnad typ unbit arg \bit
+            ...bindk io:mnad ...isput put eput bit .run cont
+          ..pure io:aptv false
+        ..pure io:aptv false
+      ..pure io:aptv false
+    ...typ func \type
+      ...isemit type
+        # unfortunately we can't examine the syntax of `cont` without reifying
+        # it to normal form, so the best we can do is call the host's `$emit`
+        # and cross our fingers
+        ...bindk io:mnad emit .run cont
+      ...isget type
+        ...bind io:mnad get \optbit
+          .\arg .run ..apply cont .arg nil
+          .dolam .dolam ..optbit \bit
+            ..doapp .dovar one .dolam .dolam .dovar ..bit one none
+            .dovar none
+      ..pure io:aptv false
+    ..pure io:aptv false
+  ..pure io:aptv ...typ sem isexit false
+\run
+
+# type Env = List String
+# wsp :: Parser String
+# varp :: Parser String
+# termp :: Env -> Parser (Ctx -> Sem)
+..def ..many parser:altv .satp isspace \wsp
+..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp
+..def .fix \termp \env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '.'
+    ...seqr parser:aptv wsp
+    ....lifta2 parser:aptv doapp .termp env .termp env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '\'
+    ...seqr parser:aptv wsp
+    ...bind parser:mnad varp \name
+    ...fmap parser:ftor dolam .termp ..cons name env
+  ...alt parser:altv
+    ...seqr parser:aptv .chrp '#'
+    ...seqr parser:aptv ..many parser:altv .nonchrp '\n'
+    ...seqr parser:aptv .chrp '\n'
+    ...seqr parser:aptv wsp .termp env
+  ...alt parser:altv
+    ...bind parser:mnad varp \name
+    .....memb u8:eq .,. .,\ .,# nil ...head name id '\0'
+      .empty parser:altv
+      .....elemindex str:eq name env
+        ..bluebird .pure parser:aptv dovar
+        .empty parser:altv
+  .empty parser:altv
+\termp
+
+# parse :: Parser Sem
+..def ...fmap parser:ftor
+  .thrush ...fmap list:ftor io .enumerate .down:enum typ:enum
+  ....between parser:aptv wsp eofp .termp ios
+\parse
+
+# read characters from stdin until a '\0'. we use the character '\0' to end the
+# program string and begin its execution
+.main
+  ...bind io:mnad .getsep '\0' \str ...parse str
+    .unpair \term \inp ...bind io:mnad .run term ..bool ..pure io:aptv unit
+      .eputs .,r .,u .,n .,t .,i .,m .,e .,  .,e .,r .,r .,o .,r .,\n nil
+    .eputs .,p .,a .,r .,s .,e .,  .,e .,r .,r .,o .,r .,\n nil

@@ -6,7 +6,8 @@
 #include <string.h>
 
 // keep in sync with 'examples/pnlc definitional.pnlc',
-// 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
+// 'examples/pnlc metacircular.pnlc', 'examples/pnlc nbe.pnlc' and
+// 'examples/pnlc shallow.pnlc'
 
 enum { TYPE_APP, TYPE_LAM, TYPE_VAR, TYPE_MVAR };
 
@@ -757,7 +758,8 @@ void codegen(FILE *fp, struct term *term, long long visited) {
 #undef P
 
 // keep in sync with pnlc.vim, grammar.bnf, 'examples/pnlc definitional.pnlc',
-// 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
+// 'examples/pnlc metacircular.pnlc', 'examples/pnlc nbe.pnlc' and
+// 'examples/pnlc shallow.pnlc'
 
 void parse_ws(char **prog) {
   while (isspace(**prog))

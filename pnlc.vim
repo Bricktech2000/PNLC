@@ -6,7 +6,8 @@ let &l:define = '\sdef:' . '\|^\(\S\+\s\+\)\{-}\\\ze\S\+\(\s\+\(#.*\)\?\)\?$'
 let &l:include = '\sinc:'
 
 " keep in sync with pnlc.c, grammar.bnf, 'examples/pnlc definitional.pnlc',
-" 'examples/pnlc metacircular.pnlc' and 'examples/pnlc shallow.pnlc'
+" 'examples/pnlc metacircular.pnlc', 'examples/pnlc nbe.pnlc' and
+" 'examples/pnlc shallow.pnlc'
 
 syntax match pnlcLam '\\\_[[:space:]]*[^[:space:]]\+\_[[:space:]]\+'
 syntax match pnlcIgn '\_[[:space:].]\@1<=\\\_[[:space:]]*[.\#]\@=[^[:space:]]\+\_[[:space:]]\+'
