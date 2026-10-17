@@ -55,7 +55,7 @@
 ..def .kestrel false \clr # clear
 ..def ..bool true false \buf # buffer
 ..def ..bool false true \not # invert
-# when updating diadic gates update the Monoid instances too
+# when updating dyadic gates update the Monoid instances too
 ..def ..bool buf clr \and # minimum
 ..def ..bool mrk buf \or  # maximum
 ..def ..bool not clr \bgt # without
@@ -81,50 +81,51 @@
 ..def ..bool et gt \woge # with only greater and equal
 ..def ..bool lt gt \wone # with only not equal
 ..def ..bool lt et \wole # with only lesser and equal
+# the gates with asterisks I couldn't find existing names for
 ..def .kestrel gt \tmrk # mark
 ..def .kestrel et \trdc # redact
 ..def .kestrel lt \tclr # clear
 ..def ...cmp gt et lt \tbuf # buffer
-..def ...cmp gt gt lt \tptb # positive-threshold buffer
-..def ...cmp gt lt lt \tntb # negative-threshold buffer
+..def ...cmp gt gt lt \tptb # positive-threshold buffer *
+..def ...cmp gt lt lt \tntb # negative-threshold buffer *
 ..def ...cmp lt et gt \tnot # invert
 ..def ...cmp lt gt gt \tpti # positive-threshold inverter
 ..def ...cmp lt lt gt \tnti # negative-threshold inverter
 ..def ...cmp gt et gt \tabs # absolute value
 ..def ...cmp lt et lt \tnbs # negative absolute value
 ..def ...cmp lt gt lt \tisz # is zero
-..def ...cmp gt lt gt \tisn # is nonzero
-..def ...cmp gt et et \tclu # clamp up
-..def ...cmp et et lt \tcld # clamp down
-..def ...cmp lt et et \tuci # up-clamped inverter
-..def ...cmp et et gt \tdci # down-clamped inverter
-..def ...cmp gt lt et \tppi # positive-pivot inverter
-..def ...cmp et gt lt \tnpi # negative-pivot inverter
-..def ...cmp lt gt et \tinc # increment
-..def ...cmp et lt gt \tdec # decrement
-..def ...cmp gt gt et \tins # increment and saturate
-..def ...cmp et lt lt \tdes # decrement and saturate
-..def ...cmp et gt et \tinr # increment and redact
-..def ...cmp et lt et \tder # decrement and redact
-..def ...cmp lt lt et \tnss # negative spaceship
-..def ...cmp et gt gt \tpss # positive spaceship
-# when updating diadic gates update the Monoid instances too
+..def ...cmp gt lt gt \tisn # is nonzero *
+..def ...cmp gt et et \tclu # clamp up, forward diode
+..def ...cmp et et lt \tcld # clamp down, reverse diode
+..def ...cmp lt et et \tuci # up-clamped inverter *
+..def ...cmp et et gt \tdci # down-clamped inverter *
+..def ...cmp gt lt et \tppi # positive-pivot inverter *
+..def ...cmp et gt lt \tnpi # negative-pivot inverter *
+..def ...cmp lt gt et \tinc # increment, rotate up
+..def ...cmp et lt gt \tdec # decrement, rotate down
+..def ...cmp gt gt et \tins # increment and saturate *
+..def ...cmp et lt lt \tdes # decrement and saturate *
+..def ...cmp et gt et \tinr # increment and redact *
+..def ...cmp et lt et \tder # decrement and redact *
+..def ...cmp lt lt et \tnss # negative spaceship *
+..def ...cmp et gt gt \tpss # positive spaceship *
+# when updating dyadic gates update the Monoid instances too
 ..def ...cmp tbuf tcld tclr \tand  # minimum
 ..def ...cmp tmrk tclu tbuf \tor   # maximum
 ..def ...cmp tnbs tinr tnbs \tmean # mean
 ..def ...cmp tbuf tppi tpti \txmax # exclusive maximum
 ..def ...cmp tclu trdc tcld \tcons # consensus
 ..def ...cmp tins tbuf tdes \tgull # gullible
-..def ...cmp tdes tbuf tins \tcord # converse order
-..def ...cmp tpss tnot tnss \tord  # order
+..def ...cmp tdes tbuf tins \tcmag # converse magnitude
+..def ...cmp tpss tnot tnss \tmag  # magnitude
 ..def ...cmp tntb tisz tnti \teq   # equality
 ..def ...cmp tnot trdc tbuf \txor  # exclusive or
 ..def ...cmp tbuf trdc tnot \tmul  # multiplication
 ..def ...cmp tinc tbuf tdec \tsum  # addition
-..def ...cmp tdec tbuf tinc \tcsub # converse subtraction
-..def ...cmp tnpi tnot tppi \tsub  # subtraction
-..def ...cmp tmrk tbuf tclr \telse # else, priority left
-..def ...cmp tptb tbuf tntb \tnles # unless, priority right
+..def ...cmp tdec tbuf tinc \tcsub # converse subtraction *
+..def ...cmp tnpi tnot tppi \tsub  # subtraction *
+..def ...cmp tmrk tbuf tclr \telse # else, priority left *
+..def ...cmp tptb tbuf tntb \tnles # unless, priority right *
 
 ..def \val \some \none .some val \some
 ..def      \some \none none      \none
@@ -931,7 +932,7 @@ mempty \bmtimes
 ..def ..mnid void:sgrp void \void:mnid
 
 ..def .eq bet \bool:eq
-..def ..ord bool:eq ..psi tcord woet \bool:ord
+..def ..ord bool:eq ..psi tcmag woet \bool:ord
 ..def ..bndd true false \bool:bndd
 ..def .dbg ..bool ,1 ,0 \bool:dbg
 ..def .seq ..bool id id \bool:seq
@@ -948,7 +949,7 @@ mempty \bmtimes
 ..def ..mnid bet:sgrp false \bet:mnid
 
 ..def .eq ..blackbird isgt teq \cmp:eq
-..def ..ord cmp:eq tcord \cmp:ord
+..def ..ord cmp:eq tcmag \cmp:ord
 ..def ..bndd gt lt \cmp:bndd
 ..def .dbg ...cmp ,> ,= ,< \cmp:dbg
 ..def .seq ...cmp id id id \cmp:seq

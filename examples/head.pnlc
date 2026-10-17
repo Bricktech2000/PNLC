@@ -1,0 +1,10 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# outputs the first ten lines of input. for simplicity we naively read a whole
+# line into memory before outputting it.
+
+.main
+  ...mtimes ..ap:mnid io:aptv unit:mnid
+    ...bind io:mnad .getto '\n' puts
+    ten

@@ -23,6 +23,7 @@
   ..lit $00 ..repeat
     .get .tuck .over .store .inc .swap
     .dup ..lit '\n' .et .not .and end
+  ..lit '\0' .swap .store
   # if input is neither "" (EOF) nor "\n" (empty), greet
   ..lit $00 .load
   .dup ..lit '\n' .et .not .and ..then
@@ -37,10 +38,9 @@
     ..lit  's' .put
     ..lit  ',' .put
     ..lit .' ' .put
-    ..lit $00 ...while
-      .over .over .xor end
+    ..lit $00 ...while .dup .load end
       .dup .load .put .inc end
-    .drop .drop end
+    .drop end
   # if input is "" (EOF), break
   ..lit $00 .load end
 end

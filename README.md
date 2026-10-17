@@ -74,6 +74,7 @@ bin/pnlc prelude.pnlc examples/no-op.pnlc
 bin/pnlc prelude.pnlc examples/hello\ world.pnlc
 bin/pnlc prelude.pnlc examples/bit-cat.pnlc
 bin/pnlc prelude.pnlc examples/chr-cat.pnlc
+bin/pnlc prelude.pnlc examples/head.pnlc
 bin/pnlc prelude.pnlc examples/greeting.pnlc
 bin/pnlc prelude.pnlc examples/truth-machine.pnlc
 bin/pnlc prelude.pnlc examples/reverse.pnlc
@@ -177,6 +178,7 @@ cat examples/bf/fib.bf  | bin/pnlc prelude.pnlc examples/brainfuck.pnlc && make 
 
 # Forth DSL demos
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/cat.f
+bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/head.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/rot13.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/hello\ world.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/truth-machine.f
