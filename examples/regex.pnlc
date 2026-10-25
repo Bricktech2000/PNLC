@@ -8,7 +8,7 @@
 # information.
 
 # type Regex = Union Regex Regex | Compl Regex | Concat Regex Regex | Star Regex
-#            | Range U8 U8 Bool
+#            | Range Byte Byte Bool
 ..def \lhs \rhs    \union \compl \concat \star \range ..union lhs rhs    \union
 ..def \lhs         \union \compl \concat \star \range .compl lhs         \compl
 ..def \lhs \rhs    \union \compl \concat \star \range ..concat lhs rhs   \concat
@@ -25,8 +25,8 @@
 ..def .....regex \l \r kite \l kite \l \r kite \l kite triad          \unrange
 
 # the "base" functor for `Regex`, with the property `Fix RegexF = Regex`.
-# `data RegexF a = Union a a | Compl a | Concat a a | Star a | Range U8 U8 Bool
-#                  deriving Functor`
+# `data RegexF a = Union a a | Compl a | Concat a a | Star a
+#                            | Range Byte Byte Bool deriving Functor`
 ..def .ftor
   \func .....regex
     ..psi union func
@@ -48,24 +48,24 @@
       ..regexequal rhsrhs lhsrhs
     \lhslhs \rhslhs ..regexequal rhslhs lhslhs
     \lhslo \lhshi \lhsneg \rhslo \rhshi \rhsneg
-      ..and ...equal u8:eq rhslo lhslo
-      ..and ...equal u8:eq rhshi lhshi
+      ..and ...equal byte:eq rhslo lhslo
+      ..and ...equal byte:eq rhshi lhshi
       ...equal bool:eq rhsneg lhsneg
 \regex:eq
 ..def .dbg
   ..cata regexf:ftor
     .....regex .becard ,| .bluebird ,! .becard ,. .bluebird ,*
       \lo \hi \neg ...becard ..neg ,~ ,-
-        ..debug u8::hex:dbg lo
-        ..debug u8::hex:dbg hi
+        ..debug byte::hex:dbg lo
+        ..debug byte::hex:dbg hi
 \regex:dbg
 # forcing hasn't been needed so far.
 ..def .seq
   ..cata regexf:ftor
     .....regex bluebird id bluebird id
       \lo \hi \neg ...becard
-        ..force u8:seq lo
-        ..force u8:seq hi
+        ..force byte:seq lo
+        ..force byte:seq hi
         ..force bool:seq neg
 \regex:seq
 
@@ -108,7 +108,7 @@
 \nullable
 # note that this is a rather naive implementation: without structural sharing or
 # derivative caching there will be duplicate work.
-# differentiate :: U8 -> Regex -> Regex
+# differentiate :: Byte -> Regex -> Regex
 ..def \chr ..para regexf:ftor .....regex
   .unpair \lhs \lhsacc .unpair \rhs \rhsacc
     .simplify ..union lhsacc rhsacc
@@ -121,14 +121,14 @@
     .simplify ..concat lhsacc .star lhs
   \lo \hi \neg
     ...bool epsilon emptyset
-      ..bne neg ....clamped u8:ord lo hi chr
+      ..bne neg ....clamped byte:ord lo hi chr
 \differentiate
 
 ..def
   .,\ .,- .,. .,~ .,% .,* .,+ .,? .,| .,& .,! .,( .,) nil
 \metachars
-..def ...alt parser:altv .unsatp ..memb u8:eq metachars
-  ...seqr parser:aptv .chrp '\' .satp ..memb u8:eq metachars
+..def ...alt parser:altv .unsatp ..memb byte:eq metachars
+  ...seqr parser:aptv .chrp '\' .satp ..memb byte:eq metachars
 \symbolp
 ..def \regexp ..fold .alt:mnid parser:altv ....listof three
   ...fmapk parser:ftor univset .chrp '%'
@@ -140,8 +140,8 @@
         ...rapply parser:aptv symbolp
           ...fmap parser:ftor ..opt pair .warbler pair
             ..option parser:altv ...seqr parser:aptv .chrp '-' symbolp
-        .unpair \hi \lo ...islt ...compare u8:ord lo hi
-          ..bluebird ..range .u8::inc hi .u8::dec lo not
+        .unpair \hi \lo ...islt ...compare byte:ord lo hi
+          ..bluebird ..range .byte::inc hi .byte::dec lo not
           ..range lo hi
 \atomp
 ..def \regexp
@@ -179,7 +179,7 @@
   .callcc \break ..mforever io:mnad
     ...bind io:mnad .getto '\n' \line
       ...cardinal .rev line .break unit \head \tail
-        ..def .......equal u8:eq '\n' head kite cons head tail \word
+        ..def .......equal byte:eq '\n' head kite cons head tail \word
         # .\alg ...cata listf:ftor alg word
         # ...cardinal list ..pure io:aptv regex
         #   \head \acc ...bind io:mnad acc \regex

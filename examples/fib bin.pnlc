@@ -29,7 +29,7 @@
 
 .main
   ...bind io:mnad .getsep '\n' \str
-    .....fromdigs u8:eq decimal .rev str
+    .....fromdigs byte:eq decimal .rev str
       \bin .puts .rev .,\n ..todigs decimal .fib bin
       # \bin ..putd ..before:dbg ,\n bin:dbg .fib bin
       # \bin ..putd ..before:dbg ,\n bin::hex:dbg .fib bin

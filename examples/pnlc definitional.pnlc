@@ -112,7 +112,7 @@
 ..def \term ...mrkd term id term \unmark
 ..def ..bluebird mrk unmark \mark
 
-# codegen :: Term -> DList U8
+# codegen :: Term -> DList Byte
 ..def \topterm
   # keywords and identifiers we include exactly the ones we use. we we sort
   # them with :sor/ nil/<CR> and give them trailing spaces only when necessary.
@@ -203,7 +203,7 @@
   ..def ,= \= ..def \nil .,| .,= nil \|=
   ..def ,, \,
 
-  # emit :: Term -> Pair (List Nat) (State Digs (DList U8))
+  # emit :: Term -> Pair (List Nat) (State Digs (DList Byte))
   ..def              ..iterate digs::inc ..cons d0 nil \digsiota
   ..def ..cata natf:ftor ..opt digs::inc ..cons d0 nil \digs4nat
   ..def .fix \emit \t .....t
@@ -593,7 +593,7 @@
     ...seqr parser:aptv wsp .termp env
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....memb u8:eq .,. .,\ .,# nil ...head name id '\0'
+    .....memb byte:eq .,. .,\ .,# nil ...head name id '\0'
       .empty parser:altv
       .....elemindex str:eq name env
         ..bluebird .pure parser:aptv var

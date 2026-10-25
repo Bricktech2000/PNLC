@@ -3,7 +3,7 @@
 
 # elementary celullar automata using comonads. the tape has unbounded length
 
-# decode :: U8 -> Tape Bool -> Bool
+# decode :: Byte -> Tape Bool -> Bool
 # decode a Wolfram code into a function that maps an infinite neighborhood of a
 # cell to the cell's next state
 ..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7

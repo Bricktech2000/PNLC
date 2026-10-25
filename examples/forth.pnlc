@@ -5,12 +5,12 @@
 # memory. the parameter stack is separate from the memory. there is no return
 # stack or dictionary.
 
-# type Stack = List U8
-# type Memory = List (Sqr U8)
+# type Stack = List Byte
+# type Memory = List (Sqr Byte)
 # type Prog = Stack -> Memory -> IO (Pair Stack Memory)
 # type Word = Prog -> Prog
 
-# pop :: (U8 -> Stack -> a) -> Stack -> a
+# pop :: (Byte -> Stack -> a) -> Stack -> a
 # like `unpair` but for `Stack`. when we hit `nil` we conjure up a '\0'.
 ..def \func ..list func ..func '\0' nil \pop
 # stk :: (Stack -> Stack) -> Word
@@ -36,26 +36,27 @@
 ..def .stk .pop \a .pop \b .pop \c ..dcons c ..dcons a ..dcons b dnil \rot
 
 # arithmetic and logic
-..def .stk .pop \a .cons .u8::inc a \inc
-..def .stk .pop \a .cons .u8::dec a \dec
-..def .stk .pop \a .cons .u8::shl a \shl
-..def .stk .pop \a .cons .u8::shr a \shr
-..def .stk .pop \a .pop \b .cons ..u8::add a b \add
-..def .stk .pop \a .pop \b .cons ..u8::sub a b \sub
+..def .stk .pop \a .cons .byte::inc a \inc
+..def .stk .pop \a .cons .byte::dec a \dec
+..def .stk .pop \a .cons .byte::shl a \shl
+..def .stk .pop \a .cons .byte::shr a \shr
+..def .stk .pop \a .pop \b .cons ..byte::add a b \add
+..def .stk .pop \a .pop \b .cons ..byte::sub a b \sub
 ..def .stk .pop \a .cons ...fmap oct:ftor not a \not
 ..def .stk .pop \a .pop \b .cons ....lifta2 oct:aptv and a b \and
 ..def .stk .pop \a .pop \b .cons ....lifta2 oct:aptv or  a b \or
 ..def .stk .pop \a .pop \b .cons ....lifta2 oct:aptv bne a b \xor
-..def .stk .pop \a .pop \b .cons ..pure oct:aptv .iset ...compare u8:ord a b \et
-..def .stk .pop \a .pop \b .cons ..pure oct:aptv .isgt ...compare u8:ord a b \gt
-..def .stk .pop \a .pop \b .cons ..pure oct:aptv .islt ...compare u8:ord a b \lt
+..def .stk .pop \a .pop \b .cons ..pure oct:aptv .iset ...compare byte:ord a b
+..def .stk .pop \a .pop \b .cons ..pure oct:aptv .isgt ...compare byte:ord a b
+..def .stk .pop \a .pop \b .cons ..pure oct:aptv .islt ...compare byte:ord a b
+\lt \gt \et
 
 # memory access
 ..def .mem .pop \a \s \m ..pair
-  ..cons .....lookup u8:eq a m id '\0' s
+  ..cons .....lookup byte:eq a m id '\0' s
 m \load
 ..def .mem .pop \a .pop \b \s \m ..pair s
-  ..cons ..pair a b ..filter ..queerbird fst ..unequal u8:eq a m
+  ..cons ..pair a b ..filter ..queerbird fst ..unequal byte:eq a m
 \store
 
 # input and output
@@ -67,8 +68,8 @@ m \load
 ..def .ios .pop \a \s ...fmapk io:ftor s  .putc a  \put
 ..def .ios .pop \a \s ...fmapk io:ftor s .eputc a \eput
 ..def .prg \s \m ...fmapk io:ftor ..pair s m ...bindk io:mnad
-  ..eputd ..before:dbg ,\n .list:dbg u8::hex:dbg s
-  ..eputd ..before:dbg ,\n .list:dbg .sqr:dbg u8::hex:dbg m
+  ..eputd ..before:dbg ,\n .list:dbg byte::hex:dbg s
+  ..eputd ..before:dbg ,\n .list:dbg .sqr:dbg byte::hex:dbg m
 \dump
 
 # "immediate" words
@@ -78,12 +79,12 @@ m \load
 # forever :: Prog -> Word
 # repeat  :: Prog -> Word
 # while   :: Prog -> Prog -> Word
-# lit :: U8 -> Word
+# lit :: Byte -> Word
 # let :: (Word -> Prog) -> Word
 # def :: Prog -> (Word -> Prog) -> Word
-..def \cnsq .prg .pop \a .....unequal u8:eq '\0' a cnsq end \then
-..def \altv .prg .pop \a .....unequal u8:eq '\0' a end altv \else
-..def \cnsq \altv .prg .pop \a .....unequal u8:eq '\0' a cnsq altv \either
+..def \cnsq .prg .pop \a .....unequal byte:eq '\0' a cnsq end \then
+..def \altv .prg .pop \a .....unequal byte:eq '\0' a end altv \else
+..def \cnsq \altv .prg .pop \a .....unequal byte:eq '\0' a cnsq altv \either
 ..def \body .prg .fix \rec ..prg body rec \forever
 ..def \cond .prg .fix \rec ..prg cond ..then rec end \repeat
 ..def \cond \body .prg .fix \rec ..prg cond ..then ..prg body rec end \while

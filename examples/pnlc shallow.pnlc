@@ -78,7 +78,7 @@
     ...seqr parser:aptv wsp termp
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....memb u8:eq .,. .,\ .,# nil ...head name id '\0'
+    .....memb byte:eq .,. .,\ .,# nil ...head name id '\0'
       .empty parser:altv
       ..pure parser:aptv .var name
   .empty parser:altv

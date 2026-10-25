@@ -4,7 +4,7 @@
 # we also support a '#' instruction that outputs a neighborhood of the head to
 # `stderr`. cells wrap at 256. the tape has unbounded length in both directions
 
-# bfp :: Parser (Tape U8 -> IO (Tape U8))
+# bfp :: Parser (Tape Byte -> IO (Tape Byte))
 # all the component parsers also have this type. this way, juxtaposition of
 # Brainfuck program strings corresponds to `liftA2 (>=>)`, that is, penetration
 # of parsers with Kleisli composition
@@ -18,9 +18,9 @@
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '<'
     ..bluebird .pure io:aptv rightshift'
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '+'
-    ..bluebird .pure io:aptv ..fmap swapa:ftor u8::inc
+    ..bluebird .pure io:aptv ..fmap swapa:ftor byte::inc
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '-'
-    ..bluebird .pure io:aptv ..fmap swapa:ftor u8::dec
+    ..bluebird .pure io:aptv ..fmap swapa:ftor byte::dec
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '.'
     \tape ...fmapk io:ftor tape .putc .fst tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp ','
@@ -28,13 +28,13 @@
       \optchr ...fmapk swapa:ftor ..optchr id '\0' tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor .chrp '#'
     \tape ...fmapk io:ftor tape
-      ..eputd ..before:dbg ,\n ..tape:dbg eight u8::hex:dbg tape
+      ..eputd ..before:dbg ,\n ..tape:dbg eight byte::hex:dbg tape
   ...alt parser:altv ...cardinal .fmap parser:ftor
     ....between parser:aptv .chrp '[' .chrp ']' bfp
     \body .callccs \break ..kforever io:mnad
-      \tape ......equal u8:eq '\0' .fst tape break body tape
+      \tape ......equal byte:eq '\0' .fst tape break body tape
   ...alt parser:altv ...cardinal .fmapk parser:ftor
-    .unsatp ..memb u8:eq .,[ .,] nil
+    .unsatp ..memb byte:eq .,[ .,] nil
     .pure io:aptv
   .empty parser:altv
 \bfp

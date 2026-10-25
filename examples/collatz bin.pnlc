@@ -13,6 +13,6 @@
 
 .main
   ...bind io:mnad .getsep '\n' \str
-    .....fromdigs u8:eq decimal .rev str
+    .....fromdigs byte:eq decimal .rev str
       \bin .puts .rev .,\n ..todigs decimal .tobin .collatz bin
       .eputs .,i .,n .,v .,a .,l .,i .,d .,  .,n .,u .,m .,b .,e .,r .,\n nil

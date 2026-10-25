@@ -51,7 +51,7 @@
     ...seqr parser:aptv wsp .termp env
   ...alt parser:altv
     ...bind parser:mnad varp \name
-    .....memb u8:eq .,. .,\ .,# nil ...head name id '\0'
+    .....memb byte:eq .,. .,\ .,# nil ...head name id '\0'
       .empty parser:altv
       .....elemindex str:eq name env
         ..bluebird .pure parser:aptv var

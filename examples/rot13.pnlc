@@ -2,7 +2,7 @@
 # inc:../prelude.pnlc
 
 # given some character, is it in [a-mA-M]?
-# ..def ..bluebird ...clamped u8:ord 'a' 'm' mklower \a-m
+# ..def ..bluebird ...clamped byte:ord 'a' 'm' mklower \a-m
 # ..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
 #   ..blt o7 ..and o6 ..blt o4 ..o3
 #     ..ble o2 ..ble o1 false
@@ -10,11 +10,11 @@
 # \a-m
 
 # given a character in [a-zA-Z], is it in [a-mA-M]?
-# ..def ...becard isle ..compare u8:ord 'm' mklower \a-m
+# ..def ...becard isle ..compare byte:ord 'm' mklower \a-m
 ..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
   ..blt o4 ..ble o3 ..ble o2 ..ble o1 false
 \a-m
 
 .main .callcc \break ..mforever io:mnad
   ...bind io:mnad getc ...cardinal opt .break unit \chr
-    .putc ...not .isalpha chr chr .....a-m chr u8::add u8::sub '\r' chr
+    .putc ...not .isalpha chr chr .....a-m chr byte::add byte::sub '\r' chr

@@ -190,8 +190,8 @@
 ..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o6 \o6
 ..def .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7 o7 \o7
 
-# def:u8
-# type U8 = Oct Bool
+# def:byte
+# type Byte = Oct Bool
 ..def ........oct false false false false false false false false \$00
 ..def ........oct true  false false false false false false false \$01
 ..def ........oct false true  false false false false false false \$02
@@ -598,13 +598,13 @@
 
 # a minimalistic programmer-facing debug representation. there is no requirement
 # for the output to be unambiguous.
-# debug :: Dbg a => a -> Dlist U8
+# debug :: Dbg a => a -> Dlist Byte
 ..def \debug \dbg .dbg debug \dbg
 ..def \undbg \dbg .dbg undbg \undbg
 ..def .undbg \debug debug \debug
-# the debugged debugging, prints out a `DList U8` as itself
+# the debugged debugging, prints out a `DList Byte` as itself
 ..def .dbg id \dbgged:dbg
-# places a debugging before, after or within `Dlist U8`s
+# places a debugging before, after or within `Dlist Byte`s
 ..def \right .undbg \innerdebug
   .dbg \inner ..bluebird .innerdebug inner right
 \before:dbg
@@ -2638,7 +2638,8 @@ lhs \bsqrtrm
 ..def \term:ftor ..cata term:ftor ..cardinal cofree unit \tocofree
 
 # many of these definitions are unrolled for performance. we care about the
-# performance of `Oct` because `type U8 = Oct Bool` and `U8`s have to be fast
+# performance of `Oct` because `type Byte = Oct Bool` and `Byte`s have to be
+# fast
 ..def .ftor
   \func .unoct \a0 \a1 \a2 \a3 \a4 \a5 \a6 \a7
     ........oct
@@ -2815,13 +2816,13 @@ lhs \bsqrtrm
       ..pure oct:aptv elemenumerate
 \oct:enum
 
-..def .oct:eq   bool:eq   \u8:eq
-..def .oct:ord  bool:ord  \u8:ord
-..def .oct:bndd bool:bndd \u8:bndd
-..def .oct:dbg  bool:dbg  \u8:dbg
-..def .oct:seq  bool:seq  \u8:seq
-..def .oct:enum bool:enum \u8:enum
-..def .dbg cons \u8::chr:dbg
+..def .oct:eq   bool:eq   \byte:eq
+..def .oct:ord  bool:ord  \byte:ord
+..def .oct:bndd bool:bndd \byte:bndd
+..def .oct:dbg  bool:dbg  \byte:dbg
+..def .oct:seq  bool:seq  \byte:seq
+..def .oct:enum bool:enum \byte:enum
+..def .dbg cons \byte::chr:dbg
 ..def .dbg
   .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
     .\nibble ..bluebird
@@ -2830,7 +2831,7 @@ lhs \bsqrtrm
     \n3 \n2 \n1 \n0 ..n3
       ..n2 ..n1 ..n0 ,f ,e ..n0 ,d ,c ..n1 ..n0 ,b ,a ..n0 ,9 ,8
       ..n2 ..n1 ..n0 ,7 ,6 ..n0 ,5 ,4 ..n1 ..n0 ,3 ,2 ..n0 ,1 ,0
-\u8::hex:dbg
+\byte::hex:dbg
 # perform case analysis on each bit, examining any bit at most once. `and`,
 # `or`, `blt` and `ble` are special cases of case analysis where one branch
 # short-circuits, so we allow those too. memory aid:
@@ -2931,7 +2932,7 @@ lhs \bsqrtrm
     ..pair c oct
     # ...sequence sqr:tvsb oct:aptv ..pair rhs lhs # works too
     ....lifta2 oct:aptv pair rhs lhs
-\u8::addc
+\byte::addc
 ..def \b \rhs \lhs
   ...oct::foldl
     .unpair \b \oct .unpair \rhs \lhs ..pair
@@ -2940,7 +2941,7 @@ lhs \bsqrtrm
     ..pair b oct
     # ...sequence sqr:tvsb oct:aptv ..pair rhs lhs # works too
     ....lifta2 oct:aptv pair rhs lhs
-\u8::subb
+\byte::subb
 ..def \c \arg
   ...oct::foldl
     .unpair \c \oct \cur ..pair
@@ -2948,7 +2949,7 @@ lhs \bsqrtrm
       .oct ..bne c cur
     ..pair c oct
     arg
-\u8::incc
+\byte::incc
 ..def \b \arg
   ...oct::foldl
     .unpair \b \oct \cur ..pair
@@ -2956,35 +2957,35 @@ lhs \bsqrtrm
       .oct ..bne b cur
     ..pair b oct
     arg
-\u8::decb
+\byte::decb
 ..def \p .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
   ..pair o7 ........oct p o0 o1 o2 o3 o4 o5 o6
-\u8::shlp
+\byte::shlp
 ..def \c .unoct \o0 \o1 \o2 \o3 \o4 \o5 \o6 \o7
   ..pair o0 ........oct o1 o2 o3 o4 o5 o6 o7 c
-\u8::shrc
-..def ..blackbird snd .u8::addc false \u8::add
-..def ..blackbird snd .u8::subb false \u8::sub
-..def ..bluebird  snd .u8::incc true  \u8::inc
-..def ..bluebird  snd .u8::decb true  \u8::dec
-..def ..bluebird  snd .u8::shlp false \u8::shl
-..def ..bluebird  snd .u8::shrc false \u8::shr
-..def .sgrp u8::add \u8::add:sgrp
-..def ..mnid u8::add:sgrp $00 \u8::add:mnid
+\byte::shrc
+..def ..blackbird snd .byte::addc false \byte::add
+..def ..blackbird snd .byte::subb false \byte::sub
+..def ..bluebird  snd .byte::incc true  \byte::inc
+..def ..bluebird  snd .byte::decb true  \byte::dec
+..def ..bluebird  snd .byte::shlp false \byte::shl
+..def ..bluebird  snd .byte::shrc false \byte::shr
+..def .sgrp byte::add \byte::add:sgrp
+..def ..mnid byte::add:sgrp $00 \byte::add:mnid
 
 # def:string
-# type String = List U8
-..def .list:eq   u8:eq   \str:eq
-..def .list:ord  u8:ord  \str:ord
-..def .list:bndd u8:bndd \str:bndd
-..def .list:dbg  u8:dbg  \str:dbg
-..def .list:seq  u8:seq  \str:seq
-..def .list:enum u8:enum \str:enum
-..def .list:dbg  u8::chr:dbg \str::chr:dbg
-..def .list:dbg  u8::hex:dbg \str::hex:dbg
-..def .dbg todlist           \str::raw:dbg
+# type String = List Byte
+..def .list:eq   byte:eq   \str:eq
+..def .list:ord  byte:ord  \str:ord
+..def .list:bndd byte:bndd \str:bndd
+..def .list:dbg  byte:dbg  \str:dbg
+..def .list:seq  byte:seq  \str:seq
+..def .list:enum byte:enum \str:enum
+..def .list:dbg  byte::chr:dbg \str::chr:dbg
+..def .list:dbg  byte::hex:dbg \str::hex:dbg
+..def .dbg todlist             \str::raw:dbg
 # no need for `Monoid Str`, it'd be isomorphic to `Alternative f =>
-# Monoid (Alt f a)` for `f ~ List` and `a ~ U8`
+# Monoid (Alt f a)` for `f ~ List` and `a ~ Byte`
 
 # def:fn
 # type Fn a b = a -> b
@@ -3112,8 +3113,8 @@ lhs \bsqrtrm
   .some ..pair unit nil
 \eofp
 ..def ..bluebird satp .bluebird not \unsatp
-..def ..bluebird satp .equal u8:eq \chrp
-..def ..bluebird satp .unequal u8:eq \nonchrp
+..def ..bluebird satp .equal byte:eq \chrp
+..def ..bluebird satp .unequal byte:eq \nonchrp
 ..def .satp .kestrel true \getp
 ..def ..bluebird
   ..sequence list:tvsb parser:aptv
@@ -3243,7 +3244,7 @@ lhs \bsqrtrm
 ..def \to .fix \getto
   ...bind io:mnad getc ..opt
     \chr ...fmap io:ftor .cons chr
-      .....unequal u8:eq to chr getto
+      .....unequal byte:eq to chr getto
         ..pure io:aptv nil
     ..pure io:aptv nil
 \getto
@@ -3251,7 +3252,7 @@ lhs \bsqrtrm
 # there is no way to tell whether EOF was hit
 ..def \sep .fix \getsep
   ...bind io:mnad getc ..opt
-    \chr .....unequal u8:eq sep chr
+    \chr .....unequal byte:eq sep chr
       ...fmap io:ftor .cons chr getsep
       ..pure io:aptv nil
     ..pure io:aptv nil
