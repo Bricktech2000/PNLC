@@ -337,20 +337,20 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
     switch (~head->type) {
     case IO_EXIT:
       if (~head->visited != 0)
-        return "$exit expects 0 arguments";
+        goto irreducible;
       *term = term_decref(*term);
       return NULL;
     case IO_ERR:
-      return "hit $err at top level";
+      return "$err hit at top level";
     case IO_EMIT:
       if (~head->visited != 1)
-        return "$emit expects 1 argument";
+        goto irreducible;
       cont = term_incref((*term)->rhs);
       term_decref(*term), *term = cont;
       return NULL;
     case IO_GET: {
       if (~head->visited != 1)
-        return "$get expects 1 argument";
+        goto irreducible;
       fflush(bs_out->fp), fflush(bs_err->fp);
       bool bit = bs_get(bs_in), eof = bs_eof(bs_in);
       struct term *some, *none, *one, *zero;
@@ -369,16 +369,15 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
     case IO_EPUT: {
       bool isput = ~head->type == IO_PUT;
       if (~head->visited != 2)
-        return isput ? "$put expects 2 arguments" //
-                     : "$eput expects 2 arguments";
+        goto irreducible;
       // clang-format off
       struct term *bit =
           term_alloc(*APP(term_alloc(*APP(term_incref((*term)->lhs->rhs),
           term_alloc(*IO(IO_ONE)))), term_alloc(*IO(IO_ZERO))));
       // clang-format on
       if (~whnf(bit, visited)->type == IO_ERR)
-        return term_decref(bit), isput ? "hit $err in $put argument"
-                                       : "hit $err in $eput argument";
+        return term_decref(bit), isput ? "$err hit in $put argument"
+                                       : "$err hit in $eput argument";
       if (~bit->type != IO_ONE && ~bit->type != IO_ZERO)
         return term_decref(bit), isput ? "$put argument is malformed"
                                        : "$eput argument is malformed";
@@ -389,11 +388,12 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
     } break;
     case IO_DUMP:
       if (~head->visited != 2)
-        return "$dump expects 2 arguments";
+        goto irreducible;
       term_dump((*term)->lhs->rhs, ++*visited), fputc('\n', stderr);
       cont = term_incref((*term)->rhs);
       break;
     default:
+    irreducible:
       return "top level is irreducible";
     }
   }
@@ -767,8 +767,10 @@ void parse_ws(char **prog) {
 }
 
 char *parse_var(char **prog, char **error) {
-  if (!**prog || isspace(**prog)) {
-    *error = "expected variable";
+  if (isspace(**prog))
+    abort();
+  if (!**prog) {
+    *error = "expected variable"; // at end of input
     return NULL;
   }
 
@@ -781,9 +783,10 @@ char *parse_var(char **prog, char **error) {
   return end;
 }
 
-struct term *parse_term(char **prog, char **error, struct term *env) {
+struct term *parse_term(char **prog, char **error, struct term **unbound,
+                        struct term *env) {
   if (!**prog) {
-    *error = "expected term";
+    *error = "expected term"; // at end of input
     return NULL;
   }
 
@@ -792,16 +795,18 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
     char *app = *prog - 1;
     parse_ws(prog);
 
-    struct term *lhs = parse_term(prog, error, env);
+    struct term *lhs = parse_term(prog, error, unbound, env);
     if (*error)
       return NULL;
 
+    // this diagnostic is not necessary for correctness but is more user-
+    // friendly than "expected term at end of input"
     if (!**prog) {
-      *error = "application without an argument", *prog = app;
+      *error = "no argument for application", *prog = app;
       return term_decref(lhs), NULL;
     }
 
-    struct term *rhs = parse_term(prog, error, env);
+    struct term *rhs = parse_term(prog, error, unbound, env);
     if (*error)
       return term_decref(lhs), NULL;
 
@@ -815,7 +820,7 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
       return NULL;
 
     struct term *lhs = env = term_alloc(*ENV(begin, end, env));
-    struct term *rhs = parse_term(prog, error, env);
+    struct term *rhs = parse_term(prog, error, unbound, env);
     if (*error)
       return term_decref(lhs), NULL;
 
@@ -834,7 +839,7 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
     }
 
     *prog = nl + 1, parse_ws(prog);
-    return parse_term(prog, error, env);
+    return parse_term(prog, error, unbound, env);
   }
   default: {
     --*prog;
@@ -848,20 +853,20 @@ struct term *parse_term(char **prog, char **error, struct term *env) {
           strncmp(begin, (char *)env->lhs, end - begin) == 0)
         return term_incref(env);
 
-    *error = "unbound variable", *prog = begin;
-    return NULL;
+    *unbound = term_alloc(*ENV(begin, end, *unbound));
+    return term_alloc(*VAR());
   }
   }
 }
 
-struct term *parse(char **prog, char **error) {
+struct term *parse(char **prog, char **error, struct term **unbound) {
   parse_ws(prog);
 
   struct term *env = NULL;
   for (char **io = ios; *io; io++)
     env = term_alloc(*ENV(*io, *io + strlen(*io), env));
 
-  struct term *term = parse_term(prog, error, env);
+  struct term *term = parse_term(prog, error, unbound, env);
   term = term ? term : term_alloc(*VAR()); // dummy
   for (int typ = IO_LEN; typ--; env = env->u.beta)
     term = term_alloc(*APP(term_alloc(*LAM(env, term)), term_alloc(*IO(typ))));
@@ -908,19 +913,35 @@ int main(int argc, char **argv) {
   buf = realloc(buf, len + *size);
   buf[len] = '\0';
 
+  struct term *unbound = NULL;
   char *error = NULL, *loc = buf;
-  struct term *term = parse(&loc, &error);
+  struct term *term = parse(&loc, &error, &unbound);
 
-  if (error) {
-    char **file = argv + 1;
-    size_t off = loc - buf;
-    for (long *size = sizes; off >= *size; size++, file++)
-      off -= *size;
+  if (error || unbound) {
+    while (1) {
+      char *message, *begin, *end, *dots;
+      if (error) {
+        size_t len = strcspn(loc, "\n");
+        begin = loc, end = loc + (len > 32 ? 32 : len);
+        message = error, dots = " ...", error = NULL;
+      } else if (unbound) {
+        begin = (char *)unbound->lhs, end = (char *)unbound->rhs;
+        message = "unbound variable", dots = "";
+        struct term *next = unbound->u.beta;
+        free(unbound), unbound = next;
+      } else
+        free(buf), exit(EXIT_FAILURE);
 
-    fprintf(stderr,
-            *file ? "%s%s at %s[%zu] near '%.16s'\n" : "%s%s at end of input\n",
-            "parse error: ", error, *file, off, loc);
-    free(buf), exit(EXIT_FAILURE);
+      char **file = argv + 1;
+      size_t off = begin - buf;
+      for (long *size = sizes; off >= *size; size++, file++)
+        off -= *size;
+
+      fprintf(stderr,
+              *file ? "parse error: %s[%zu]: %s '%.*s%s'\n"
+                    : "parse error: %.0s%.0zu%s at end of input\n",
+              *file, off, message, (int)(end - begin), begin, dots);
+    }
   }
 
   long long visited = 0;
@@ -929,7 +950,7 @@ int main(int argc, char **argv) {
     // uncomment this to dump the top-level term on error
     // term_dump(term, ++visited), fputc('\n', stderr);
 
-    fprintf(stderr, "runtime error: %s\n", error);
+    fflush(stdout), fprintf(stderr, "runtime error: %s\n", error);
     free(buf), term_decref(term), exit(EXIT_FAILURE);
   }
 

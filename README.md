@@ -54,7 +54,7 @@ The prelude defines data types like booleans, integers, pairs, optionals, lists,
 
 The prelude is an integral part of the language because without it you’re left with little more than a λ‑calculus translator. This is by design: a small base language means simple implementations and tractable operational semantics; the calculus is a smallest language that, by means of a prelude, can still bootstrap itself into a practical, familiar functional language.
 
-Much of the prelude is inspired by Haskell’s base library and Miranda’s standard environment. As a first step in becoming familiar with it you might study the [example programs](examples/) included—though not the “naked” ones, because they’re designed not to depend on the prelude.
+Much of the prelude is inspired by Haskell’s base library and Miranda’s standard environment. When a function is undocumented it's likely that it behaves the same as in Haskell or Miranda. As a first step in becoming familiar with the prelude you might study the [example programs](examples/) included—though not the “naked” ones, because they’re designed not to depend on the prelude.
 
 ## Examples
 
@@ -67,6 +67,7 @@ make bin/pnlc
 Then, run any of the example programs:
 
 ```sh
+# interpretation: PNLC programs interpreted by the translator
 bin/pnlc examples/no-op\ naked.pnlc
 bin/pnlc examples/hello\ world\ naked.pnlc
 bin/pnlc examples/bit-cat\ naked.pnlc
@@ -90,8 +91,10 @@ bin/pnlc prelude.pnlc examples/fib\ dec.pnlc
 bin/pnlc prelude.pnlc examples/fib\ bin.pnlc
 bin/pnlc prelude.pnlc examples/collatz\ dec.pnlc
 bin/pnlc prelude.pnlc examples/collatz\ bin.pnlc
+# same as above, but dumping the top-level term before executing each I/O action
 bin/pnlc hook prelude.pnlc examples/hello\ world.pnlc
 bin/pnlc hook prelude.pnlc examples/bit-cat.pnlc
+# compilation: PNLC programs compiled by the translator
 bin/pnlc prelude.pnlc emit examples/greeting.pnlc && make bin/emit && bin/emit
 bin/pnlc prelude.pnlc emit examples/fib\ dec.pnlc && make bin/emit && bin/emit
 
@@ -100,6 +103,7 @@ bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 bin/pnlc prelude.pnlc examples/pnlc\ metacircular.pnlc
 bin/pnlc prelude.pnlc examples/pnlc\ nbe.pnlc
 bin/pnlc prelude.pnlc examples/pnlc\ shallow.pnlc
+# interpretation from interpretation: PNLC programs interpreted by the self-interpreter interpreted by the translator
 cat examples/no-op\ naked.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
@@ -109,15 +113,20 @@ cat prelude.pnlc examples/ack.pnlc            | bin/pnlc prelude.pnlc examples/p
 cat prelude.pnlc examples/hanoi.pnlc          | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/fizzbuzz.pnlc       | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/greeting.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+# same as above, but dumping the top-level term before executing each I/O action
+cat hook examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+cat hook examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+# self-interpretation from interpretation: PNLC programs interpreted by the self-interpreter interpreted by the self-interpreter interpreted by the translator
 cat prelude.pnlc examples/pnlc\ definitional.pnlc nul examples/no-op\ naked.pnlc         | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/pnlc\ definitional.pnlc nul examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
 cat prelude.pnlc examples/pnlc\ definitional.pnlc nul examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
-cat hook examples/hello\ world\ naked.pnlc  | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
-cat hook examples/bit-cat\ naked.pnlc nul - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc
+# compilation of the self-interpreter: PNLC programs interpreted by the self-interpreter compiled by the translator
 bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc examples/greeting.pnlc nul - | bin/emit
 bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc examples/fib\ dec.pnlc       | bin/emit
 
 # PNLC self-compiler demos
+cat emit - | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+# compilation from interpretation: PNLC programs compiled by the self-compiler interpreted by the translator
 cat emit examples/no-op\ naked.pnlc        | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
 cat emit examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
 cat emit examples/bit-cat\ naked.pnlc      | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
@@ -127,29 +136,36 @@ cat prelude.pnlc emit examples/ack.pnlc      | bin/pnlc prelude.pnlc examples/pn
 cat prelude.pnlc emit examples/hanoi.pnlc    | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
 cat prelude.pnlc emit examples/fizzbuzz.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
 cat prelude.pnlc emit examples/greeting.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+# same as above, but dumping the top-level term before executing each I/O action
+cat emit hook examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+cat emit hook examples/bit-cat\ naked.pnlc      | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+# self-compilation from interpretation: PNLC programs compiled by the self-compiler compiled by the self-compiler interpreted by the translator
 cat prelude.pnlc emit examples/pnlc\ definitional.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && cat examples/no-op\ naked.pnlc         | bin/emit
 cat prelude.pnlc emit examples/pnlc\ definitional.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && cat examples/hello\ world\ naked.pnlc  | bin/emit
 cat prelude.pnlc emit examples/pnlc\ definitional.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && cat examples/bit-cat\ naked.pnlc nul - | bin/emit
-cat emit hook examples/hello\ world\ naked.pnlc | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
-cat emit hook examples/bit-cat\ naked.pnlc      | bin/pnlc prelude.pnlc examples/pnlc\ definitional.pnlc 2> emit.c && make bin/emit && bin/emit
+# compilation of the self-compiler: PNLC programs compiled by the self-compiler compiled by the translator
 bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc emit examples/greeting.pnlc | bin/emit 2> emit.c && make bin/emit && bin/emit
 bin/pnlc prelude.pnlc emit examples/pnlc\ definitional.pnlc && make bin/emit && cat prelude.pnlc emit examples/fib\ dec.pnlc | bin/emit 2> emit.c && make bin/emit && bin/emit
 
 # regex engine demos
 bin/pnlc run prelude.pnlc examples/regex.pnlc
+# regular expressions run under the regex engine interpreted by the translator
 cat examples/re/comment.re pnlc.c                  | bin/pnlc run prelude.pnlc examples/regex.pnlc
 cat examples/re/strlit.re  pnlc.c                  | bin/pnlc run prelude.pnlc examples/regex.pnlc
 cat examples/re/utf-8.re   README.md               | bin/pnlc run prelude.pnlc examples/regex.pnlc
 cat examples/re/divby3.re  examples/rule\ 110.pnlc | bin/pnlc run prelude.pnlc examples/regex.pnlc
 cat examples/re/ipv4.re    examples/regex.pnlc     | bin/pnlc run prelude.pnlc examples/regex.pnlc
 cat examples/re/hexrgb.re  examples/regex.pnlc     | bin/pnlc run prelude.pnlc examples/regex.pnlc
+# compilation of the regex engine: regular expressions run under the regex engine compiled by the translator
 bin/pnlc prelude.pnlc emit examples/regex.pnlc && make bin/emit && cat examples/re/comment.re pnlc.c | bin/emit
 bin/pnlc prelude.pnlc emit examples/regex.pnlc && make bin/emit && cat examples/re/strlit.re  pnlc.c | bin/emit
+# compilation of regular expressions: {regular expressions run under the regex engine} compiled by the translator
 cat examples/re/comment.re | bin/pnlc prelude.pnlc examples/regex.pnlc && make bin/emit && cat pnlc.c | bin/emit
 cat examples/re/strlit.re  | bin/pnlc prelude.pnlc examples/regex.pnlc && make bin/emit && cat pnlc.c | bin/emit
 
 # Brainfuck interpreter demos
 bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
+# interpretation of Brainfuck: Brainfuck programs interpreted by the PNLC Brainfuck interpreter interpreted by the translator
 cat examples/bf/pnlc.bf                 | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/bell.bf                 | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/ascii.bf                | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
@@ -166,17 +182,21 @@ cat examples/bf/squares.bf              | bin/pnlc run prelude.pnlc examples/bra
 cat examples/bf/thuemorse.bf            | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/sierpinski.bf           | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/siercarpet.bf           | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
+# self-interpretation of Brainfuck: Brainfuck programs interpreted by a Brainfuck self-interpreter interpreted by the PNLC Brainfuck interpreter interpreted by the translator
 cat examples/bf/dbfi.bf bang examples/bf/ascii.bf bang           | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/dbfi.bf bang examples/bf/cat.bf bang -           | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/dbfi.bf bang examples/bf/reverse.bf bang -       | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/dbfi.bf bang examples/bf/head.bf bang pnlc.c     | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
 cat examples/bf/dbfi.bf bang examples/bf/truth-machine.bf bang - | bin/pnlc run prelude.pnlc examples/brainfuck.pnlc
+# compilation of the Brainfuck interpreter: Brainfuck programs interpreted by the PNLC Brainfuck interpreter compiled by the translator
 bin/pnlc prelude.pnlc emit examples/brainfuck.pnlc && make bin/emit && cat examples/bf/head.bf bang pnlc.c | bin/emit
 bin/pnlc prelude.pnlc emit examples/brainfuck.pnlc && make bin/emit && cat examples/bf/fib.bf              | bin/emit
+# compilation of Brainfuck programs: {Brainfuck programs interpreted by the PNLC Brainfuck interpreter} compiled by the translator
 cat examples/bf/head.bf | bin/pnlc prelude.pnlc examples/brainfuck.pnlc && make bin/emit && cat pnlc.c | bin/emit
 cat examples/bf/fib.bf  | bin/pnlc prelude.pnlc examples/brainfuck.pnlc && make bin/emit &&              bin/emit
 
 # Forth DSL demos
+# Forth programs run under the Forth DSL interpreted by the translator
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/cat.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/head.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/rot13.f
@@ -185,14 +205,17 @@ bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/truth-machine.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/fib.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/collatz.f
 bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/greeting.f
+# Brainfuck programs interpreted by the Forth Brainfuck interpreter run under the Forth DSL interpreted by the translator
 cat examples/bf/ascii.bf                | bin/pnlc run prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
 cat examples/bf/cat.bf bang -           | bin/pnlc run prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
 cat examples/bf/reverse.bf bang -       | bin/pnlc run prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
 cat examples/bf/head.bf bang pnlc.c     | bin/pnlc run prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
 cat examples/bf/truth-machine.bf bang - | bin/pnlc run prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
 cat examples/bf/thuemorse.bf            | bin/pnlc run prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f
+# compilation of the Forth Brainfuck interpreter: Brainfuck programs interpreted by the Forth Brainfuck interpreter run under the Forth DSL compiled by the translator
 bin/pnlc prelude.pnlc emit examples/forth.pnlc examples/f/brainfuck.f && make bin/emit && cat examples/bf/head.bf bang pnlc.c | bin/emit
 bin/pnlc prelude.pnlc emit examples/forth.pnlc examples/f/brainfuck.f && make bin/emit && cat examples/bf/thuemorse.bf        | bin/emit
+# compilation of Brainfuck programs: {Brainfuck programs interpreted by the Forth Brainfuck interpreter run under the Forth DSL} compiled by the translator
 cat examples/bf/head.bf      | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f && make bin/emit && cat pnlc.c | bin/emit
 cat examples/bf/thuemorse.bf | bin/pnlc prelude.pnlc examples/forth.pnlc examples/f/brainfuck.f && make bin/emit &&              bin/emit
 ```

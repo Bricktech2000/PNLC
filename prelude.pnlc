@@ -45,9 +45,12 @@
 
  # constructors and destructors
 
+# data Void
+# data Unit = Unit
 ..def $err \void
 ..def \x x \unit
 
+# data Bool = True | False
 ..def \true \false true \true
 ..def \true \false false \false
 ..def \true \false \bool ..bool true false \bool
@@ -65,6 +68,7 @@
 ..def ..bool not buf \bne # xor
 ..def ..bool mrk not \bge # when
 
+# data Cmp = GT | ET | LT
 ..def \gt \et \lt gt \gt
 ..def \gt \et \lt et \et
 ..def \gt \et \lt lt \lt
@@ -127,17 +131,20 @@
 ..def ...cmp tmrk tbuf tclr \telse # else, priority left *
 ..def ...cmp tptb tbuf tntb \tnles # unless, priority right *
 
+# data Opt a = Some a | None
 ..def \val \some \none .some val \some
 ..def      \some \none none      \none
 ..def \some \none \opt ..opt some none \opt
 ..def ..opt \val true false \issome
 ..def ..opt \val false true \isnone
 
+# data Pair a b = Pair a b
 ..def \fst \snd \pair ..pair fst snd \pair
 ..def \unpair \pair .pair unpair \unpair
 ..def .unpair \fst \snd fst \fst
 ..def .unpair \fst \snd snd \snd
 
+# data Res a b = Ok a | Err b
 ..def \okval  \ok \err .ok okval   \ok
 ..def \errval \ok \err .err errval \err
 ..def \ok \err \res ..res ok err \res
@@ -146,6 +153,7 @@
 ..def ..res some \errval none \okval
 ..def ..res \okval none  some \errval
 
+# data List a = Cons a (List a) | Nil
 ..def \head \tail \cons \nil ..cons head tail \cons
 ..def             \cons \nil nil              \nil
 ..def \cons \nil \list ..list cons nil \list
@@ -557,11 +565,13 @@
 
  # type class definitions and utility instances
 
+# `Eq`: equality
 ..def \equal \eq .eq equal \eq
 ..def \uneq \eq .eq uneq \uneq
 ..def .uneq \equal equal \equal # \rhs \lhs
 ..def .uneq .blackbird not \unequal
 
+# `Ord`: total ordering
 ..def \eq \compare \ord ..ord eq compare \ord
 ..def \unord \ord .ord unord \unord
 ..def .unord \eq \compare eq \ord:eq
@@ -587,6 +597,7 @@
   ..ord inner:eq .cardinal innercompare
 \down:ord
 
+# `Bounded`: lower an upper bounds
 ..def \top \bot \bndd ..bndd top bot \bndd
 ..def \unbndd \bndd .bndd unbndd \unbndd
 ..def .unbndd \top \bot top \top
@@ -596,15 +607,15 @@
   ..bndd innerbot innertop
 \down:bndd
 
-# a minimalistic programmer-facing debug representation. there is no requirement
-# for the output to be unambiguous.
-# debug :: Dbg a => a -> Dlist Byte
+# debug stringification: minimalistic programmer-facing string representations.
+# there is no requirement for the output to be unambiguous.
+# debug :: Dbg a => a -> DList Byte
 ..def \debug \dbg .dbg debug \dbg
 ..def \undbg \dbg .dbg undbg \undbg
 ..def .undbg \debug debug \debug
 # the debugged debugging, prints out a `DList Byte` as itself
 ..def .dbg id \dbgged:dbg
-# places a debugging before, after or within `Dlist Byte`s
+# places a debugging before, after or within `DList Byte`s
 ..def \right .undbg \innerdebug
   .dbg \inner ..bluebird .innerdebug inner right
 \before:dbg
@@ -643,9 +654,9 @@
 # .list:seq lazy:seq` forces the shape of a list but doesn't force its elements
 ..def .seq .kestrel id \lazy:seq
 
-# this `Enum` serves a different purpose than Haskell's `Enum`. this `Enum`
-# serves as a best-effort enumeration of the values of a type in no particular
-# order. this is used for ordering functions, for example. generally speaking,
+# `Enum`, but serves a different purpose than Haskell's `Enum`. this `Enum` is
+# a best-effort enumeration of the values of a type in no particular order.
+# this is used for the ordering of functions, for example. generally speaking,
 #   - if a type has a finite set of values, the enumeration tries to be
 #     exhaustive.
 #   - if a type has a recursively enumerable set of values, the enumertion tries
@@ -662,6 +673,7 @@
     innerenumerate
 \down:enum
 
+# `Semigroup`: semigroups
 ..def \sappend \sgrp .sgrp sappend \sgrp
 ..def \unsgrp \sgrp .sgrp unsgrp \unsgrp
 ..def .unsgrp \sappend sappend \sappend # \lhs \rhs
@@ -678,6 +690,7 @@
   \head \tail ....head sappend kite elem ..warbler sappend .bstimes tail
 elem \bstimes
 
+# `Monoid`: monoids
 ..def \sgrp \mempty \mnid ..mnid sgrp mempty \mnid
 ..def \unmnid \mnid .mnid unmnid \unmnid
 ..def .unmnid \sgrp \mempty sgrp   \mnid:sgrp
@@ -694,6 +707,7 @@ elem \bstimes
   \head \tail ....head sappend kite elem ..warbler sappend .bmtimes tail
 mempty \bmtimes
 
+# `Functor`: functors
 ..def \fmap \ftor .ftor fmap \ftor
 ..def \unftor \ftor .ftor unftor \unftor
 ..def .unftor \fmap fmap \fmap
@@ -707,6 +721,7 @@ mempty \bmtimes
   \aptv ...aptv const:ftor .kestrel innermempty innersappend
 \const:aptv
 
+# `Applicative`: applicative functors
 ..def \ftor \pure \apply \aptv ...aptv ftor pure apply \aptv
 ..def \unaptv \aptv .aptv unaptv \unaptv
 ..def .unaptv \ftor \pure \apply ftor  \aptv:ftor
@@ -737,6 +752,7 @@ mempty \bmtimes
 ..def \aptv \sgrp .dual:sgrp ..ap:sgrp aptv .dual:sgrp sgrp \rap:sgrp
 ..def \aptv \mnid .dual:mnid ..ap:mnid aptv .dual:mnid mnid \rap:mnid
 
+# `Monad`: monads
 ..def \aptv \bind \mnad ..mnad aptv bind \mnad
 ..def \unmnad \mnad .mnad unmnad \unmnad
 ..def .unmnad \aptv \bind aptv \mnad:aptv
@@ -754,6 +770,7 @@ mempty \bmtimes
 ..def ...aptv id:ftor id id \id:aptv
 ..def ..mnad id:aptv .cardinal id \id:mnad
 
+# `Alternative`: alternative functors
 ..def \aptv \empty \alt \altv ...altv aptv empty alt \altv
 ..def \unaltv \altv .altv unaltv \unaltv
 ..def .unaltv \aptv \empty \alt aptv  \altv:aptv
@@ -816,6 +833,8 @@ mempty \bmtimes
 ..def \unfldb \fldb .fldb unfldb \unfldb
 ..def .unfldb \tolist tolist \tolist
 
+# `Traversable`.
+# sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
 ..def \ftor \fldb \sequence \tvsb ...tvsb ftor fldb sequence \tvsb
 ..def \untvsb \tvsb .tvsb untvsb \untvsb
 ..def .untvsb \ftor \fldb \sequence ftor     \tvsb:ftor
@@ -838,7 +857,7 @@ mempty \bmtimes
 # ana  :: Functor f => (a -> f a) -> a -> Fix f
 # hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
 # para :: Functor f => (f (Pair (Fix f) a)  ->  a) -> Fix f -> a
-# apo  :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
+# apo  :: Functor f => (a -> f (Res a (Fix f))) -> a -> Fix f
 # histo :: Functor f => (f (Cofree f a) -> a) -> Fix f -> a
 # futu  :: Functor f => (a  ->  f (Free f a)) -> a -> Fix f
 # `..fmap ftor cata` doesn't depend on `init`, so when it gets unrolled during
@@ -1000,15 +1019,15 @@ mempty \bmtimes
     ..fmap .aptv:ftor elem:aptv some
     ..pure elem:aptv none
 \opt:tvsb
-# `Semigroup a => Monoid (Maybe a)` by adjoining `Nothing` as neutral element
+# `Semigroup a => Monoid (Opt a)` by adjoining `None` as neutral element
 ..def .unsgrp \innersappend .sgrp
   \lhs \rhs ..rhs ..lhs innersappend some lhs
 \optsgrp:sgrp
 ..def \inner:sgrp ..mnid .optsgrp:sgrp inner:sgrp none \optsgrp:mnid
-# no need for `Data.Monoid.First a`, it'd be isomorphic to `Alt Maybe a` and to
-# `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.First a`.
-# no need for `Data.Monoid.Last a`, it'd be isomorphic to `Dual (Alt Maybe a)`
-# and to `Semigroup b => Modoid (Maybe b)` for `b ~ Data.Semigroup.Last a`.
+# no need for `Data.Monoid.First a`, it'd be isomorphic to `Alt Opt a` and to
+# `Semigroup b => Modoid (Opt b)` for `b ~ Data.Semigroup.First a`.
+# no need for `Data.Monoid.Last a`, it'd be isomorphic to `Dual (Alt Opt a)`
+# and to `Semigroup b => Modoid (Opt b)` for `b ~ Data.Semigroup.Last a`.
 #
 # these instances need to be lazy in the element instance so we can take their
 # fixed points to define the corresponding instances for `Nat`
@@ -1031,14 +1050,14 @@ mempty \bmtimes
 ..def \elem:enum .enum
   ..cons none ...fmap list:ftor some .enumerate elem:enum
 \opt:enum
-# type Every a = Down (Maybe (Down a))
-# the ordering where `Nothing` is the top element instead of the bottom element
+# type Every a = Down (Opt (Down a))
+# the ordering where `None` is the top element instead of the bottom element
 ..def \elem:ord  .down:ord  .opt:ord  .down:ord  elem:ord  \every:ord
 ..def \elem:bndd .down:bndd .opt:bndd .down:bndd elem:bndd \every:bndd
 ..def \elem:enum .down:enum .opt:enum .down:enum elem:enum \every:enum
 
 # def:nat
-# type Nat = Fix Maybe
+# type Nat = Fix Opt
 # a natural is an optional predecessor; when it's missing, you've hit zero
 ..def .some none     \one
 ..def .some one      \two
@@ -1205,7 +1224,7 @@ none lhs \sqrtrm
 \resb:tvsb
 ..def \res .cardinal res \flip
 
-# type Flip a b = Either b a
+# type Flip a b = Res b a
 ..def \err:eq \ok:eq .eq
   \rhs \lhs
     ....res:eq err:eq ok:eq
@@ -1265,7 +1284,7 @@ none lhs \sqrtrm
 \flipb:tvsb
 
 # def:dbl
-# type Dbl a = Either a a
+# type Dbl a = Res a a
 # `a+a = 2*a` so `Dbl a ~= Pair Bool a`. the type class instances for `Dbl` are
 # given by the corresponding instances for `Pair Bool` under the isomorphism
 ..def \dbl ..pair ..psi dbl kestrel ..dbl id id \dbl::iso
@@ -1284,8 +1303,8 @@ none lhs \sqrtrm
 # the Applicative and Monad instances for `Pair a` require a monoid on `a`, and
 # `Dbl` is isomorphic to `Pair Bool`, so the Applicative and Monad instances for
 # `Dbl` ought to require a monoid on `Bool`. we use the identity element to know
-# whether `pure` is a `Left` or a `Right` and we use the monoid operation to
-# combine information about whether contents came from `Left` or from `Right`
+# whether `pure` is an `Ok` or an `Err` and we use the monoid operation to
+# combine information about whether contents came from `Ok` or from `Err`
 ..def .unmnid .unsgrp \boolsappend \boolmempty ...aptv
   dbl:ftor
   \val ...boolmempty ok err val
@@ -1767,7 +1786,7 @@ none lhs \sqrtrm
 # splitAt :: Nat -> Stream a -> Pair (List a) (Stream a)
 # drop :: Nat -> Stream a -> Stream a
 # (!?) :: Nat -> Stream a -> a
-# stripPrefix :: Eq a => List a -> Stream a -> Maybe (Stream a)
+# stripPrefix :: Eq a => List a -> Stream a -> Opt (Stream a)
 # isPrefix :: Eq a => List a -> Stream a -> Bool
 # isInfix :: Eq a => List a -> Stream a -> Bool
 # isSubsequence :: Eq a => List a -> Stream a -> Bool
@@ -2024,11 +2043,11 @@ nat dnil \listof
 # takeWhile :: (a -> Bool) -> List a -> List a
 # dropWhile :: (a -> Bool) -> List a -> List a
 # span :: (a -> Bool) -> List a -> Pair (List a) (List a)
-# take :: Nat -> List a -> Maybe (List a)
-# splitAt :: Nat -> List a -> Maybe (Pair (List a) (List a))
-# drop :: Nat -> List a -> Maybe (List a)
-# (!?) :: Nat -> List a -> Maybe a
-# stripPrefix :: Eq a => List a -> List a -> Maybe (List a)
+# take :: Nat -> List a -> Opt (List a)
+# splitAt :: Nat -> List a -> Opt (Pair (List a) (List a))
+# drop :: Nat -> List a -> Opt (List a)
+# (!?) :: Nat -> List a -> Opt a
+# stripPrefix :: Eq a => List a -> List a -> Opt (List a)
 # isPrefix :: Eq a => List a -> List a -> Bool
 # isInfix :: Eq a => List a -> List a -> Bool
 # isSubsequence :: Eq a => List a -> List a -> Bool
@@ -2275,7 +2294,7 @@ rhs \bmul
 rhs \bpow
 ..def \rhs \lhs ...cata natf:ftor ..opt ..cardinal bpow lhs bone rhs \btet
 ..def ..cata natf:ftor ..opt .cons false bone \exp2
-..def ..bluebird len bnorm \log2 # log2 :: Bin -> Maybe Nat
+..def ..bluebird len bnorm \log2 # log2 :: Bin -> Opt Nat
 ..def \rhs \lhs ...cata listf:ftor ...cardinal list ..pair nil nil
   # for performance we keep `rem` and `quot` in normal form throughout
   \head .unpair \quot ..queerbird .bcons head \rem
@@ -3082,7 +3101,7 @@ lhs \bsqrtrm
 ..def ..fmap fna:ftor snd \sexec
 
 # def:parser
-# type Parser a = String -> Maybe (Pair a String)
+# type Parser a = String -> Opt (Pair a String)
 ..def .ftor
   \func \parserarg
     ...fmap fna:ftor ..fmap opt:ftor ..fmap swapa:ftor func parserarg
