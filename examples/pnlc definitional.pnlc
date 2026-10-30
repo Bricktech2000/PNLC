@@ -113,12 +113,15 @@
 ..def ..bluebird mrk unmark \mark
 
 # codegen :: Term -> DList Byte
-..def \topterm
+..def ..queerbird unmark \topterm
+  ..def six \freelists
+
   # keywords and identifiers we include exactly the ones we use. we we sort
   # them with :sor/ nil/<CR> and give them trailing spaces only when necessary.
   # character constants, string literals and header names are not included.
   # keywords
   ..def \nil .,c .,h .,a .,r .,  nil \char
+  ..def \nil .,d .,o nil \do
   ..def \nil .,e .,l .,s .,e .,  nil \else
   ..def \nil .,f .,o .,r nil \for
   ..def \nil .,g .,o .,t .,o .,  nil \goto
@@ -131,6 +134,7 @@
   ..def \nil .,u .,n .,i .,o .,n .,  nil \union'
   ..def \nil .,u .,n .,s .,i .,g .,n .,e .,d .,  nil \unsigned
   ..def \nil .,v .,o .,i .,d .,  nil \void
+  ..def \nil .,w .,h .,i .,l .,e nil \while
   # standard identifiers
   ..def \nil .,C .,H .,A .,R .,_ .,B .,I .,T nil \CHAR_BIT
   ..def \nil .,E .,O .,F nil \EOF
@@ -175,18 +179,21 @@
   ..def \nil .,e .,n .,v .,l .,e .,n nil \envlen
   ..def \nil .,e .,o .,f nil \eof
   ..def \nil .,f .,p nil \fp
+  ..def \nil .,f .,r .,e .,e .,l .,i .,s .,t .,_ nil \freelist_
   ..def \nil .,f .,u .,n .,c nil \func
   ..def \nil .,i .,s .,e .,o .,f nil \iseof
+  ..def \nil .,m .,e .,m .,o nil \memo
   ..def \nil .,n nil \n
+  ..def \nil .,n .,e .,x .,t nil \next
   ..def \nil .,o .,n .,e .,_ nil \one_
   ..def \nil .,r .,e .,f .,c .,o .,u .,n .,t nil \refcount
-  ..def \nil .,t .,o .,p nil \top
   ..def \nil .,s .,e .,l .,f nil \self
   ..def \nil .,t .,e .,r .,m nil \term
   ..def \nil .,t .,h .,r .,e .,a .,d nil \thread
   ..def \nil .,t .,h .,u .,n .,k .,  nil \thunk
+  ..def \nil .,t .,o .,p nil \top
   ..def \nil .,u nil \u
-  ..def \nil .,m .,e .,m .,o nil \memo
+  ..def \nil .,u .,. nil \u.
   ..def \nil .,z .,e .,r .,o nil \zero
   # constants
   ..def \nil .,0 nil \0
@@ -201,198 +208,218 @@
   ..def \nil .,& .,& nil \&&
   ..def ,? \? ..def ,: \: ..def ,; \;
   ..def ,= \= ..def \nil .,| .,= nil \|=
-  ..def ,, \,
+  ..def ,, \, # shadows `, ` (space) so we define it last
 
-  # emit :: Term -> Pair (List Nat) (State Digs (DList Byte))
+  # emit :: Bool -> Term -> Pair (List Nat) (State Digs (DList Byte))
   ..def              ..iterate digs::inc ..cons d0 nil \digsiota
   ..def ..cata natf:ftor ..opt digs::inc ..cons d0 nil \digs4nat
-  ..def .fix \emit \t .....t
-    \mrkd .emit mrkd
-    \functerm \argterm
-      ..emit functerm \funcenv \funcstr
-      ..emit  argterm  \argenv  \argstr
-      ..def ...union nat:ord funcenv argenv \appenv
-      ..def .digs4nat .len funcenv \funclen
-      ..def .digs4nat .len  argenv  \arglen
+  ..def .fix \emit \byref \t .....t
+    \mrkd $err # ..emit byref mrkd
+    ..queerbird unmark \functerm ..queerbird unmark \argterm
+      ...emit true functerm \funcenv \funcstr
+      ...emit false argterm  \argenv  \argstr
+      ..def ...alt list:altv funcenv
+        ..filter ..bluebird not ..memb nat:eq funcenv argenv \appenv
+      ..def ...max nat:ord ...isapp functerm one none .len funcenv \funcmass
+      ..def ...max nat:ord ...isapp  argterm one none .len  argenv  \argmass
+      ..def ...max nat:ord                   one      .len  appenv  \appmass
+      ..def ..debug digs:dbg .digs4nat funcmass \FUNCMASS
+      ..def ..debug digs:dbg .digs4nat  argmass  \ARGMASS
+      ..def ..debug digs:dbg .digs4nat  appmass  \APPMASS
+      ..def ..debug digs:dbg .digs4nat .len funcenv \FUNCLEN
+      ..def ..debug digs:dbg .digs4nat .len  argenv  \ARGLEN
       ..pair appenv
         ....lifta2 statea:aptv bluebird funcstr
-        ...bind    statea:mnad sget \funcid
+        ...bind    statea:mnad .sgets .debug digs:dbg \FUNCID
         ....lifta2 statea:aptv bluebird argstr
-        ...bind    statea:mnad sget \argid
+        ...bind    statea:mnad .sgets .debug digs:dbg \ARGID
         ...bindk   statea:mnad .smodify digs::inc
-        ...bind    statea:mnad sget \appid
+        ...bind    statea:mnad .sgets .debug digs:dbg \APPID
         ..pure statea:aptv \nil
-          .struct .thunk .* .beta_ ...debug digs:dbg appid .(
+          .struct .thunk .* .beta_ .APPID .(
               .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
-            .\nil ...isvar .unmark functerm
-              .struct .thunk .* .func .; nil
-              .struct .thunk .* .func .= .malloc .( .sizeof .* .func .+ .sizeof
-                  .arg .* .....and .isnil funcenv .isapp .unmark functerm 1
-                  ..debug digs:dbg funclen .) .;
-              .* .func .= .( .struct .thunk .) .{ .1 .,
-                  ...debug digs:dbg funclen .,
-                  .beta_ ...debug digs:dbg funcid .} .; nil
-            .\nil ...isvar .unmark argterm
-              .struct .thunk .* .arg_ .; nil
-              .struct .thunk .* .arg_ .= .malloc .( .sizeof .* .arg_ .+ .sizeof
-                  .arg .* .....and .isnil argenv .isapp .unmark argterm 1
-                  ..debug digs:dbg arglen .) .;
-              .* .arg_ .= .( .struct .thunk .) .{ .1 .,
-                  ...debug digs:dbg arglen .,
-                  .beta_ ...debug digs:dbg argid .} .; nil
-            ...fold endo:mnid ...fmap list:ftor .unpair \elem \appidx \nil
-              ..def ...fmap opt:ftor digs4nat ...elemindex nat:eq elem funcenv
-              ..def ...fmap opt:ftor digs4nat ...elemindex nat:eq elem  argenv
-              \argidx \funcidx
-                .\nil ...cardinal funcidx nil \funcidx
-                  .\nil ...isnone argidx nil
-                    .self .-> .env .[ ...debug digs:dbg appidx .] .->
-                        .refcount .++ .; nil
-                  ...isvar .unmark functerm
-                    .func .= .self .-> .env .[
-                        ...debug digs:dbg appidx .] .; nil
-                    .func .-> .env .[ ...debug digs:dbg funcidx .] .=
-                        .self .-> .env .[ ...debug digs:dbg appidx .] .; nil
-                ...cardinal argidx nil \argidx
-                  ...isvar .unmark argterm
-                    .arg_ .= .self .-> .env .[
-                        ...debug digs:dbg appidx .] .; nil
-                    .arg_ .-> .env .[ ...debug digs:dbg argidx .] .=
-                        .self .-> .env .[ ...debug digs:dbg appidx .] .; nil
-              ....lifta2 trim:aptv pair appenv ..tolist stream:fldb digsiota
-            .func .= .func .-> .beta .( .func ., .arg_ .) .;
-            .if .( .-- .self .-> .refcount .) .{
-              .self .-> .envlen .= .1 ., .self .-> .beta .= .beta_ .0 .;
-              .( .* .self .-> .env .= .func .) .-> .refcount .++ .;
-            .} .else
-              .free .( .self .) .;
-            .return .func .-> .beta .( .func ., .arg .) .;
+            .struct .thunk .* .arg_ ., .*
+            .\nil ...isvar functerm
+              .func .= .self .-> .env .[ .0 .] .; nil
+              .func .= .self .; nil
+            .\nil ...isvar argterm nil
+              .\nil ...isge ...compare nat:ord freelists argmass nil
+                .freelist_ .ARGMASS .? .arg_ .= .freelist_ .ARGMASS .,
+                    .freelist_ .ARGMASS .= .freelist_ .ARGMASS .->
+                    .u. .next .: nil
+              .( .arg_ .= .malloc .(
+                  .sizeof .* .arg_ .+ .sizeof .arg .* .ARGMASS .) .) .;
+              .* .arg_ .= .( .struct .thunk .) .{
+                  .1 ., .ARGLEN ., .{ .beta_ .ARGID .} .} .; nil
+            ...fold endo:mnid ...fmap list:ftor
+              .unpair \elem ..queerbird .debug digs:dbg \ARGIDX \nil
+                ...cardinal ...elemindex nat:eq elem appenv $err \appidx
+                  ..def ..debug digs:dbg .digs4nat appidx \APPIDX
+                  .\nil ...isge ...compare nat:ord .len funcenv appidx nil
+                    .self .-> .env .[ .APPIDX .] .-> .refcount .++ .; nil
+                  ...isvar argterm
+                    .arg_ .= .self .-> .env .[ .APPIDX .] .; nil
+                    .arg_ .-> .env .[ .ARGIDX .] .=
+                        .self .-> .env .[ .APPIDX .] .; nil
+              ....lifta2 trim:aptv pair argenv ..tolist stream:fldb digsiota
+            .\nil ...isvar functerm
+              .func .= .func .-> .u. .beta .( .func ., .arg_ .) .; nil
+              .func .= .beta_ .FUNCID .( .func ., .arg_ .) .; nil
+            .\nil ..byref nil
+              .if .( .-- .self .-> .refcount .) .{
+                .self .-> .envlen .= .1 ., .self .-> .u. .beta .= .beta_ .0 .;
+                .( .* .self .-> .env .= .func .) .-> .refcount .++ .;
+              .} .else
+                ...isge ...compare nat:ord freelists appmass
+                  .free .( .self .) .; nil
+                  .self .-> .u. .next .= .freelist_ .APPMASS .,
+                      .freelist_ .APPMASS .= .self .; nil
+            .return .func .-> .u. .beta .( .func ., .arg .) .;
           .} .,\n nil
-    \bodyterm
-      ..emit bodyterm \bodyenv \bodystr
-      ..def ...head bodyenv isnone false \binds
-      ..def ...fmap list:ftor satpred ...delete nat:ord none bodyenv \lamenv
-      ..def .digs4nat .len bodyenv \bodylen
+    ..queerbird unmark \bodyterm
+      ...emit false bodyterm \bodyenv \bodystr
+      ..def ...bind list:mnad bodyenv .tolist opt:fldb \lamenv
+      ..def ...max nat:ord ...isapp bodyterm one none .len bodyenv \bodymass
+      ..def ...max nat:ord                       none .len  lamenv  \lammass
+      ..def ..debug digs:dbg .digs4nat bodymass \BODYMASS
+      ..def ..debug digs:dbg .digs4nat  lammass  \LAMMASS
+      ..def ..debug digs:dbg .digs4nat .len bodyenv \BODYLEN
       ..pair lamenv
         ....lifta2 statea:aptv bluebird bodystr
-        ...bind    statea:mnad sget \bodyid
+        ...bind    statea:mnad .sgets .debug digs:dbg \BODYID
         ...bindk   statea:mnad .smodify digs::inc
-        ...bind    statea:mnad sget \lamid
+        ...bind    statea:mnad .sgets .debug digs:dbg \LAMID
         ..pure statea:aptv \nil
-          .struct .thunk .* .beta_ ...debug digs:dbg lamid .(
+          .struct .thunk .* .beta_ .LAMID .(
               .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
-            .\nil ...isvar .unmark bodyterm
-              .struct .thunk .* .body .; nil
-              .struct .thunk .* .body .= .malloc .( .sizeof .* .body .+ .sizeof
-                  .arg .* .....and .isnil bodyenv .isapp .unmark bodyterm 1
-                  ..debug digs:dbg bodylen .) .;
-              .* .body .= .( .struct .thunk .) .{ .1 .,
-                  ...debug digs:dbg bodylen .,
-                  .beta_ ...debug digs:dbg bodyid .} .; nil
-            .\nil ...not binds
-              .decref .( .arg .) .; nil
-              ...isvar .unmark bodyterm
+            .struct .thunk .* .body .;
+            .\nil ...isvar bodyterm nil
+              .\nil ...isge ...compare nat:ord freelists bodymass nil
+                .freelist_ .BODYMASS .? .body .= .freelist_ .BODYMASS .,
+                    .freelist_ .BODYMASS .= .freelist_ .BODYMASS .->
+                    .u. .next .: nil
+              .( .body .= .malloc .(
+                  .sizeof .* .body .+ .sizeof .arg .* .BODYMASS .) .) .;
+              .* .body .= .( .struct .thunk .) .{
+                  .1 ., .BODYLEN ., .{ .beta_ .BODYID .} .} .; nil
+            .\nil .....elemindex nat:eq none bodyenv \bodyidx
+              ..def ..debug digs:dbg .digs4nat bodyidx \BODYIDX
+              ...isvar bodyterm
                 .body .= .arg .; nil
-                .body .-> .env .[ .0 .] .= .arg .; nil
-            ...fold endo:mnid ...fmap list:ftor \lamidx \nil
-              ...isvar .unmark bodyterm
-                .( .body .= .self .-> .env .[ ...debug digs:dbg lamidx .]
-                    .) .-> .refcount .++ .; nil
-                .( .body .-> .env .[ ...debug digs:dbg
-                    ...binds digs::inc id lamidx .] .= .self .-> .env .[
-                    ...debug digs:dbg lamidx .] .) .-> .refcount .++ .; nil
-              ..stake .len lamenv digsiota
-            .return .decref .( .self .) ., .body .;
+                .body .-> .env .[ .BODYIDX .] .= .arg .; nil
+              .decref .( .arg .) .; nil
+            ...fold endo:mnid ...fmap list:ftor
+              .unpair \elem ..queerbird .debug digs:dbg \LAMIDX \nil
+                ...cardinal ...elemindex nat:eq .some elem bodyenv $err \bodyidx
+                  ..def ..debug digs:dbg .digs4nat bodyidx \BODYIDX
+                  ...isvar bodyterm
+                    .body .= .self .-> .env .[ .LAMIDX .] .; nil
+                    .body .-> .env .[ .BODYIDX .] .=
+                        .self .-> .env .[ .LAMIDX .] .; nil
+              ....lifta2 trim:aptv pair lamenv ..tolist stream:fldb digsiota
+            .\nil ..byref nil
+              .if .( .-- .self .-> .refcount .) .{
+                ...fold endo:mnid ...fmap list:ftor
+                  ..queerbird .debug digs:dbg \LAMIDX \nil
+                    .self .-> .env .[ .LAMIDX .] .-> .refcount .++ .; nil
+                  ..stake .len lamenv digsiota
+              .} .else
+                ...isge ...compare nat:ord freelists lammass
+                  .free .( .self .) .; nil
+                  .self .-> .u. .next .= .freelist_ .LAMMASS .,
+                      .freelist_ .LAMMASS .= .self .; nil
+            .return .body .;
           .} .,\n nil
     \idx ..pair ..cons idx nil
       ..pure statea:aptv dnil
     \typ
       ...unput typ \isput ..pair nil
-        ..emit .lam .lam .io mkone \putenv \putstr
+        ...emit byref .lam .lam .io mkone \putenv \putstr
         ...bindk   statea:mnad .smodify digs::inc
-        ...bind    statea:mnad sget \oneid
+        ...bind    statea:mnad .sgets .debug digs:dbg \ONEID
         ...bindk   statea:mnad .smodify digs::inc
-        ...bind    statea:mnad sget \zeroid
+        ...bind    statea:mnad .sgets .debug digs:dbg \ZEROID
         ...bindk   statea:mnad .smodify digs::inc
-        ...bind    statea:mnad sget \putid
+        ...bind    statea:mnad .sgets .debug digs:dbg \PUTID
         ....lifta2 statea:aptv queerbird putstr
         ..pure statea:aptv \nil
-          .struct .thunk .* .beta_ ...debug digs:dbg oneid .(
-            .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+          .struct .thunk .* .beta_ .ONEID .(
+              .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
             .if .( .arg .!= .& .thread .) .abort .( .) .;
             .return .self .;
           .} .,\n
-          .struct .thunk .* .beta_ ...debug digs:dbg zeroid .(
-            .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+          .struct .thunk .* .beta_ .ZEROID .(
+              .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
             .if .( .arg .!= .& .thread .) .abort .( .) .;
             .return .self .;
           .} .,\n
-          .struct .thunk .* .beta_ ...debug digs:dbg putid .(
-            .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
+          .struct .thunk .* .beta_ .PUTID .(
+              .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
             .if .( .arg .!= .& .thread .) .abort .( .) .;
-            .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
-            .struct .thunk .* .bit .= .self .-> .env .[ .1 .] .;
+            .struct .thunk .* .bit .= .self .-> .env .[ .0 .] .;
+            .struct .thunk .* .cont .= .self .-> .env .[ .1 .] .;
             .cont .-> .refcount .++ ., .bit .-> .refcount .++ .,
                 .decref .( .self .) .;
             .static .struct .thunk .one_ .= .{ .INT_MAX ., .0 .,
-              .beta_ ...debug digs:dbg oneid .} .;
+              .{ .beta_ .ONEID .} .} .;
             .static .struct .thunk .zero .= .{ .INT_MAX ., .0 .,
-              .beta_ ...debug digs:dbg zeroid .} .;
-            .bit .= .bit .-> .beta .( .bit ., .& .one_ .) .;
-            .bit .= .bit .-> .beta .( .bit ., .& .zero .) .;
-            .bit .= .bit .-> .beta .( .bit ., .& .thread .) .;
+              .{ .beta_ .ZEROID .} .} .;
+            .bit .= .bit .-> .u. .beta .( .bit ., .& .one_ .) .;
+            .bit .= .bit .-> .u. .beta .( .bit ., .& .zero .) .;
+            .bit .= .bit .-> .u. .beta .( .bit ., .& .thread .) .;
             .if .( .bit .!= .& .one_ .&& .bit .!= .& .zero .) .abort .( .) .;
             .bs_put .( .& ...isput bs_out bs_err ., .bit .== .& .one_ .) .;
-            .return .cont .-> .beta .( .cont ., .& .thread .) .;
+            .return .cont .-> .u. .beta .( .cont ., .& .thread .) .;
           .} .,\n nil
       .........typ
         ..pair nil
           ...bindk statea:mnad .smodify digs::inc
-          ...bind  statea:mnad sget \exitid
+          ...bind  statea:mnad .sgets .debug digs:dbg \EXITID
           ..pure   statea:aptv \nil
-            .struct .thunk .* .beta_ ...debug digs:dbg exitid .(
+            .struct .thunk .* .beta_ .EXITID .(
                 .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
               .if .( .arg .!= .& .thread .) .abort .( .) .;
               .return .decref .( .self .) ., .& .thread .;
             .} .,\n nil
         ..pair nil
           ...bindk statea:mnad .smodify digs::inc
-          ...bind  statea:mnad sget \errid
+          ...bind  statea:mnad .sgets .debug digs:dbg \ERRID
           ..pure   statea:aptv \nil
-            .struct .thunk .* .beta_ ...debug digs:dbg errid .(
+            .struct .thunk .* .beta_ .ERRID .(
                 .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
               .if .( .arg .!= .& .thread .) .abort .( .) .;
               .decref .( .self .) ., .abort .( .) .;
             .} .,\n nil
         ..pair nil
-          ..emit .lam .io mkzero \emitenv \emitstr
+          ...emit byref .lam .io mkzero \emitenv \emitstr
           ...bindk statea:mnad .smodify digs::inc
-          ...bind  statea:mnad sget \emitid
+          ...bind  statea:mnad .sgets .debug digs:dbg \EMITID
           ....lifta2 statea:aptv queerbird emitstr
           ..pure statea:aptv \nil
-            .struct .thunk .* .beta_ ...debug digs:dbg emitid .(
+            .struct .thunk .* .beta_ .EMITID .(
                 .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
               .if .( .arg .!= .& .thread .) .abort .( .) .;
               .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
               .cont .-> .refcount .++ ., .decref .( .self .) .;
-              .return .cont .-> .beta .( .cont ., .& .thread .) .;
+              .return .cont .-> .u. .beta .( .cont ., .& .thread .) .;
             .} .,\n nil
         ..pair nil
-          ..emit .lam .lam .var none \eofenv \eofstr
-          ..emit .lam .lam ..app .var one .lam .lam .var one \oneenv \onestr
-          ..emit .lam .lam ..app .var one .lam .lam .var none \zeroenv \zerostr
-          ..emit .lam .io mkzero \getenv \getstr
+          ...emit false .lam .lam .var none
+          ...emit false .lam .lam ..app .var one .lam .lam .var one
+          ...emit false .lam .lam ..app .var one .lam .lam .var none
+          \zeroenv \zerostr   \oneenv \onestr   \eofenv \eofstr
+          ...emit byref .lam .io mkzero \getenv \getstr
           ....lifta2 statea:aptv bluebird eofstr
-          ...bind    statea:mnad sget \eofid
+          ...bind    statea:mnad .sgets .debug digs:dbg \EOFID
           ....lifta2 statea:aptv bluebird onestr
-          ...bind    statea:mnad sget \oneid
+          ...bind    statea:mnad .sgets .debug digs:dbg \ONEID
           ....lifta2 statea:aptv bluebird zerostr
-          ...bind    statea:mnad sget \zeroid
+          ...bind    statea:mnad .sgets .debug digs:dbg \ZEROID
           ...bindk   statea:mnad .smodify digs::inc
-          ...bind    statea:mnad sget \getid
+          ...bind    statea:mnad .sgets .debug digs:dbg \GETID
           ....lifta2 statea:aptv queerbird getstr
           ..pure statea:aptv \nil
-            .struct .thunk .* .beta_ ...debug digs:dbg getid .(
+            .struct .thunk .* .beta_ .GETID .(
                 .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
               .if .( .arg .!= .& .thread .) .abort .( .) .;
               .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
@@ -400,34 +427,34 @@
               .fflush .( .bs_out .,. .fp .) ., .fflush .( .bs_err .,. .fp .) .;
               .bool .bit .= .bs_get .( .& .bs_in .) .,
                   .iseof .= .bs_eof .( .& .bs_in .) .;
-              .static .struct .thunk .eof .= .{ .INT_MAX ., .0 .,
-                  .beta_ ...debug digs:dbg eofid .} .;
-              .static .struct .thunk .one_ .= .{ .INT_MAX ., .0 .,
-                  .beta_ ...debug digs:dbg oneid .} .;
-              .static .struct .thunk .zero .= .{ .INT_MAX ., .0 .,
-                  .beta_ ...debug digs:dbg zeroid .} .;
-              .cont .= .cont .-> .beta .( .cont ., .iseof .? .& .eof .:
+              .static .struct .thunk .eof .= .{
+                  .INT_MAX ., .0 ., .{ .beta_ .EOFID .} .} .;
+              .static .struct .thunk .one_ .= .{
+                  .INT_MAX ., .0 ., .{ .beta_ .ONEID .} .} .;
+              .static .struct .thunk .zero .= .{
+                  .INT_MAX ., .0 ., .{ .beta_ .ZEROID .} .} .;
+              .cont .= .cont .-> .u. .beta .( .cont ., .iseof .? .& .eof .:
                   .bit .? .& .one_ .: .& .zero .) .;
-              .return .cont .-> .beta .( .cont ., .& .thread .) .;
+              .return .cont .-> .u. .beta .( .cont ., .& .thread .) .;
             .} .,\n nil
         ..pair nil ..pure statea:aptv dnil # handled above
         ..pair nil ..pure statea:aptv dnil # handled above
         ..pair nil
-          ..emit .lam .lam .io mkone \dumpenv \dumpstr
+          ...emit byref .lam .lam .io mkone \dumpenv \dumpstr
           ...bindk   statea:mnad .smodify digs::inc
-          ...bind    statea:mnad sget \dumpid
+          ...bind    statea:mnad .sgets .debug digs:dbg \DUMPID
           ....lifta2 statea:aptv queerbird dumpstr
           ..pure statea:aptv \nil
-            .struct .thunk .* .beta_ ...debug digs:dbg dumpid .(
+            .struct .thunk .* .beta_ .DUMPID .(
                 .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
               .if .( .arg .!= .& .thread .) .abort .( .) .;
-              .struct .thunk .* .cont .= .self .-> .env .[ .0 .] .;
-              .struct .thunk .* .term .= .self .-> .env .[ .1 .] .;
+              .struct .thunk .* .term .= .self .-> .env .[ .0 .] .;
+              .struct .thunk .* .cont .= .self .-> .env .[ .1 .] .;
               .dump .( .term .) ., .fputc .( .,' .,\ .,n .,' ., .stderr .) .;
               .cont .-> .refcount .++ ., .decref .( .self .) .;
-              .return .cont .-> .beta .( .cont ., .& .thread .) .;
+              .return .cont .-> .u. .beta .( .cont ., .& .thread .) .;
             .} .,\n nil
-        ..pair ..cons none ..cons one nil
+        ..pair ..cons one ..cons none nil
           ..pure statea:aptv dnil
         ..pair ..cons none nil
           ..pure statea:aptv dnil
@@ -457,7 +484,7 @@
   \BITSTREAM_LIB
 
   .\topstr ..seval topstr ..cons d0 nil
-  ..emit topterm \topenv \topstr
+  ...emit true topterm \topenv \topstr
   ....lifta2 statea:aptv bluebird
   ..pure statea:aptv \nil
     .,# .include .,< .,l .,i .,m .,i .,t .,s .,. .,h .,> .,\n
@@ -466,56 +493,58 @@
     .,# .include .,< .,s .,t .,d .,l .,i .,b .,. .,h .,> .,\n
     .struct .thunk .{
       .unsigned .refcount ., .envlen .;
-      .struct .thunk .* .( .* .beta .) .( .struct .thunk .* .self .,
-          .struct .thunk .* .arg .) .;
+      .union' .{
+        .struct .thunk .* .( .* .beta .) .( .struct .thunk .* .self .,
+            .struct .thunk .* .arg .) .;
+        .struct .thunk .* .next .;
+      .} .u .;
       .struct .thunk .* .env .[ .] .;
     .} .;
     .void .decref .( .struct .thunk .* .thunk .) .{
-    .decref .:
       .if .( .-- .thunk .-> .refcount .)
         .return .;
-      .for .( .unsigned .e .= .1 .; .e .< .thunk .-> .envlen .; .e .++ .)
-        .decref .( .thunk .-> .env .[ .e .] .) .;
-      .if .( .thunk .-> .envlen .) .{
-        .struct .thunk .* .env .= .* .thunk .-> .env .;
-        .free .( .thunk .) ., .thunk .= .env .;
-        .goto .decref .;
-      .}
-      .free .( .thunk .) .;
+      .struct .thunk .* .top .= .NULL .;
+      .do .{
+        .for .( .unsigned .e .= .0 .; .e .< .thunk .-> .envlen .; .e .++ .)
+          .if .( .-- .thunk .-> .env .[ .e .] .-> .refcount .== .0 .)
+            .thunk .-> .env .[ .e .] .-> .u. .next .= .top .,
+                .top .= .thunk .-> .env .[ .e .] .;
+        .free .( .thunk .) ., .thunk .= .top .;
+      .} .while .( .top .? .top .= .top .-> .u. .next ., .1 .: .0 .) .;
     .}
     .void .dump .( .struct .thunk .* .thunk .) .{
-      .union' .{
-        .struct .thunk .* .( .* .beta .) .( .struct .thunk .* .thunk .,
-            .struct .thunk .* .arg .) .;
-        .unsigned .char .buf .[ .sizeof .thunk .-> .beta .] .;
-      .} .u .= .{ .thunk .-> .beta .} .;
-      .for .( .unsigned .b .= .0 .; .b .< .sizeof .u .,. .buf .; .b .++ .)
-        .fprintf .( .stderr .,
-            .," .,% .,0 .,2 .,x .," ., .u .,. .buf .[ .b .] .) .;
+      .fprintf .( .stderr ., .," .,% .,p .," .,
+          .( .void .* .) .thunk .-> .u. .next .) .;
       .fputc .( .,' .,( .,' ., .stderr .) .;
       .for .( .unsigned .e .= .0 .; .e .< .thunk .-> .envlen .; .e .++ .)
         .dump .( .thunk .-> .env .[ .e .] .) .;
       .fputc .( .,' .,) .,' ., .stderr .) .;
     .} .,\n
+    ...fold endo:mnid ...fmap list:ftor
+      ..queerbird .debug digs:dbg \FREEIDX \nil
+        .struct .thunk .* .freelist_ .FREEIDX .= .NULL .; nil
+      ..stake freelists digsiota
     .BITSTREAM_LIB .,\n
     .struct .bs .bs_in ., .bs_out ., .bs_err .;
-    .struct .thunk .thread .= .{ .INT_MAX ., .0 ., .NULL .} .;
+    .struct .thunk .thread .= .{ .INT_MAX ., .0 ., .{ .NULL .} .} .;
     .struct .thunk .* .beta_ .0 .(
         .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
       .struct .thunk .* .memo .= .* .self .-> .env .;
-      .memo .-> .refcount .++ ., .decref .( .self .) .;
-      .return .memo .-> .beta .( .memo ., .arg .) .;
+      .if .( .-- .self .-> .refcount .)
+        .memo .-> .refcount .++ .;
+      .else
+        .free .( .self .) .;
+      .return .memo .-> .u. .beta .( .memo ., .arg .) .;
     .} .,\n nil
   ....lifta2 statea:aptv bluebird topstr
-  ...bind    statea:mnad sget \topid
+  ...bind    statea:mnad .sgets .debug digs:dbg \TOPID
   ..pure statea:aptv \nil
     .int .main .( .void .) .{
       .bs_in .,. .fp .= .stdin ., .bs_out .,. .fp .= .stdout .,
           .bs_err .,. .fp .= .stderr .;
-      .struct .thunk .* .top .= .malloc .( .sizeof .* .top .+ .sizeof .top .) .;
-      .* .top .= .( .struct .thunk .) .{ .1 ., .0 ., .NULL .} .;
-      .if .( .beta_ ...debug digs:dbg topid .( .top ., .& .thread .) .!=
-          .& .thread .) .abort .( .) .;
+      .static .struct .thunk .top .= .{ .INT_MAX ., .0 ., .{ .NULL .} .} .;
+      .if .( .beta_ .TOPID .( .& .top ., .& .thread .) .!= .& .thread .)
+        .abort .( .) .;
     .} .,\n nil
 \codegen
 

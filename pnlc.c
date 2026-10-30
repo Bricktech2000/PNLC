@@ -40,7 +40,7 @@ struct term {
   } u;
 };
 
-#define TERM(...) (&(struct term){__VA_ARGS__})
+#define TERM(...) (&(struct term){__VA_ARGS__, .refcount = 1})
 
 #define APP(LHS, RHS) TERM(TYPE_APP, .lhs = LHS, .rhs = RHS)
 #define LAM(LHS, RHS) TERM(TYPE_LAM, .lhs = LHS, .rhs = RHS)
@@ -55,7 +55,6 @@ struct term {
 
 struct term *term_alloc(struct term fields) {
   struct term *term = malloc(sizeof *term);
-  fields.refcount = 1;
   // spell out `*term = fields` manually, otherwise GCC's scalar replacement
   // of aggregates (SRA) chokes on the union and the compound literals backing
   // `fields` get allocated on the stack, resulting in a 10-20% global slowdown
@@ -407,6 +406,8 @@ char *run(struct term **term, struct bs *bs_in, struct bs *bs_out,
 // environments own their thunks. "beta_" functions move in their parameters
 // and return owned thunks.
 
+#define FREELISTS 6 // number of freelists to codegen
+
 #define P(...) fprintf(fp, __VA_ARGS__)
 
 struct env {
@@ -415,14 +416,14 @@ struct env {
   size_t next;
 };
 
-void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
-          size_t env, long long visited) {
+void emit(FILE *fp, struct term *term, bool byref, struct env **arena,
+          size_t *top, long long visited) {
   // codegens `term` into `fp` and returns its set of free variables in its
-  // `env` field. `env` the parameter is the set of variables bound by parent
-  // abstraction nodes. both are allocated in `*arena`, by bumping `*top` and
-  // `realloc`ing when needed. we use `visited` to ensure the graph doesn't
-  // degenerate to a tree. the values of `env` fields are kept unique so they
-  // can double as UIDs for naming "beta_" functions
+  // `env` field, allocated in `*arena` by bumping `*top` and `realloc`ing when
+  // needed. `byref` means that `self` is passed by reference and shouldn't be
+  // updated of decrefed before returning. we use `visited` to ensure the graph
+  // doesn't degenerate to a tree. the values of `env` fields are kept unique so
+  // they can double as UIDs for naming "beta_" functions
 
   if (term->visited == visited)
     return;
@@ -442,108 +443,173 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
   switch (term->type) {
   case TYPE_APP: {
     term->u.env = NIL;
-    emit(fp, term->lhs, arena, top, env, visited);
-    emit(fp, term->rhs, arena, top, env, visited);
+
+    // when no other term references our function position, we can avoid
+    // building a thunk for it and instead reuse `self`. this works because
+    // `term->lhs->u.env[*arena]` is a prefix of `term->u.env[*arena]` and
+    // thus `self->env` can double as `func->env`. a better criterion would
+    // be "when all references to a term are from function positions" but
+    // that information isn't readily available
+    bool lhs_byref = term->lhs->refcount == 1;
+    emit(fp, term->lhs, lhs_byref, arena, top, visited);
+    emit(fp, term->rhs, false, arena, top, visited);
     size_t lhs_env = term->lhs->u.env;
     size_t rhs_env = term->rhs->u.env;
+    unsigned lhs_mass =
+        lhs_env[*arena].len ? lhs_env[*arena].len : term->lhs->type == TYPE_APP;
+    unsigned rhs_mass =
+        rhs_env[*arena].len ? rhs_env[*arena].len : term->rhs->type == TYPE_APP;
 
-    P("struct thunk *beta_%zu(struct thunk *self, struct thunk *arg) {",
+    P("struct thunk *beta_%zu(struct thunk *self, struct thunk *arg) {"
+      "  struct thunk *func, *arg_;",
       term->u.env);
-    if (term->lhs->type < TYPE_VAR)
-      P("  struct thunk *func = malloc(sizeof *func + sizeof arg * %u);"
-        "  *func = (struct thunk){1, %u, beta_%zu};",
-        lhs_env[*arena].len ? lhs_env[*arena].len : term->lhs->type == TYPE_APP,
-        lhs_env[*arena].len, lhs_env);
-    else
-      P("  struct thunk *func;");
-    if (term->rhs->type < TYPE_VAR)
-      P("  struct thunk *arg_ = malloc(sizeof *arg_ + sizeof arg * %u);"
-        "  *arg_ = (struct thunk){1, %u, beta_%zu};",
-        rhs_env[*arena].len ? rhs_env[*arena].len : term->rhs->type == TYPE_APP,
-        rhs_env[*arena].len, rhs_env);
-    else
-      P("  struct thunk *arg_;");
+    if (term->lhs->type < TYPE_VAR) {
+      if (lhs_byref)
+        P("  func = self;"); // don't allocate a new thunk
+      else {
+        if (lhs_mass < FREELISTS)
+          P("  freelist_%u ?"
+            "      func = freelist_%u, freelist_%u = freelist_%u->u.next :",
+            lhs_mass, lhs_mass, lhs_mass, lhs_mass);
+        P("  (func = malloc(sizeof *func + sizeof arg * %u));"
+          "  *func = (struct thunk){1, %u, {beta_%zu}};", //
+          lhs_mass, lhs_env[*arena].len, lhs_env);
+      }
+    }
+    if (term->rhs->type < TYPE_VAR) {
+      if (rhs_mass < FREELISTS)
+        P("  freelist_%u ?"
+          "      arg_ = freelist_%u, freelist_%u = freelist_%u->u.next :",
+          rhs_mass, rhs_mass, rhs_mass, rhs_mass);
+      P("  (arg_ = malloc(sizeof *arg_ + sizeof arg * %u));"
+        "  *arg_ = (struct thunk){1, %u, {beta_%zu}};", //
+        rhs_mass, rhs_env[*arena].len, rhs_env);
+    }
 
-    size_t rev_env = 0;
-    unsigned term_idx = 0, lhs_idx = 0, rhs_idx = 0;
-    for (; env[*arena].var; env = env[*arena].next) {
-      if (lhs_env[*arena].var == env[*arena].var) {
-        if (term->lhs->type < TYPE_VAR)
-          P("  func->env[%u] = self->env[%u];", lhs_idx, term_idx);
-        else
-          P("  func = self->env[%u];", term_idx);
-        if (rhs_env[*arena].var == env[*arena].var)
-          P("  self->env[%u]->refcount++;", term_idx);
-        else
-          rev_env = CONS(env[*arena].var, rev_env), term_idx++;
-        lhs_env = lhs_env[*arena].next, lhs_idx++;
+    if (!(term->lhs->type < TYPE_VAR && lhs_byref))
+      // else `func = self;` and we reuse `self->env`
+      for (size_t env = lhs_env; env[*arena].var; env = env[*arena].next)
+        P(term->lhs->type < TYPE_VAR //
+              ? "  func->env[%u] = self->env[%u];"
+              : "  func %.0u = self->env[%u];",
+          env[*arena].len - 1, env[*arena].len - 1);
+
+    // start with `lhs_env` and prepend `rhs_env`, deduplicating
+    size_t term_env = lhs_env;
+    for (; rhs_env[*arena].var; rhs_env = rhs_env[*arena].next) {
+      size_t src_env = lhs_env;
+      for (; src_env[*arena].var; src_env = src_env[*arena].next) {
+        if (rhs_env[*arena].var == src_env[*arena].var) {
+          P("  self->env[%u]->refcount++;", src_env[*arena].len - 1);
+          goto brk;
+        }
       }
-      if (rhs_env[*arena].var == env[*arena].var) {
-        if (term->rhs->type < TYPE_VAR)
-          P("  arg_->env[%u] = self->env[%u];", rhs_idx, term_idx);
-        else
-          P("  arg_ = self->env[%u];", term_idx);
-        rev_env = CONS(env[*arena].var, rev_env), term_idx++;
-        rhs_env = rhs_env[*arena].next, rhs_idx++;
-      }
+      term_env = CONS(rhs_env[*arena].var, term_env);
+      src_env = term_env;
+    brk:
+      P(term->rhs->type < TYPE_VAR //
+            ? "  arg_->env[%u] = self->env[%u];"
+            : "  arg_ %.0u = self->env[%u];",
+        rhs_env[*arena].len - 1, src_env[*arena].len - 1);
     }
-    size_t term_env = 0;
-    while (rev_env[*arena].var) {
-      rev_env[*arena].len = term_env[*arena].len + 1;
-      size_t next = rev_env[*arena].next;
-      rev_env[*arena].next = term_env, term_env = rev_env, rev_env = next;
-    }
+
     term->u.env[*arena] = term_env[*arena];
+    unsigned term_mass = term_env[*arena].len ? term_env[*arena].len : 1;
 
-    P("  func = func->beta(func, arg_);"
+    // normally, calls to "beta_" functions are tail calls. this is the one
+    // exception. it is no defect: the stack frame is used to store `arg` while
+    // we recurse down the left spine of `self` and it serves as an update fame
+    // for updating `self` once it's been reduced to weak-head normal form
+    P(term->lhs->type < TYPE_VAR //
+          ? "  func = beta_%zu(func, arg_);"
+          : "  func = func->u.beta(func, arg_);",
+      term->lhs->u.env);
+
+    if (!byref) {
       // memoize the result of applying `func` to `arg_` into `*self->env`,
       // and set our "beta_" function to `beta_0` so future reductions use that
       // memoized value. for this to work, all thunks standing for application
-      // nodes need to carry at least one environment slot, so application nodes
-      // with no free variables have to be handled with care
-      "  if (--self->refcount) {"
-      "    self->envlen = 1, self->beta = beta_0;"
-      "    (*self->env = func)->refcount++;"
-      "  } else"
-      "    free(self);"
-      "  return func->beta(func, arg);"
+      // nodes need to carry at least one environment slot, and so application
+      // nodes with no free variables have to be handled with care
+      P("  if (--self->refcount) {"
+        "    self->envlen = 1, self->u.beta = beta_0;"
+        "    (*self->env = func)->refcount++;"
+        "  } else");
+      P(term_mass < FREELISTS //
+            ? "    self->u.next = freelist_%u, freelist_%u = self;"
+            : "    free(self);",
+        term_mass, term_mass);
+    }
+    P("  return func->u.beta(func, arg);"
       "}\n");
   } break;
 
   case TYPE_LAM: {
     term->u.env = NIL;
-    env = CONS(term->lhs, env);
-    emit(fp, term->rhs, arena, top, env, visited);
+    emit(fp, term->rhs, false, arena, top, visited);
     size_t rhs_env = term->rhs->u.env;
+    unsigned rhs_mass =
+        rhs_env[*arena].len ? rhs_env[*arena].len : term->rhs->type == TYPE_APP;
 
-    P("struct thunk *beta_%zu(struct thunk *self, struct thunk *arg) {",
+    P("struct thunk *beta_%zu(struct thunk *self, struct thunk *arg) {"
+      "  struct thunk *body;",
       term->u.env);
-    if (term->rhs->type < TYPE_VAR)
-      P("  struct thunk *body = malloc(sizeof *body + sizeof arg * %u);"
-        "  *body = (struct thunk){1, %u, beta_%zu};",
-        rhs_env[*arena].len ? rhs_env[*arena].len : term->rhs->type == TYPE_APP,
-        rhs_env[*arena].len, rhs_env);
-    else
-      P("  struct thunk *body;");
-
-    unsigned term_idx = 0, rhs_idx = 0;
-    if (rhs_env[*arena].var == env[*arena].var) {
-      if (term->rhs->type < TYPE_VAR)
-        P("  body->env[%u] = arg;", rhs_idx);
-      else
-        P("  body = arg;");
-      rhs_env = rhs_env[*arena].next, rhs_idx++;
-    } else
-      P("  decref(arg);");
-    for (; term_idx < rhs_env[*arena].len; rhs_idx++, term_idx++) {
-      if (term->rhs->type < TYPE_VAR)
-        P("  (body->env[%u] = self->env[%u])->refcount++;", rhs_idx, term_idx);
-      else
-        P("  (body = self->env[%u])->refcount++;", term_idx);
+    if (term->rhs->type < TYPE_VAR) {
+      if (rhs_mass < FREELISTS)
+        P("  freelist_%u ?"
+          "      body = freelist_%u, freelist_%u = freelist_%u->u.next :",
+          rhs_mass, rhs_mass, rhs_mass, rhs_mass);
+      P("  (body = malloc(sizeof *body + sizeof arg * %u));"
+        "  *body = (struct thunk){1, %u, {beta_%zu}};", //
+        rhs_mass, rhs_env[*arena].len, rhs_env);
     }
-    term->u.env[*arena] = rhs_env[*arena];
 
-    P("  return decref(self), body;"
+    // `src_env` will point to the common tail
+    size_t src_env = rhs_env;
+    for (; src_env[*arena].var; src_env = src_env[*arena].next) {
+      if (src_env[*arena].var == term->lhs) {
+        src_env = src_env[*arena].next;
+        break;
+      }
+    }
+
+    size_t term_env;
+    bool seen = false;
+    for (; rhs_env[*arena].var; rhs_env = rhs_env[*arena].next) {
+      if (rhs_env[*arena].var == term->lhs) {
+        P(term->rhs->type < TYPE_VAR //
+              ? "  body->env[%u] = arg;"
+              : "  body %.0u = arg;",
+          rhs_env[*arena].len - 1);
+        term_env = src_env, src_env = rhs_env, seen = true;
+        continue;
+      }
+      src_env = !seen ? CONS(rhs_env[*arena].var, src_env) //
+                      : src_env[*arena].next;
+      P(term->rhs->type < TYPE_VAR //
+            ? "  body->env[%u] = self->env[%u];"
+            : "  body %.0u = self->env[%u];",
+        rhs_env[*arena].len - 1, src_env[*arena].len - 1);
+    }
+    if (!seen) {
+      P("  decref(arg);");
+      term_env = src_env;
+    }
+
+    term->u.env[*arena] = term_env[*arena];
+    unsigned term_mass = term_env[*arena].len ? term_env[*arena].len : 0;
+
+    if (!byref) {
+      P("  if (--self->refcount) {");
+      for (; term_env[*arena].var; term_env = term_env[*arena].next)
+        P("    self->env[%u]->refcount++;", term_env[*arena].len - 1);
+      P("  } else");
+      P(term_mass < FREELISTS //
+            ? "    self->u.next = freelist_%u, freelist_%u = self;"
+            : "    free(self);",
+        term_mass, term_mass);
+    }
+    P("  return body;"
       "}\n");
   } break;
 
@@ -559,6 +625,8 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
 // emit nothing but pretend to have free variables `ENV`.
 #define OPAQUE(ENV) TERM(.visited = visited, .u.env = ENV)
 
+  // `if (--self->refcount) cont->refcount++; else free(self);` doesn't improve
+  // performance so we use `cont->refcount++, decref(self);` for simplicity
   default /* IO */:
     switch (~term->type) {
     case IO_EXIT: {
@@ -568,7 +636,8 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
         "  return decref(self), &thread;"
         "}\n",
         exit->u.env);
-      emit(fp, exit = exit, arena, top, 0, visited);
+      exit = exit;
+      emit(fp, exit, byref, arena, top, visited);
       term->u.env = exit->u.env;
     } break;
 
@@ -579,7 +648,8 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
         "  decref(self), abort();"
         "}\n",
         err->u.env);
-      emit(fp, err = err, arena, top, 0, visited);
+      err = err;
+      emit(fp, err, byref, arena, top, visited);
       term->u.env = err->u.env;
     } break;
 
@@ -591,10 +661,11 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
         "  if (arg != &thread) abort();"
         "  struct thunk *cont = self->env[0];"
         "  cont->refcount++, decref(self);"
-        "  return cont->beta(cont, &thread);"
+        "  return cont->u.beta(cont, &thread);"
         "}\n",
         emit_->u.env);
-      emit(fp, emit_ = LAM(cont, emit_), arena, top, 0, visited);
+      emit_ = LAM(cont, emit_);
+      emit(fp, emit_, byref, arena, top, visited);
       term->u.env = emit_->u.env;
     } break;
 
@@ -606,9 +677,9 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
           LAM(some, LAM(none, APP(some, LAM(one, LAM(zero, one)))));
       struct term *bit_zero =
           LAM(some, LAM(none, APP(some, LAM(one, LAM(zero, zero)))));
-      emit(fp, bit_eof, arena, top, 0, visited);
-      emit(fp, bit_one, arena, top, 0, visited);
-      emit(fp, bit_zero, arena, top, 0, visited);
+      emit(fp, bit_eof, false, arena, top, visited);
+      emit(fp, bit_one, false, arena, top, visited);
+      emit(fp, bit_zero, false, arena, top, visited);
       struct term *get = OPAQUE(CONS(cont, 0));
       P("struct thunk *beta_%zu(struct thunk *self, struct thunk *arg) {"
         "  if (arg != &thread) abort();"
@@ -616,14 +687,15 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
         "  cont->refcount++, decref(self);"
         "  fflush(bs_out.fp), fflush(bs_err.fp);"
         "  bool bit = bs_get(&bs_in), iseof = bs_eof(&bs_in);"
-        "  static struct thunk eof = {INT_MAX, 0, beta_%zu};"
-        "  static struct thunk one = {INT_MAX, 0, beta_%zu};"
-        "  static struct thunk zero = {INT_MAX, 0, beta_%zu};"
-        "  cont = cont->beta(cont, iseof ? &eof : bit ? &one : &zero);"
-        "  return cont->beta(cont, &thread);"
+        "  static struct thunk eof = {INT_MAX, 0, {beta_%zu}};"
+        "  static struct thunk one = {INT_MAX, 0, {beta_%zu}};"
+        "  static struct thunk zero = {INT_MAX, 0, {beta_%zu}};"
+        "  cont = cont->u.beta(cont, iseof ? &eof : bit ? &one : &zero);"
+        "  return cont->u.beta(cont, &thread);"
         "}\n",
         get->u.env, bit_eof->u.env, bit_one->u.env, bit_zero->u.env);
-      emit(fp, get = LAM(cont, get), arena, top, 0, visited);
+      get = LAM(cont, get);
+      emit(fp, get, byref, arena, top, visited);
       term->u.env = get->u.env;
     } break;
 
@@ -645,20 +717,21 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
       struct term *put = OPAQUE(CONS(cont, CONS(bit, 0)));
       P("struct thunk *beta_%zu(struct thunk *self, struct thunk *arg) {"
         "  if (arg != &thread) abort();"
-        "  struct thunk *cont = self->env[0];"
-        "  struct thunk *bit = self->env[1];"
+        "  struct thunk *bit = self->env[0];"
+        "  struct thunk *cont = self->env[1];"
         "  cont->refcount++, bit->refcount++, decref(self);"
-        "  static struct thunk one = {INT_MAX, 0, beta_%zu};"
-        "  static struct thunk zero = {INT_MAX, 0, beta_%zu};"
-        "  bit = bit->beta(bit, &one);"
-        "  bit = bit->beta(bit, &zero);"
-        "  bit = bit->beta(bit, &thread);"
+        "  static struct thunk one = {INT_MAX, 0, {beta_%zu}};"
+        "  static struct thunk zero = {INT_MAX, 0, {beta_%zu}};"
+        "  bit = bit->u.beta(bit, &one);"
+        "  bit = bit->u.beta(bit, &zero);"
+        "  bit = bit->u.beta(bit, &thread);"
         "  if (bit != &one && bit != &zero) abort();"
         "  bs_put(&%s, bit == &one);"
-        "  return cont->beta(cont, &thread);"
+        "  return cont->u.beta(cont, &thread);"
         "}\n",
         put->u.env, one->u.env, zero->u.env, isput ? "bs_out" : "bs_err");
-      emit(fp, put = LAM(bit, LAM(cont, put)), arena, top, 0, visited);
+      put = LAM(bit, LAM(cont, put));
+      emit(fp, put, byref, arena, top, visited);
       term->u.env = put->u.env;
     } break;
 
@@ -667,14 +740,15 @@ void emit(FILE *fp, struct term *term, struct env **arena, size_t *top,
       struct term *dump = OPAQUE(CONS(cont, CONS(term_, 0)));
       P("struct thunk *beta_%zu(struct thunk *self, struct thunk *arg) {"
         "  if (arg != &thread) abort();"
-        "  struct thunk *cont = self->env[0];"
-        "  struct thunk *term = self->env[1];"
+        "  struct thunk *term = self->env[0];"
+        "  struct thunk *cont = self->env[1];"
         "  dump(term), fputc('\\n', stderr);"
         "  cont->refcount++, decref(self);"
-        "  return cont->beta(cont, &thread);"
+        "  return cont->u.beta(cont, &thread);"
         "}\n",
         dump->u.env);
-      emit(fp, dump = LAM(term_, LAM(cont, dump)), arena, top, 0, visited);
+      dump = LAM(term_, LAM(cont, dump));
+      emit(fp, dump, byref, arena, top, visited);
       term->u.env = dump->u.env;
     } break;
     }
@@ -695,64 +769,66 @@ void codegen(FILE *fp, struct term *term, long long visited) {
     ""
     "struct thunk {"
     "  unsigned refcount, envlen;"
-    "  struct thunk *(*beta)(struct thunk *self, struct thunk *arg);"
+    "  union {"
+    "    struct thunk *(*beta)(struct thunk *self, struct thunk *arg);"
+    "    struct thunk *next;"
+    "  } u;"
     "  struct thunk *env[];"
     "};"
     ""
     "void decref(struct thunk *thunk) {"
-    "decref:"
     "  if (--thunk->refcount)"
     "    return;"
-    "  for (unsigned e = 1; e < thunk->envlen; e++)"
-    "    decref(thunk->env[e]);"
-    "  if (thunk->envlen) {"
-    "    struct thunk *env = *thunk->env;"
-    "    free(thunk), thunk = env;"
-    "    goto decref;"
-    "  }"
-    "  free(thunk);"
+    "  struct thunk *top = NULL;"
+    "  do {"
+    "    for (unsigned e = 0; e < thunk->envlen; e++)"
+    "      if (--thunk->env[e]->refcount == 0)"
+    "        thunk->env[e]->u.next = top, top = thunk->env[e];"
+    "    free(thunk), thunk = top;"
+    "  } while (top ? top = top->u.next, 1 : 0);"
     "}"
     ""
     "void dump(struct thunk *thunk) {"
-    // we can't `printf("%p", thunk->beta);` because %p expects a `void *`
+    // we have to print `u.beta` via `u.next` because %p expects a `void *`
     // and function pointers can't be cast to `void *`. see ISO/IEC 9899:TC3,
     // $6.3 'Conversions' and $J.5.7 'Function pointer casts'
-    "  union {"
-    "    struct thunk *(*beta)(struct thunk *thunk, struct thunk *arg);"
-    "    unsigned char buf[sizeof thunk->beta];"
-    "  } u = {thunk->beta};"
-    "  for (unsigned b = 0; b < sizeof u.buf; b++)"
-    "    fprintf(stderr, \"%%02x\", u.buf[b]);"
+    "  fprintf(stderr, \"%%p\", (void *)thunk->u.next);"
     "  fputc('(', stderr);"
     "  for (unsigned e = 0; e < thunk->envlen; e++)"
     "    dump(thunk->env[e]);"
     "  fputc(')', stderr);"
     "}\n");
 
+  for (unsigned l = 0; l < FREELISTS; l++)
+    P("struct thunk *freelist_%u = NULL;", l);
+  P("\n");
+
   P(STRINGIZED(BITSTREAM_LIB) "\n");
 
-  P("struct bs bs_in, bs_out, bs_err;\n"
+  P("struct bs bs_in, bs_out, bs_err;"
     ""
-    "struct thunk thread = {INT_MAX, 0, NULL};"
+    "struct thunk thread = {INT_MAX, 0, {NULL}};"
     ""
     "struct thunk *beta_0(struct thunk *self, struct thunk *arg) {"
     "  struct thunk *memo = *self->env;"
-    "  memo->refcount++, decref(self);"
-    "  return memo->beta(memo, arg);"
+    "  if (--self->refcount)"
+    "    memo->refcount++;"
+    "  else"
+    "    free(self);"
+    "  return memo->u.beta(memo, arg);"
     "}\n");
 
-    struct env *arena = malloc(sizeof *arena);
-    *arena = (struct env){NULL, 0, 0}; // NIL
-    emit(fp, term, &arena, &(size_t){0}, 0, visited);
-    free(arena);
+  struct env *arena = malloc(sizeof *arena);
+  *arena = (struct env){NULL, 0, 0}; // NIL
+  emit(fp, term, true, &arena, &(size_t){0}, visited);
+  free(arena);
 
-    P("int main(void) {"
-      "  bs_in.fp = stdin, bs_out.fp = stdout, bs_err.fp = stderr;"
-      "  struct thunk *top = malloc(sizeof *top + sizeof top);"
-      "  *top = (struct thunk){1, 0, NULL};"
-      "  if (beta_%zu(top, &thread) != &thread) abort();"
-      "}\n",
-      term->u.env);
+  P("int main(void) {"
+    "  bs_in.fp = stdin, bs_out.fp = stdout, bs_err.fp = stderr;"
+    "  static struct thunk top = {INT_MAX, 0, {NULL}};"
+    "  if (beta_%zu(&top, &thread) != &thread) abort();"
+    "}\n",
+    term->u.env);
 }
 
 #undef P
