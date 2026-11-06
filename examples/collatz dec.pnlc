@@ -51,7 +51,7 @@
     ..........head ,0 ,1 ,2 ,3 ,4 ,5 ,6 ,7 ,8 ,9
 \digs:dbg
 
-# parsedigs :: String -> Maybe Digs
+# parsedigs :: Str -> Maybe Digs
 ..def \str .\parsedig
   ...fmap opt:ftor digs::norm
     ...sequence list:tvsb opt:aptv

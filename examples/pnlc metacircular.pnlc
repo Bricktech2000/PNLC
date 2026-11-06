@@ -28,9 +28,9 @@
 ..def \body      \ctx \arg .body ..cons arg ctx \lam
 ..def \idx       \ctx ...opt id $err ..index idx ctx \var
 
-# type Env = List String
-# wsp :: Parser String
-# varp :: Parser String
+# type Env = List Str
+# wsp :: Parser Str
+# varp :: Parser Str
 # termp :: Env -> Parser Prog
 ..def ..many parser:altv .satp isspace \wsp
 ..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp

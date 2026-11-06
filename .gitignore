@@ -1,2 +1,6 @@
-bin/
+pnlc
+emit
+self
 emit.c
+self.c
+self.orig.c

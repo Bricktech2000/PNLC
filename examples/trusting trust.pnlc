@@ -1,0 +1,105 @@
+# vim:tw=80:ft=pnlc:
+# inc:../prelude.pnlc
+
+# this program is a compiler bug. not only can it detect compilation of a chosen
+# victim and inject a malicious patch, it can detect compilation of the compiler
+# itself and inject the patch injector into the new compiler it's making. thus,
+# the bug is not present in the compiler sources but survives in the compiler
+# binaries as the compiler bootstrap itself.
+#
+# the technique is from 'Reflections on Trusting Trust' (Ken Thompson, 1984).
+# the "Unknown Air Force Document" Thompson mentions is 'Multics Security
+# Evaluation: Vulnerability Analysis' (Karger and Schell, 1974). an excerpt
+# of page 52 reads:
+#                          It was noted above that while object code
+#         trap  doors  are  invisible,  they   are   vulnerable   to
+#         recompilations.   The compiler (or assembler) trap door is
+#         inserted to permit object code trap doors to survive  even
+#         a   complete  recompilation  of  the  entire  system.   In
+#         Multics, most of the ring 0 supervisor is written in PL/1.
+#         A penetrator could insert a trap door in the PL/1 compiler
+#         to note when it is compiling a ring 0  module.   Then  the
+#         compiler would insert an object code trap door in the ring
+#         0  module  without listing the code in the listing.  Since
+#         the PL/1 compiler is itself written in PL/1, the trap door
+#         can maintain itself, even when the compiler is recompiled.
+
+# we target the self-compiler 'pnlc definitional.pnlc'. we bug the prelude
+# function `getsep`, which is how the compiler reads in program sources. when
+# the sources contain the comment "# codegen :: ", inject a reconstruction of
+# this file just before it, so as to bug the new compiler. the victim is
+# greeting.pnlc: when the sources contain the string literal "Greetings,
+# {name}", apply a patch that replaces it with "You've been owned, {name}"
+
+# define local copies of some character literals. see 'pnlc definitional.pnlc'
+..def ,a \,a ..def ,b \,b ..def ,c \,c ..def ,d \,d ..def ,e \,e ..def ,f \,f
+..def ,g \,g ..def ,h \,h ..def ,i \,i ..def ,j \,j ..def ,k \,k ..def ,l \,l
+..def ,m \,m ..def ,n \,n ..def ,o \,o ..def ,p \,p ..def ,q \,q ..def ,r \,r
+..def ,s \,s ..def ,t \,t ..def ,u \,u ..def ,v \,v ..def ,w \,w ..def ,x \,x
+..def ,y \,y ..def ,z \,z ..def ,  \,  ..def ,, \,, ..def ,. \,. ..def ,\ \,\
+
+# nonprintable characters can't be used in the data buffers because `quote` will
+# fail to restringify them---especially whitespace characters like newlines,
+# because `quote` will silently replace them with spaces. to generate the data
+# buffers, refer to quine.pnlc
+
+..def \sep ....\code \compiler \patch \victim
+  ..def \str \nil ...cata listf:ftor ..list
+    \head \acc .,  .,. .,, ..cons head acc
+    .,  .,n .,i .,l nil
+  str \quote
+  ...fmap io:ftor .fix \rec \str
+    .....isprefix byte:eq compiler str
+      ...alt list:altv code
+      ..quote code ..quote compiler
+      ..quote patch ..quote victim
+      .,  .,\ .,g .,e .,t .,s .,e .,p
+      .,  str
+    .....isprefix byte:eq victim str
+      ...alt list:altv patch
+      .,  str
+    ...fmap listf:ftor rec str
+  .getsep sep
+
+.,. .,. .,d .,e .,f .,  .,\ .,s .,e .,p .,  .,. .,. .,. .,. .,\ .,c .,o .,d .,e
+.,  .,\ .,c .,o .,m .,p .,i .,l .,e .,r .,  .,\ .,p .,a .,t .,c .,h .,  .,\ .,v
+.,i .,c .,t .,i .,m .,  .,. .,. .,d .,e .,f .,  .,\ .,s .,t .,r .,  .,\ .,n .,i
+.,l .,  .,. .,. .,. .,c .,a .,t .,a .,  .,l .,i .,s .,t .,f .,: .,f .,t .,o .,r
+.,  .,. .,. .,l .,i .,s .,t .,  .,\ .,h .,e .,a .,d .,  .,\ .,a .,c .,c .,  .,.
+.,, .,  .,  .,. .,, .,. .,  .,. .,, .,, .,  .,. .,. .,c .,o .,n .,s .,  .,h .,e
+.,a .,d .,  .,a .,c .,c .,  .,. .,, .,  .,  .,. .,, .,n .,  .,. .,, .,i .,  .,.
+.,, .,l .,  .,n .,i .,l .,  .,s .,t .,r .,  .,\ .,q .,u .,o .,t .,e .,  .,. .,.
+.,. .,f .,m .,a .,p .,  .,i .,o .,: .,f .,t .,o .,r .,  .,. .,f .,i .,x .,  .,\
+.,r .,e .,c .,  .,\ .,s .,t .,r .,  .,. .,. .,. .,. .,. .,i .,s .,p .,r .,e .,f
+.,i .,x .,  .,b .,y .,t .,e .,: .,e .,q .,  .,c .,o .,m .,p .,i .,l .,e .,r .,
+.,s .,t .,r .,  .,. .,. .,. .,a .,l .,t .,  .,l .,i .,s .,t .,: .,a .,l .,t .,v
+.,  .,c .,o .,d .,e .,  .,. .,. .,q .,u .,o .,t .,e .,  .,c .,o .,d .,e .,  .,.
+.,. .,q .,u .,o .,t .,e .,  .,c .,o .,m .,p .,i .,l .,e .,r .,  .,. .,. .,q .,u
+.,o .,t .,e .,  .,p .,a .,t .,c .,h .,  .,. .,. .,q .,u .,o .,t .,e .,  .,v .,i
+.,c .,t .,i .,m .,  .,. .,, .,  .,  .,. .,, .,\ .,  .,. .,, .,g .,  .,. .,, .,e
+.,  .,. .,, .,t .,  .,. .,, .,s .,  .,. .,, .,e .,  .,. .,, .,p .,  .,. .,, .,
+.,  .,s .,t .,r .,  .,. .,. .,. .,. .,. .,i .,s .,p .,r .,e .,f .,i .,x .,  .,b
+.,y .,t .,e .,: .,e .,q .,  .,v .,i .,c .,t .,i .,m .,  .,s .,t .,r .,  .,. .,.
+.,. .,a .,l .,t .,  .,l .,i .,s .,t .,: .,a .,l .,t .,v .,  .,p .,a .,t .,c .,h
+.,  .,. .,, .,  .,  .,s .,t .,r .,  .,. .,. .,. .,f .,m .,a .,p .,  .,l .,i .,s
+.,t .,f .,: .,f .,t .,o .,r .,  .,r .,e .,c .,  .,s .,t .,r .,  .,. .,g .,e .,t
+.,s .,e .,p .,  .,s .,e .,p nil
+
+.,# .,  .,c .,o .,d .,e .,g .,e .,n .,  .,: .,: .,  nil
+
+# .\# .,Y .,o .,u .,' .,v .,e .,  .,b .,e .,e .,n .,
+# .,o .,w .,n .,e .,d .,, .,  name
+
+.,. .,\ .,# .,  .,. .,, .,Y .,  .,. .,, .,o .,  .,. .,, .,u .,  .,. .,, .,' .,
+.,. .,, .,v .,  .,. .,, .,e .,  .,. .,, .,  .,  .,. .,, .,b .,  .,. .,, .,e .,
+.,. .,, .,e .,  .,. .,, .,n .,  .,. .,, .,  .,. .,, .,o .,  .,. .,, .,w .,  .,.
+.,, .,n .,  .,. .,, .,e .,  .,. .,, .,d .,  .,. .,, .,, .,  .,. .,, .,  .,  .,n
+.,a .,m .,e nil
+
+# .,G .,r .,e .,e .,t .,i .,n .,g .,s .,, .,  name
+
+.,. .,, .,G .,  .,. .,, .,r .,  .,. .,, .,e .,  .,. .,, .,e .,  .,. .,, .,t .,
+.,. .,, .,i .,  .,. .,, .,n .,  .,. .,, .,g .,  .,. .,, .,s .,  .,. .,, .,, .,
+.,. .,, .,  .,  .,n .,a .,m .,e nil
+
+\getsep

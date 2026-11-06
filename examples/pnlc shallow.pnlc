@@ -56,9 +56,9 @@
   ..pair ..cons name nil id
 \var
 
-# type Env = List String
-# wsp :: Parser String
-# varp :: Parser String
+# type Env = List Str
+# wsp :: Parser Str
+# varp :: Parser Str
 # termp :: Parser (Pair Env Prog)
 ..def ..many parser:altv .satp isspace \wsp
 ..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp

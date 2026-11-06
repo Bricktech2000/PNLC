@@ -12,6 +12,38 @@
 # leakage from the host runtime. it stores lambda-terms as trees rather than
 # directed graphs so there is duplicate work
 
+# since lambda-terms are stored as trees rather than directed graphs, functions
+# from the prelude are effectively inlined rather than referenced. to alleviate
+# the burden when self-compiling, define local copies of some of the larger
+# prelude functions. each is annotated with the number of lines of C saved by
+# including it. we include any function that saves at least 200 lines. for
+# character literals we include the lowercase alphabet and any other character
+# literal that occurs at least 5 times in this file or in 'trusting trust.pnlc'
+..def statea:mnad \statea:mnad  # 8394
+..def statea:aptv \statea:aptv  # 8082
+..def parser:altv \parser:altv  # 7970
+..def parser:aptv \parser:aptv  # 6574
+..def eputs       \eputs        # 3521
+..def chrp        \chrp         # 1721
+..def nat:ord     \nat:ord      # 0878
+..def parser:mnad \parser:mnad  # 0725
+..def def         \def          # 0633
+..def len         \len          # 0617
+..def lifta2      \lifta2       # 0417
+..def elemindex   \elemindex    # 0392
+..def io:aptv     \io:aptv      # 0290
+..def io:mnad     \io:mnad      # 0248
+..def seqr        \seqr         # 0242
+..def fold        \fold         # 0239
+..def list:ftor   \list:ftor    # 0237
+..def ,a \,a ..def ,b \,b ..def ,c \,c ..def ,d \,d ..def ,e \,e ..def ,f \,f
+..def ,g \,g ..def ,h \,h ..def ,i \,i ..def ,j \,j ..def ,k \,k ..def ,l \,l
+..def ,m \,m ..def ,n \,n ..def ,o \,o ..def ,p \,p ..def ,q \,q ..def ,r \,r
+..def ,s \,s ..def ,t \,t ..def ,u \,u ..def ,v \,v ..def ,w \,w ..def ,x \,x
+..def ,y \,y ..def ,z \,z ..def ,\n \,\n ..def , \, ..def ,# \,# ..def ,$ \,$
+..def ,' \,' ..def ,, \,, ..def ,. \,. ..def ,< \,< ..def ,= \,= ..def ,> \,>
+..def ,\ \,\ ..def ,_ \,_
+
 # data Dig = D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9
 ..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d0 \d0
 ..def \d0 \d1 \d2 \d3 \d4 \d5 \d6 \d7 \d8 \d9 d1 \d1
@@ -334,6 +366,7 @@
       ..pure statea:aptv dnil
     \typ
       ...unput typ \isput ..pair nil
+        ..def ..isput bs_out bs_err \BS
         ...emit byref .lam .lam .io mkone \putenv \putstr
         ...bindk   statea:mnad .smodify digs::inc
         ...bind    statea:mnad .sgets .debug digs:dbg \ONEID
@@ -368,14 +401,14 @@
             .bit .= .bit .-> .u. .beta .( .bit ., .& .zero .) .;
             .bit .= .bit .-> .u. .beta .( .bit ., .& .thread .) .;
             .if .( .bit .!= .& .one_ .&& .bit .!= .& .zero .) .abort .( .) .;
-            .bs_put .( .& ...isput bs_out bs_err ., .bit .== .& .one_ .) .;
+            .bs_put .( .& .BS ., .bit .== .& .one_ .) .;
             .return .cont .-> .u. .beta .( .cont ., .& .thread .) .;
           .} .,\n nil
       .........typ
         ..pair nil
           ...bindk statea:mnad .smodify digs::inc
           ...bind  statea:mnad .sgets .debug digs:dbg \EXITID
-          ..pure   statea:aptv \nil
+          ..pure statea:aptv \nil
             .struct .thunk .* .beta_ .EXITID .(
                 .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
               .if .( .arg .!= .& .thread .) .abort .( .) .;
@@ -384,7 +417,7 @@
         ..pair nil
           ...bindk statea:mnad .smodify digs::inc
           ...bind  statea:mnad .sgets .debug digs:dbg \ERRID
-          ..pure   statea:aptv \nil
+          ..pure statea:aptv \nil
             .struct .thunk .* .beta_ .ERRID .(
                 .struct .thunk .* .self ., .struct .thunk .* .arg .) .{
               .if .( .arg .!= .& .thread .) .abort .( .) .;
@@ -392,8 +425,8 @@
             .} .,\n nil
         ..pair nil
           ...emit byref .lam .io mkzero \emitenv \emitstr
-          ...bindk statea:mnad .smodify digs::inc
-          ...bind  statea:mnad .sgets .debug digs:dbg \EMITID
+          ...bindk   statea:mnad .smodify digs::inc
+          ...bind    statea:mnad .sgets .debug digs:dbg \EMITID
           ....lifta2 statea:aptv queerbird emitstr
           ..pure statea:aptv \nil
             .struct .thunk .* .beta_ .EMITID .(
@@ -599,9 +632,9 @@
   ..pure io:aptv ...typ term isexit false
 \run
 
-# type Env = List String
-# wsp :: Parser String
-# varp :: Parser String
+# type Env = List Str
+# wsp :: Parser Str
+# varp :: Parser Str
 # termp :: Env -> Parser Term
 ..def ..many parser:altv .satp isspace \wsp
 ..def ...seql parser:aptv ..many1 parser:altv .unsatp isspace wsp \varp

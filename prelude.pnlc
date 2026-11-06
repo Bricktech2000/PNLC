@@ -1151,8 +1151,8 @@ none lhs \sqrtrm
 # the number-theoretic definitions of gcd and lcm get muddy around gcd(0,0),
 # lcm(0,0), lcm(0,n) and lcm(n,0), so they tend to be left undefined. but in
 # fact the partial order a|b := TE k. ka=b induces a distributive bounded
-# lattice, and we can define gcd and lcm to be its meet and join, in which
-# case we have that:
+# lattice with top 0 and bottom 1, and we can define gcd and lcm to be its
+# meet and join, in which case it falls out that:
 #     gcd(0,0) = 0    lcm(0,0) = 0    lcm(0,n) = 0    lcm(n,0) = 0
 # the implementations below uphold these identities. it might appear that a
 # call to lcm(0,0) divides by zero, but due to lazy evaluation the division
@@ -2429,21 +2429,21 @@ lhs \bsqrtrm
       ...fmap stream:ftor func .snd ..iterate  leftshift arg
 \tape:cmnd
 ..def .fldb
-  .unpair \head \sqr
-    ..cons head
+  .unpair \headval \sqrval
+    ..cons headval
       ...cardinal .bind list:mnad .tolist sqr:fldb
         ..tolist stream:fldb
-          ...sequence sqr:tvsb stream:aptv sqr
+          ...sequence sqr:tvsb stream:aptv sqrval
 \tape:fldb
 ..def ...tvsb
   tape:ftor
   tape:fldb
-  \elem:aptv .unpair \head \sqr
-    ....lifta2 elem:aptv cons head
+  \elem:aptv .unpair \headaptv \sqraptv
+    ....lifta2 elem:aptv cons headaptv
       ...sequence stream:tvsb elem:aptv
         ...fmap stream:ftor
           ..sequence sqr:tvsb elem:aptv
-          ...sequence sqr:tvsb stream:aptv sqr
+          ...sequence sqr:tvsb stream:aptv sqraptv
 \tape:tvsb
 ..def ..dstv
   tape:ftor
@@ -2993,7 +2993,7 @@ lhs \bsqrtrm
 ..def ..mnid byte::add:sgrp $00 \byte::add:mnid
 
 # def:string
-# type String = List Byte
+# type Str = List Byte
 ..def .list:eq   byte:eq   \str:eq
 ..def .list:ord  byte:ord  \str:ord
 ..def .list:bndd byte:bndd \str:bndd
@@ -3101,7 +3101,7 @@ lhs \bsqrtrm
 ..def ..fmap fna:ftor snd \sexec
 
 # def:parser
-# type Parser a = String -> Opt (Pair a String)
+# type Parser a = Str -> Opt (Pair a Str)
 ..def .ftor
   \func \parserarg
     ...fmap fna:ftor ..fmap opt:ftor ..fmap swapa:ftor func parserarg
