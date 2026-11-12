@@ -1,7 +1,6 @@
 setlocal iskeyword+=:
 setlocal commentstring=#\ %s
 setlocal comments=b:#
-setlocal indentexpr=-1 indentkeys=
 let &l:define = '\sdef:' . '\|^\(\S\+\s\+\)\{-}\\\ze\S\+\(\s\+\(#.*\)\?\)\?$'
 let &l:include = '\sinc:'
 
